@@ -57,12 +57,12 @@
                {:db/id #db/id [:db.part/db -9]
                 :db/ident :bot/rating
                 :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/double
+                :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
                {:db/id #db/id [:db.part/db -10]
                 :db/ident :bot/rating-dev
                 :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/double
+                :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
 
                ; code
@@ -163,7 +163,9 @@
 (defn create-bot
   [user-id game-id]
   (create-entity {:bot/user user-id
-                  :bot/game game-id}))
+                  :bot/game game-id
+                  :bot/rating 1500
+                  :bot/rating-dev 350}))
 
 (defn update-bot-code
   [bot-id code]
