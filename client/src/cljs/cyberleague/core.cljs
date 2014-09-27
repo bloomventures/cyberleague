@@ -26,63 +26,61 @@
                 "Accept" "application/edn"
                 "Authorization" (str "Basic " (js/btoa (string/join ":" auth)))})))
 
-(def app-state (atom {:cards [{:type :games}
-                              {:type :game
-                               :id 123}
-                              {:type :rules
-                               :id 123}
-                              {:type :bot
-                               :id 345}
-                              {:type :code
-                               :id 345}
-                              {:type :match
-                               :id 456}]}))
+(def app-state (atom {:cards []}))
 
-(defn games-card-view [data owner]
+(defn games-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
+        "GAMES"
         (apply dom/div nil
           (map (fn [game] (dom/a nil (game :name) (game :bot-count))) (data :games)))))))
 
-(defn game-card-view [data owner]
+(defn game-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"} "GAME")
-      )))
+      (dom/div #js {:className "card"}
+        "GAME"
+        (:name data)
+        (:description data)
+        (string/join " " (map (fn [bot] (:name bot)) (:bots data)))))))
 
-(defn rules-card-view [data owner]
+(defn rules-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
+      (dom/div #js {:className "card"}
+        (dom/header nil "RULES")
+        (dom/span nil (:name data))
+        (dom/span nil (:rules data))))))
 
-      (dom/div #js {:className "card"} "RULES")
-      )))
-
-(defn bot-card-view [data owner]
+(defn bot-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
+      (dom/div #js {:className "card"} "BOT"
+        (:name data)
+        (:name (:user data))
+      (:name (:game data))
+      "todo history"
+      "todo matches"))))
 
-      (dom/div #js {:className "card"} "BOT")
-      )))
-
-(defn code-card-view [data owner]
+(defn code-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
+      (dom/div #js {:className "card"} "CODE"
+        (:name data)
+        (:code data)))))
 
-      (dom/div #js {:className "card"} "CODE")
-      )))
-
-(defn match-card-view [data owner]
+(defn match-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"} "MATCH")
-      )))
+      (dom/div #js {:className "card"} "MATCH"
+        (:name (:game data))))))
 
 (defn app-view [data owner]
   (reify
@@ -96,13 +94,36 @@
                            :rules rules-card-view
                            :bot bot-card-view
                            :code code-card-view
-                           :match match-card-view) data)) (data :cards))))))
+                           :match match-card-view) card)) (data :cards))))))
+
+(defn open-card [card]
+  (let [url (condp = (:type card)
+              :game (str "/api/games/" (card :id))
+              :games "/api/games"
+              :rules (str "/api/games/" (card :id) "/rules")
+              :bot (str "/api/bots/" (card :id))
+              :code (str "/api/bots/" (card :id) "/code")
+              :match (str "/api/matches/" (card :id)))]
+
+    (edn-xhr {:url url
+              :method :get
+              :on-complete (fn [data]
+                             (swap! app-state (fn [cv] (assoc cv :cards (conj (cv :cards) (assoc card :data data))))))})))
+
 
 (defn init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
-  (edn-xhr {:url "/api/games"
-            :method :get
-            :on-complete (fn [data]
-                           (swap! app-state assoc :games (:games data)))})
-  )
+  (let [cards [{:type :games}
+               {:type :game
+                :id 123}
+               {:type :rules
+                :id 123}
+               {:type :bot
+                :id 345}
+               {:type :code
+                :id 345}
+               {:type :match
+                :id 456}]]
+    (doseq [card cards]
+      (open-card card))))
