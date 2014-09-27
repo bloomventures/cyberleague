@@ -96,17 +96,16 @@
                 :db/valueType :db.type/string
                 :db/doc "Stored as edn vector"
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -16]
-                :db/ident :match/first-move
-                :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/ref
-                :db.install/_attribute :db.part/db}
                {:db/id #db/id [:db.part/db -17]
                 :db/ident :match/winner
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               ]))
+               {:db/id #db/id [:db.part/db -18]
+                :db/ident :match/error
+                :db/cardinality :db.cardinality/one
+                :db/valueType :db.type/boolean
+                :db.install/_attribute :db.part/db}]))
 
 (defmacro with-conn
   "Execute the body with *conn* dynamically bound to a new connection."
