@@ -52,7 +52,7 @@
                {:db/id #db/id [:db.part/db -8]
                 :db/ident :bot/code-version
                 :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/instant
+                :db/valueType :db.type/long ; transaction id
                 :db.install/_attribute :db.part/db}
                {:db/id #db/id [:db.part/db -9]
                 :db/ident :bot/rating
@@ -128,6 +128,8 @@
     (->> (d/resolve-tempid db-after tempids new-id)
          (d/entity db-after))))
 
+;; Users
+
 (defn create-user
   [token uname]
   (create-entity {:user/token token :user/name uname}))
@@ -137,6 +139,8 @@
   [user]
   (let []
     ))
+
+;; Games
 
 (defn create-game
   [name description rules]
@@ -153,3 +157,54 @@
                 [?e :game/name _]]
               db)
          (map (comp (partial d/entity db) first)))))
+
+;; Bots
+
+(defn create-bot
+  [user-id game-id]
+  (create-entity {:bot/user user-id
+                  :bot/game game-id}))
+
+(defn update-bot-code
+  [bot-id code]
+  (let [bot (by-id bot-id)]
+    (-> @(d/transact *conn*
+                     (if-let [old-code (:bot/code bot)]
+                       [[:db/add (:db/id old-code) :code/code code]]
+                       (let [code-id (d/tempid :entities)]
+                         [{:code/code code :db/id code-id}
+                          [:db/add bot-id :bot/code code-id]])))
+        :db-after
+        (d/entity bot-id))))
+
+(defn code-history
+  [bot-id]
+  (->> (d/q '[:find ?code ?tx
+              :in $ ?cid
+              :where
+              [?cid :code/code ?code ?tx true]]
+            (d/history (d/db *conn*))
+            (get-in (by-id bot-id) [:bot/code :db/id]))
+       (sort-by second)
+       vec))
+
+(defn deploy-bot
+  [bot-id]
+  (let [bot (by-id bot-id)
+        code-timestamp (ffirst (d/q '[:find ?tx
+                                      :in $ ?cid
+                                      :where
+                                      [?cid :code/code _ ?tx]]
+                                    (d/db *conn*) (get-in bot [:bot/code :db/id])))]
+    (-> @(d/transact *conn* [[:db/add bot-id :bot/code-version code-timestamp]])
+        :db-after
+        (d/entity bot-id))))
+
+(defn deployed-code
+  [bot-id]
+  (let [bot (by-id bot-id)
+        code-id (get-in bot [:bot/code :db/id])]
+    (when-let [vers (:bot/code-version bot)]
+      (-> (d/as-of (d/db *conn*) (d/t->tx vers))
+          (d/entity code-id)
+          :code/code))))
