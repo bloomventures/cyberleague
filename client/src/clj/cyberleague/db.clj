@@ -205,6 +205,6 @@
   (let [bot (by-id bot-id)
         code-id (get-in bot [:bot/code :db/id])]
     (when-let [vers (:bot/code-version bot)]
-      (-> (d/as-of (d/db *conn*) (d/t->tx vers))
+      (-> (d/as-of (d/db *conn*) vers)
           (d/entity code-id)
           :code/code))))
