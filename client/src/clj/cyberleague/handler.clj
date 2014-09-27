@@ -17,6 +17,11 @@
   (GET "/" []
     (response/resource-response "index.html"))
 
+  (POST "/oauth-message" _
+    (response/resource-response "oauth-message.html"))
+
+  (POST "/login" _
+    (edn-response {:id 555 :name "person"} ))
 
   (context "/api" _
 
