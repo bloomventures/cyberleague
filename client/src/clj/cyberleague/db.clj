@@ -118,13 +118,38 @@
   [eid]
   (d/entity (d/db *conn*) eid))
 
-(defn create-user
-  "Create a user, returning the id"
-  [token uname]
+(defn create-entity
+  "Create a new entity with the given attributes and return the newly-created
+  entity"
+  [attributes]
   (let [new-id (d/tempid :entities)
         {:keys [db-after tempids]} @(d/transact *conn*
-                                       [{:db/id new-id
-                                         :user/token token
-                                         :user/name uname}])]
+                                       [(assoc attributes :db/id new-id)])]
     (->> (d/resolve-tempid db-after tempids new-id)
          (d/entity db-after))))
+
+(defn create-user
+  [token uname]
+  (create-entity {:user/token token :user/name uname}))
+
+(defn user-bots
+  "Get a list of all bots"
+  [user]
+  (let []
+    ))
+
+(defn create-game
+  [name description rules]
+  (create-entity {:game/name name
+                  :game/description description
+                  :game/rules rules}))
+
+(defn games
+  "Get all the game entities"
+  []
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :where
+                [?e :game/name _]]
+              db)
+         (map (comp (partial d/entity db) first)))))
