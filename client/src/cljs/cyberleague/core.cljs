@@ -33,7 +33,7 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        "GAMES"
+        (dom/header nil "GAMES")
         (apply dom/div nil
           (map (fn [game] (dom/a nil (game :name) (game :bot-count))) (data :games)))))))
 
@@ -42,7 +42,7 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        "GAME"
+        (dom/header nil "GAME")
         (:name data)
         (:description data)
         (string/join " " (map (fn [bot] (:name bot)) (:bots data)))))))
@@ -60,7 +60,8 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"} "BOT"
+      (dom/div #js {:className "card"}
+        (dom/header nil "BOT")
         (:name data)
         (:name (:user data))
       (:name (:game data))
@@ -71,7 +72,8 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"} "CODE"
+      (dom/div #js {:className "card"}
+        (dom/header nil "CODE")
         (:name data)
         (:code data)))))
 
@@ -79,7 +81,8 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"} "MATCH"
+      (dom/div #js {:className "card"}
+        (dom/header nil "MATCH")
         (:name (:game data))))))
 
 (defn app-view [data owner]
