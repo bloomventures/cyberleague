@@ -1,0 +1,11 @@
+<html>
+<head>
+</head>
+<body>
+<script>
+var code = window.location.toString().replace(/.+code=/, '');
+window.opener.postMessage(code, window.location);
+window.close();
+</script>
+</body>
+</html>
