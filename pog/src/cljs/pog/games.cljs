@@ -2,15 +2,14 @@
 
 (defprotocol IGameEngine
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
+  (number-of-players [_] "Return the number of players in the game")
   (valid-move? [_ move] "Is the player's move syntactically well-formed?")
   (init-state [_ player-1 player-2] "Create the initial state of the game")
   (legal-move? [_ state player move] "Is the player's move for the given game state legal?")
   (next-state [_ state moves] "Calculate the next state, given the current state
                               and an map of player moves like {player-1-id move1 player-2-id move2}")
   (game-over? [_ state] "Is the game in a finished state?")
-  (winner [_ state] "If the game is over, return the winner of the game")
-
-  )
+  (winner [_ state] "If the game is over, return the winner of the game"))
 
 (defmulti make-engine :game/name)
 
@@ -42,6 +41,8 @@
   (reify
     IGameEngine
     (simultaneous-turns? [_] true)
+
+    (number-of-players [_] 2)
 
     (valid-move? [_ move] (<= 1 move 13))
 

@@ -57,3 +57,15 @@
         (is (game/game-over? g done-state))
         (is (= 12345 (game/winner g done-state)))
         ))))
+
+(deftest clojurescript-misc
+
+  (deftype GameException [info]
+    Object
+    (getInfo [this] info))
+
+  (is (= {:a 1 :x 2}
+         (try
+           (throw (GameException. {:a 1 :x 2}))
+           (catch GameException e
+             (.getInfo e))))))
