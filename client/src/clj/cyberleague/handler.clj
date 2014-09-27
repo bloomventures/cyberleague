@@ -12,7 +12,29 @@
 
 (defroutes app-routes
   (GET "/" []
-    (response/resource-response "index.html")))
+    (response/resource-response "index.html"))
+
+
+  (context "/api" _
+
+    (GET "/games" _)
+
+    (GET "/games/:id" [id])
+
+    (GET "/games/:id/rules" [id])
+
+    (GET "/games/:id/code" [id])
+
+    (GET "/bots/:id" [id])
+
+    (PUT "/bots/:id" [id])
+
+    (POST "/bots/:id/deploy" [id])
+
+    (GET "/matches/:id" [id])
+
+
+    ))
 
 (def app (handler/site
            (routes
