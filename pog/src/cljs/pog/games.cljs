@@ -4,7 +4,7 @@
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
   (number-of-players [_] "Return the number of players in the game")
   (valid-move? [_ move] "Is the player's move syntactically well-formed?")
-  (init-state [_ player-1 player-2] "Create the initial state of the game")
+  (init-state [_ players] "Create the initial state of the game")
   (legal-move? [_ state player move] "Is the player's move for the given game state legal?")
   (next-state [_ state moves] "Calculate the next state, given the current state
                               and an map of player moves like {player-1-id move1 player-2-id move2}")
@@ -46,11 +46,10 @@
 
     (valid-move? [_ move] (<= 1 move 13))
 
-    (init-state [_ player-1 player-2]
+    (init-state [_ players]
       (set-next-trophy
-        {:player-cards
-         {player-1 (set (range 1 14))
-          player-2 (set (range 1 14))}
+        {:player-cards (reduce (fn [a pl-id] (assoc a pl-id (set (range 1 14))))
+                               {} players)
          :trophy-cards (set (range 1 14))
          :current-trophy nil
          :history [ ]}))
