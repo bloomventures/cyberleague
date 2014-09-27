@@ -18,7 +18,7 @@
 
   :profiles
   {:uberjar {:aot :all}
-   :dev {:test-paths ["src/clj" "src/cljs"]
+   :dev {:test-paths ["test/clj" "test/cljs"]
          :plugins [[quickie "0.2.5"]
                    [lein-cljsbuild "1.0.3"]
                    [com.cemerick/clojurescript.test "0.3.1"]]

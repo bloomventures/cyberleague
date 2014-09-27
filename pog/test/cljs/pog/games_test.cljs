@@ -23,7 +23,7 @@
 
   (testing "progressing game state"
     (let [g (game/make-engine {:game/name "goofspiel"})
-          state (game/init-state g 12345 54321)]
+          state (game/init-state g [12345 54321])]
 
       (testing "starting with a good state"
         (is (<= 1 (:current-trophy state) 13))
@@ -57,3 +57,15 @@
         (is (game/game-over? g done-state))
         (is (= 12345 (game/winner g done-state)))
         ))))
+
+(deftest clojurescript-misc
+
+  (deftype GameException [info]
+    Object
+    (getInfo [this] info))
+
+  (is (= {:a 1 :x 2}
+         (try
+           (throw (GameException. {:a 1 :x 2}))
+           (catch GameException e
+             (.getInfo e))))))
