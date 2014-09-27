@@ -28,6 +28,25 @@
 
 (def app-state (atom {:cards []}))
 
+(defn open-card [card]
+  (let [url (condp = (:type card)
+              :game (str "/api/games/" (card :id))
+              :games "/api/games"
+              :rules (str "/api/games/" (card :id) "/rules")
+              :bot (str "/api/bots/" (card :id))
+              :code (str "/api/bots/" (card :id) "/code")
+              :match (str "/api/matches/" (card :id)))]
+
+    (edn-xhr {:url url
+              :method :get
+              :on-complete (fn [data]
+                             (swap! app-state (fn [cv] (assoc cv :cards (conj (cv :cards) (assoc card :data data))))))})))
+
+(defn nav [type id]
+  (fn [e]
+    (open-card {:type type :id id})
+    ))
+
 (defn games-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
@@ -35,17 +54,24 @@
       (dom/div #js {:className "card"}
         (dom/header nil "GAMES")
         (apply dom/div nil
-          (map (fn [game] (dom/a nil (game :name) (game :bot-count))) (data :games)))))))
+          (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) (data :games)))))))
 
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
-        (dom/header nil "GAME")
-        (:name data)
-        (:description data)
-        (string/join " " (map (fn [bot] (:name bot)) (:bots data)))))))
+      (let [game data]
+        (dom/div #js {:className "card"}
+          (dom/header nil (:name game))
+          (dom/div nil
+            (dom/p nil (:description game))
+            (dom/table nil
+              (dom/thead nil)
+              (dom/tbody nil
+                         (apply (fn [bot]
+                                  (dom/tr nil
+                                          (dom/td nil
+                                                  (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot))))) (:bots game))))))))))
 
 (defn rules-card-view [{:keys [data] :as card} owner]
   (reify
@@ -99,25 +125,11 @@
                            :code code-card-view
                            :match match-card-view) card)) (data :cards))))))
 
-(defn open-card [card]
-  (let [url (condp = (:type card)
-              :game (str "/api/games/" (card :id))
-              :games "/api/games"
-              :rules (str "/api/games/" (card :id) "/rules")
-              :bot (str "/api/bots/" (card :id))
-              :code (str "/api/bots/" (card :id) "/code")
-              :match (str "/api/matches/" (card :id)))]
-
-    (edn-xhr {:url url
-              :method :get
-              :on-complete (fn [data]
-                             (swap! app-state (fn [cv] (assoc cv :cards (conj (cv :cards) (assoc card :data data))))))})))
-
-
 (defn init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
-  (let [cards [{:type :games}
+  (let [cards [{:type :games}]
+        caards [{:type :games}
                {:type :game
                 :id 123}
                {:type :rules
