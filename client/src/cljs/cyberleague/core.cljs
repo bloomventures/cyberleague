@@ -71,12 +71,18 @@
           (dom/div nil
             (dom/p nil (:description game))
             (dom/table nil
-              (dom/thead nil)
+              (dom/thead nil
+                         (dom/tr nil
+                                 (dom/th nil "Rank")
+                                 (dom/th nil "Bot")
+                                 (dom/th nil "Rating")))
               (dom/tbody nil
                          (apply (fn [bot]
                                   (dom/tr nil
+                                          (dom/td nil "#")
                                           (dom/td nil
-                                                  (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot))))) (:bots game))))))))))
+                                                  (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
+                                          (dom/td nil (:rating bot)))) (:bots game))))))))))
 
 (defn rules-card-view [{:keys [data] :as card} owner]
   (reify
