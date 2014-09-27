@@ -239,8 +239,8 @@
                 (recur))))
 
         (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
-                                                                :mode "clojure"
-                                                                :lineNumbers true})]
+                                                                  :mode "clojure"
+                                                                  :lineNumbers true})]
           (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
     om/IRender
