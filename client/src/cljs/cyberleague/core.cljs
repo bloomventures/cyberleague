@@ -67,8 +67,10 @@
     (render [_]
       (let [game data]
         (dom/div #js {:className "card game"}
-          (dom/header nil (:name game)
-                     (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/header nil
+                      (:name game)
+                      (dom/a #js {:onClick (nav :rules (:id game))} "RULES")
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div nil
             (dom/p nil (:description game))
             (dom/table nil
