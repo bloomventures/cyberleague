@@ -68,16 +68,16 @@
                                       (cond
                                         (not (games/valid-move? g move))
                                         (throw (GameException.
-                                                 {:error true
-                                                  :invalid-move {:bot (:db/id bot)
-                                                                 :move move}
+                                                 {:error :invalid-move
+                                                  :move {:bot (:db/id bot)
+                                                         :move move}
                                                   :game-state state}))
 
                                         (not (games/legal-move? g state (:db/id bot) move))
                                         (throw (GameException.
-                                                 {:error true
-                                                  :illegal-move {:bot (:db/id bot)
-                                                                 :move move}
+                                                 {:error :illegal-move
+                                                  :move {:bot (:db/id bot)
+                                                         :move move}
                                                   :game-state state}))
 
                                         :else (assoc moves (:db/id bot) move))))
