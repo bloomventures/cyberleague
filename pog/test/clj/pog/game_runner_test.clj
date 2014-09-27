@@ -8,15 +8,17 @@
     (let [result (runner/run-game
                    {:game/name "goofspiel"}
                    [{:db/id 1234
-                     :bot/code-version 12
+                     :bot/code-version 28
                      :bot/deployed-code '(fn [state]
-                                           (:current-trophy state))}
+                                           (println "I always play the current value")
+                                           (state "current-trophy"))}
                     {:db/id 54321
-                     :bot/code-version 4
+                     :bot/code-version 15
                      :bot/deployed-code '(fn [state]
-                                           (if (= 1 (:current-trophy state))
+                                           (println "I always play one less than current value")
+                                           (if (= 1 (state "current-trophy"))
                                              13
-                                             (dec (:current-trophy state))))}])]
+                                             (dec (state "current-trophy"))))}])]
       (println result)
       (is (map? result))
       (is (not (:error result)))
