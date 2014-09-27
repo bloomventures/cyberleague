@@ -1,14 +1,31 @@
 (ns pog.game-runner
   (:require [me.raynes.fs :as fs]
             [cljs.closure :as cljsc]
+            [clojure.string :as string]
             [clojure.edn :as edn]
             [clojure.java.io :as io])
-  (:import [javax.script ScriptEngineManager ScriptException]))
+  (:import [javax.script ScriptEngineManager ScriptContext ScriptException]))
+
+(defn tee [x] (println (pr-str x)) x)
 
 (defn eval-js
-  [js]
-  (let [engine (.getEngineByName (ScriptEngineManager. ) "nashorn")]
-    (.eval engine js)))
+  ([js] (eval-js js {}))
+  ([js extra-bindings]
+   (with-open [f (io/writer "out/debugging.js")]
+     (.write f js))
+   (let [engine (.getEngineByName (ScriptEngineManager. ) "nashorn")
+         bindings (.getBindings engine ScriptContext/GLOBAL_SCOPE)]
+     (doseq [[binding-name script] extra-bindings]
+       (try
+         (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
+           (.put bindings binding-name (.eval eng script)))
+         (println "adding binding for " binding-name)
+         (catch ScriptException ex
+           (println "Failed to add binding for " binding-name (.getMessage ex)))))
+     (try
+       (.eval engine js bindings)
+       (catch ScriptException ex
+         (println "Script exception at" (.getLineNumber ex) ":" (.getMessage ex)))))))
 
 (def game-runner-js "resources/precompiled.js") ; TODO
 
@@ -23,14 +40,20 @@
           (:require cljs.reader
                     [pog.games :as games]))
 
+        (set-print-fn! js/print)
+
         (deftype GameException [info]
           Object
           (getInfo [_] info))
 
         (defn ^:export run-game
-          [game bots]
+          [game bots bot-fns]
+          (println "Running game" game)
+          (println "with bots" bots)
+          (println "and functions " bot-fns)
           (let [game (cljs.reader/read-string game)
-                bots (cljs.reader/read-string bots)
+                bots (->> (cljs.reader/read-string bots)
+                          (map (fn [botfn bot] (assoc bot :bot/function botfn)) (seq bot-fns)))
                 g (games/make-engine game)
                 nplayers (games/number-of-players g)
                 simultaneous? (games/simultaneous-turns? g)]
@@ -42,7 +65,7 @@
                 (if (games/game-over? g state)
                   (pr-str {:error false
                            :winner (games/winner g state)
-                           :history (:history state)})
+                           :history (state "history")})
                   (if simultaneous?
                     ;; For simulatenous turns, get all the moves
                     (let [moves (reduce
@@ -90,17 +113,21 @@
 
               (catch GameException e
                 (pr-str (.getInfo e))))))]
-      {:optimizations :advanced
+      {:optimizations :whitespace
        :elide-asserts true
        :output-dir output-dir
        :output-to game-runner-js
-       :pretty-print false})))
+       :pretty-print true})))
 
 (def bots-dir "out/bots") ; TODO
 
 (defn bot-namespace
   [{bot-id :db/id}]
   (symbol (str "bot-code-" bot-id)))
+
+(defn js-bot-fn
+  [{bot-id :db/id}]
+  (str "bot_code_" bot-id "_run"))
 
 (defn precompile-bot
   [bot]
@@ -113,16 +140,19 @@
       (cljsc/build
         (vector
           (list 'ns (bot-namespace bot))
-          (concat '(defn ^:export run) (rest (:bot/deployed-code bot))))
-        {:optimizations :advanced
+          '(set-print-fn! js/print)
+          (list 'defn ^:export 'bot-ai []  (:bot/deployed-code bot))
+          '(bot-ai))
+        {:optimizations :whitespace
          :elide-asserts true
          :output-dir bot-dir
          :output-to filename
-         :pretty-print false}))))
+         :pretty-print true}))))
 
 (defn code-for
-  [{bot-id :db/id version :bot/code-version}]
-  (slurp (str bots-dir "/" bot-id "/" bot-id "-" version ".js")))
+  [{bot-id :db/id version :bot/code-version :as bot}]
+  (str (slurp (str bots-dir "/" bot-id "/" bot-id "-" version ".js"))
+       (string/replace (bot-namespace bot) #"-" "_") ".bot_ai();"))
 
 (defn run-game
   [game bots]
@@ -136,12 +166,13 @@
         "\n"
         (concat
           [(slurp game-runner-js)]
-          (map code-for bots)
           [(str "pog.precompiled.run_game("
                 (pr-str (pr-str game))
                 ","
-                (->> bots
-                     (map (fn [b] (assoc b :bot/function (symbol (name (bot-namespace b)) "run"))) )
-                     pr-str
-                     pr-str)
-                ");")])))))
+                (pr-str (pr-str bots))
+                ","
+                "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
+                ");")]))
+      (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
+              {}
+              bots))))
