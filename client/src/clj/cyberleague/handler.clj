@@ -41,7 +41,6 @@
                                                     :headers {"Accept" "application/json"}
                                                     :oauth-token token} nil)))
           user {:id (get user-raw "id")
-                :avatar_url (get user-raw "avatar_url")
                 :name (get user-raw "login")}]
 
       (assoc (edn-response user) :session user)))
@@ -55,7 +54,7 @@
          (edn-response session))
 
     (GET "/users/:id" [id]
-      (edn-response {:id 555 :name "asdgagd" :avatar_url "asdfasdfsfd" :bots [{:name "mk36" :id 456 :game {:id 234 :name "goofspiel"}}]}))
+      (edn-response {:id 555 :name "asdgagd" :bots [{:name "mk36" :id 456 :game {:id 234 :name "goofspiel"}}]}))
 
     (GET "/games" _
       (edn-response [{:id 123 :name "foo" :bot-count 123}]))
