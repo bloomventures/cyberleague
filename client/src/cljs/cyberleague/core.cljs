@@ -150,14 +150,13 @@
       (let [bot data]
         (dom/div #js {:className "card bot"}
           (dom/header nil
-                      (dom/div #js {:className "bot"}
-                        (dom/span #js {:className "bot-name"} nil (:name bot))
-                        (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
-                        (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot))))
+                      (:name bot)
                       (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
 
           (dom/div #js {:className "content"}
+            (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
+            (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
             (dom/div nil "TODO RATING OVER TIME GRAPH")
             (dom/table #js {:className "matches"}
               (dom/thead nil)
