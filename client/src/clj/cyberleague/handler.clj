@@ -44,7 +44,8 @@
                      :moves [ {} ]}))
 
     (GET "/bots/:id" [id]
-      (edn-response {:name "foo"
+      (edn-response {:id 123
+                     :name "foo"
                      :user {:id 555 :name "person"}
                      :game {:id 123 :name "foo"}
                      :history [{:rating 123 :rating-dev 123 :code-version 999}]
