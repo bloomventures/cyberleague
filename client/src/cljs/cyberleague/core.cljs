@@ -156,7 +156,7 @@
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
   (let [cards [{:type :games}]
-        caards [{:type :games}
+        cards [{:type :games}
                {:type :game
                 :id 123}
                {:type :rules
