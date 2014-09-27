@@ -27,6 +27,14 @@
   12
   )
 
+(defn set-next-trophy
+  "Helper function for setting the next tropyh"
+  [{:keys [trophy-cards] :as state}]
+  (let [next-trophy (rand-nth (vec trophy-cards))]
+    (-> state
+        (update-in [:trophy-cards] disj next-trophy)
+        (assoc :current-trophy next-trophy))))
+
 (defmethod make-engine "goofspiel"
   [_]
   (reify
@@ -35,13 +43,23 @@
 
     (valid-move? [_ move] (<= 1 move 13))
 
+    (init-state [_ player-1 player-2]
+      (set-next-trophy
+        {:player-cards
+         {player-1 (set (range 1 14))
+          player-2 (set (range 1 14))}
+         :trophy-cards (set (range 1 14))
+         :current-trophy nil
+         :history [ ]}))
+
     (legal-move? [_ state player move]
       (contains? (get-in state [:player-cards player]) move))
 
     (next-state [_ {:keys [player-cards trophy-cards current-trophy history] :as state} moves]
-      (-> state
-          (update-in [:history] conj (apply merge {:trophy (:trophy state)} moves)))
-      )
+      (let [next-trophy (rand-nth (vec trophy-cards))]
+        (-> state
+            (update-in [:history] conj (apply merge {:trophy current-trophy} moves))
+            set-next-trophy)))
 
     (game-over? [_ state])
 
