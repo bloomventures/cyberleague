@@ -8,3 +8,5 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 Session.vim
+/out
+resources/precompiled.js
