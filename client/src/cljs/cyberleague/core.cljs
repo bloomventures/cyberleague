@@ -81,10 +81,12 @@
             :on-complete (nav :bot id)}))
 
 
-(defn new-bot []
+(defn new-bot [game-id]
   (edn-xhr {:url (str "/api/bots")
             :method :post
-            :on-complete (fn [data] ((nav :code (:id data))))}))
+            :data {:game-id game-id}
+            :on-complete (fn [data] ((nav :code (:id data)))
+                                    ((nav :rules game-id)))}))
 
 (defn close [card]
   (fn [e]
@@ -110,7 +112,7 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (:name game)
-                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot))} "SPAWN BOT")
+                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "SPAWN BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/p nil (:description game))
