@@ -1,5 +1,6 @@
 (ns pog.core
   (:require [pog.db :as db]
+            [datomic.api :as d]
             [pog.ranking :as ranking]
             [pog.game-runner :as game-runner]))
 
@@ -31,4 +32,14 @@
               (db/create-entity match)
               (ranking/update-rankings player-1 player-2 (:winner result))
               ))
-          )))))
+          (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
+                                   [player-2 player-1]
+                                   [player-1 player-2])]
+            (db/with-conn
+              (db/create-entity {:match/bots [player-1 player-2]
+                                 :match/error true
+                                 :match/moves (conj (get-in result [:game-state "history"])
+                                                    (get-in result [:move :move]))
+                                 :match/winner winner})
+              (d/transact db/*conn*
+                [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]]))))))))
