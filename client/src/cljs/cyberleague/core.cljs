@@ -264,9 +264,9 @@
 
 (defn login-with-github []
   (.open js/window
-         "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=http://localhost:9999/oauth-message&state=123"
+         "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=123"
          "GitHub Auth"
-         ""))
+         "width=300,height=400"))
 
 (defn app-view [data owner]
   (reify
