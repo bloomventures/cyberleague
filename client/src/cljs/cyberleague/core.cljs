@@ -304,7 +304,7 @@
             :on-complete (fn []
                            (swap! app-state (fn [cv] (assoc cv :user nil))))}))
 
-(defn chat-card-view [data owner]
+(defn chat-card-view [card owner]
   (reify
     om/IRender
     (render [_]
