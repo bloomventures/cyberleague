@@ -3,6 +3,7 @@
 (defprotocol IGameEngine
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
   (valid-move? [_ move] "Is the player's move syntactically well-formed?")
+  (init-state [_ player-1 player-2] "Create the initial state of the game")
   (legal-move? [_ state player move] "Is the player's move for the given game state legal?")
   (next-state [_ state moves] "Calculate the next state, given the current state
                               and an array of player moves like [{:player p1 :move m}]")
@@ -37,17 +38,9 @@
     (legal-move? [_ state player move]
       (contains? (get-in state [:player-cards player]) move))
 
-    (next-state [_ state moves]
-      (let [highest (reduce #(max %1 (:move %2)) 0 (map :move moves))]
-        (if (> 1 (count (filter (comp (partial = (:move highest)) :move) moves)))
-          ; Tie, no-one gets the trophy
-          (-> state
-              (update-in disj )
-              )
-          ; To the victor...
-          state
-          )
-        )
+    (next-state [_ {:keys [player-cards trophy-cards current-trophy history] :as state} moves]
+      (-> state
+          (update-in [:history] conj (apply merge {:trophy (:trophy state)} moves)))
       )
 
     (game-over? [_ state])
