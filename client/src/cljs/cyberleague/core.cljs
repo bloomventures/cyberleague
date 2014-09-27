@@ -327,7 +327,7 @@
                              (dom/a #js {:className "button" :onClick (nav :chat nil)} "Report Bugs")
                              (when-let [user (data :user)]
                                (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
-                                 (dom/img #js {:src (:avatar_url user)})
+                                 (dom/img #js {:src (str "https://avatars.githubusercontent.com/u/" (user :id) "?v=2&s=40")})
                                  "My Bots"))
                              (if-let [user (data :user)]
                                (dom/a #js {:className "button log-out" :onClick (fn [e] (log-out))}  "Log Out")
