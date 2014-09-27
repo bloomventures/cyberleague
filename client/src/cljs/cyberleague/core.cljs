@@ -156,6 +156,58 @@
                                          (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
                                            (:name other-bot)))))) (:matches bot))))))))))
 
+
+(defn move-view [move owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:log-show false})
+    om/IRenderState
+    (render-state [_ state]
+      (dom/tbody nil
+                 (dom/tr #js {:className "clickable" :onClick (fn [e] (om/update-state! owner :log-show not))}
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil (if (state :log-show) "▴" "▾")))
+                 (dom/tr #js {:className (str "log" " " (if (state :log-show) "show" "hide"))}
+                         (dom/td #js {:colSpan 6} "console logs"))))))
+
+
+(defn test-view [game owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {})
+    om/IRenderState
+    (render-state [_ state]
+      (dom/div #js {:className "test"}
+
+        (dom/a #js {:className "button"} "TEST")
+        (dom/a #js {:className "button"} "DEPLOY")
+
+        (apply dom/table nil
+          (concat [(dom/thead nil
+                              (dom/tr nil
+                                      (dom/th nil "Trophy")
+                                      (dom/th nil "Your Move")
+                                      (dom/th nil "Your Score")
+                                      (dom/th nil "Their Move")
+                                      (dom/th nil "Their Score")
+                                      (dom/th nil "")))
+                   (dom/tfoot nil
+                              (dom/tr nil
+                                      (dom/th nil  "Final")
+                                      (dom/th nil nil)
+                                      (dom/th nil 5)
+                                      (dom/th nil nil)
+                                      (dom/th nil 6)
+                                      (dom/th nil nil)))]
+                  (om/build-all move-view [1 2 3 4 5])))
+        "you win!"))))
+
 (defn code-view [game owner]
   (reify
     om/IInitState
@@ -171,14 +223,15 @@
                 (save-code (game :id) content)
                 (recur))))
 
-        (let [cm (js/CodeMirror (om/get-node owner "code") #js {:value (:code game)
+        (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code game)
                                                                 :mode "clojure"
                                                                 :lineNumbers true})]
           (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
     om/IRender
     (render [_]
-      (dom/div #js {:className "code" :ref "code"}))))
+      (dom/div #js {:className "source"}
+        (dom/div #js {:ref "editor"})))))
 
 (defn code-card-view [{:keys [data] :as card} owner]
   (reify
@@ -191,6 +244,7 @@
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view game)
+            (om/build test-view game)
             ))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
