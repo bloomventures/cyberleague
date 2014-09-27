@@ -54,11 +54,12 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card games"}
-        (dom/header nil "GAMES"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
-        (apply dom/div nil
-          (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) (data :games)))))))
+      (let [games data]
+        (dom/div #js {:className "card games"}
+          (dom/header nil "GAMES"
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (apply dom/div nil
+            (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) games)))))))
 
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
