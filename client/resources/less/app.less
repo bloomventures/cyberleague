@@ -67,13 +67,7 @@ body {
       right: 3em;
       top: 0;
       text-decoration: none;
-      background: rgba(255,255,255,0.25);
-      padding: 0.5em 0.5em;
       margin: 0.5em 0;
-      border-radius: 5px;
-      &:hover {
-        background: rgba(255,255,255,0.2);
-      }
     }
 
     .bot {
@@ -100,6 +94,33 @@ body {
   .content {
     padding: 1em;
   }
+
+  &.code {
+    width: 900px;
+    .content {
+      padding: 1em 0;
+
+      .source, .test {
+        width: 50%;
+        display: inline-block;
+        vertical-align: top;
+      }
+
+      .source {
+      }
+      .test {
+        .hide {
+          display: none;
+        }
+        .log {
+          background: #ccc;
+          font-family: Inconsolata, monospace;
+        }
+      }
+
+    }
+
+  }
 }
 
 a {
@@ -108,7 +129,23 @@ a {
   text-decoration: underline;
 }
 
+.button {
+  display: inline-block;
+  padding: 0.5em 0.5em;
+  border-radius: 5px;
+  background: #9fa8da;
+  color: white;
+  text-decoration: none;
+  &:hover {
+    background: #c5cae9;
+  }
+}
+
 .CodeMirror {
   font-family: Inconsolata;
 
+}
+
+.clickable {
+  cursor: pointer;
 }
