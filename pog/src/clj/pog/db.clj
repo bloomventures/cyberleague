@@ -15,9 +15,29 @@
   `(binding [*conn* (d/connect *uri*)]
      ~@body))
 
+(defn create-entity
+  "Create a new entity with the given attributes and return the newly-created
+  entity"
+  [attributes]
+  (let [new-id (d/tempid :entities)
+        {:keys [db-after tempids]} @(d/transact *conn*
+                                       [(assoc attributes :db/id new-id)])]
+    (->> (d/resolve-tempid db-after tempids new-id)
+         (d/entity db-after))))
+
 (defn by-id
   [eid]
   (d/entity (d/db *conn*) eid))
+
+(defn active-bots
+  "Get all bots with deployed code"
+  []
+  (->> (d/q '[:find ?e
+              :where
+              [?e :bot/code-version _]]
+            (d/db *conn*))
+       (map (comp by-id first))
+       (group-by :bot/game)))
 
 (defn deployed-code
   [bot-id]
