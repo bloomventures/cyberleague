@@ -11,7 +11,8 @@
             [clojure.data.json :as json]
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [cyberleague.db :as db]))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
@@ -112,6 +113,7 @@
              {:store (cookie-store {:key "***REMOVED***"})})))
 
 (defn -main  [& [port & args]]
+  (db/init)
   (let [port (if port (Integer/parseInt port) 3000)]
     (run-server app {:port port})
     (println "starting on port " port)))
