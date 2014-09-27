@@ -150,7 +150,6 @@
 
 (defn run-game
   [game bots]
-  (println "Running " (pr-str game) (pr-str bots))
   (when-not (fs/exists? game-runner-js)
     (precompile-game-runner))
   (doseq [bot bots]

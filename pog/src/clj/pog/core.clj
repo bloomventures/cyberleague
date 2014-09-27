@@ -26,10 +26,10 @@
                                                  :bot/deployed-code (db/deployed-code (:db/id player-1))))
                         (-> (into {} player-2) (assoc :db/id (:db/id player-2)
                                                  :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
-        (println (str player-1 " vs " player-2 ": " result))
+        (println (str player-1 " vs " player-2 ": " (:winner result)))
         (if-not (:error result)
           (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
-                            :match/moves (get-in result [:game-state "history"])}
+                            :match/moves (pr-str (get-in result [:game-state "history"]))}
                 match-info (if-let [winner (:winner result)]
                              (assoc match-info :match/winner winner)
                              match-info)]
@@ -40,10 +40,10 @@
                                    [player-2 player-1]
                                    [player-1 player-2])]
             (db/with-conn
-              (db/create-entity {:match/bots [player-1 player-2]
+              (db/create-entity {:match/bots [(:db/id player-1) (:db/id player-2)]
                                  :match/error true
-                                 :match/moves (conj (get-in result [:game-state "history"])
-                                                    (get-in result [:move :move]))
+                                 :match/moves (pr-str (conj (get-in result [:game-state "history"])
+                                                            (get-in result [:move :move])))
                                  :match/winner winner})
               (d/transact db/*conn*
                 [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]]))))))))
