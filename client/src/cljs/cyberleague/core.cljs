@@ -44,15 +44,19 @@
 
 (defn nav [type id]
   (fn [e]
-    (open-card {:type type :id id})
-    ))
+    (open-card {:type type :id id})))
+
+(defn close [card]
+  (fn [e]
+    (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
 
 (defn games-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        (dom/header nil "GAMES")
+        (dom/header nil "GAMES"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
         (apply dom/div nil
           (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) (data :games)))))))
 
@@ -62,7 +66,8 @@
     (render [_]
       (let [game data]
         (dom/div #js {:className "card"}
-          (dom/header nil (:name game))
+          (dom/header nil (:name game)
+                     (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div nil
             (dom/p nil (:description game))
             (dom/table nil
@@ -78,7 +83,8 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        (dom/header nil "RULES")
+        (dom/header nil "RULES"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/span nil (:name data))
         (dom/span nil (:rules data))))))
 
@@ -87,7 +93,8 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        (dom/header nil "BOT")
+        (dom/header nil "BOT"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name data)
         (:name (:user data))
       (:name (:game data))
@@ -99,7 +106,8 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        (dom/header nil "CODE")
+        (dom/header nil "CODE"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name data)
         (:code data)))))
 
@@ -108,7 +116,8 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card"}
-        (dom/header nil "MATCH")
+        (dom/header nil "MATCH"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name (:game data))))))
 
 (defn app-view [data owner]
