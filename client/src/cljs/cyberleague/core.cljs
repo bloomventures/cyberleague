@@ -56,7 +56,6 @@
               :games "/api/games"
               :chat :chat
               :user (str "/api/users/" (card :id))
-              :rules (str "/api/games/" (card :id) "/rules")
               :bot (str "/api/bots/" (card :id))
               :code (str "/api/bots/" (card :id) "/code")
               :match (str "/api/matches/" (card :id)))]
@@ -89,7 +88,7 @@
             :method :post
             :data {:game-id game-id}
             :on-complete (fn [data] ((nav :code (:id data)))
-                                    ((nav :rules game-id)))}))
+                                    ((nav :game game-id)))}))
 
 (defn close [card]
   (fn [e]
@@ -132,19 +131,6 @@
                                           (dom/td nil
                                                   (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
                                           (dom/td nil (:rating bot)))) (:bots game))))))))))
-
-(defn rules-card-view [{:keys [data] :as card} owner]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:className "card rules"}
-        (dom/header nil
-                    (:name data)
-                    " rules"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
-        (dom/div #js {:className "content"}
-          (dom/span nil (:name data))
-          (dom/span nil (:rules data)))))))
 
 (defn bot-card-view [{:keys [data] :as card} owner]
   (reify
@@ -255,7 +241,7 @@
         (dom/div #js {:className "card code"}
           (dom/header nil "CODE"
                       (:name bot)
-                      (dom/a #js {:className "button rules" :onClick (nav :rules (:id (:game bot)))} "RULES")
+                      (dom/a #js {:className "button rules" :onClick (nav :game (:id (:game bot)))} "RULES")
                       (dom/a #js {:className "button test"} "TEST")
                       (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
@@ -338,7 +324,6 @@
                              :game game-card-view
                              :games games-card-view
                              :chat chat-card-view
-                             :rules rules-card-view
                              :bot bot-card-view
                              :code code-card-view
                              :user user-card-view
@@ -367,8 +352,6 @@
                 :id 345}]
         _cards [{:type :games}
                {:type :game
-                :id 123}
-               {:type :rules
                 :id 123}
                {:type :bot
                 :id 345}
