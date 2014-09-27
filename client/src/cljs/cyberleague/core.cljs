@@ -200,9 +200,6 @@
     (render-state [_ state]
       (dom/div #js {:className "test"}
 
-        (dom/a #js {:className "button"} "TEST")
-        (dom/a #js {:className "button" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
-
         (apply dom/table nil
           (concat [(dom/thead nil
                               (dom/tr nil
@@ -256,7 +253,9 @@
         (dom/div #js {:className "card code"}
           (dom/header nil "CODE"
                       (:name bot)
-                      (dom/a #js {:className "button" :onClick (nav :rules (:id (:game bot)))} "RULES")
+                      (dom/a #js {:className "button rules" :onClick (nav :rules (:id (:game bot)))} "RULES")
+                      (dom/a #js {:className "button test"} "TEST")
+                      (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)
