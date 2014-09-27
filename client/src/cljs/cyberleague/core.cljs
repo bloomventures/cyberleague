@@ -308,8 +308,8 @@
     (render [_]
       (dom/div #js {:className "app"}
         (dom/header nil
-                    (dom/div nil "The Cyber League")
-                    (dom/div nil "Build AI bots to play games. Best bot wins!")
+                    (dom/h1 nil "The Cyber League")
+                    (dom/h2 nil "Build AI bots to play games. Best bot wins!")
                     (dom/a #js {:onClick (nav :games nil)} "All Games")
                     (if-let [user (data :user)]
                       (dom/div #js {:className "user"}
