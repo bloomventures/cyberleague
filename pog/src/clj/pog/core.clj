@@ -6,6 +6,7 @@
 
 (defn -main
   [& args]
+  (println "Running games")
   (while true
     (doseq [[game all-bots] (db/with-conn (db/active-bots))]
       (let [player-1 (rand-nth all-bots)
@@ -19,17 +20,21 @@
                           (take 5)
                           rand-nth)
             result (game-runner/run-game
-                     game
-                     [(-> (into {} player-1) (assoc :bot/deployd-code (db/deployed-code (:db/id player-1))))
-                      (-> (into {} player-2) (assoc :bot/deployd-code (db/deployed-code (:db/id player-2))))])]
+                     (into {} game)
+                     (db/with-conn
+                       [(-> (into {} player-1) (assoc :db/id (:db/id player-1)
+                                                 :bot/deployed-code (db/deployed-code (:db/id player-1))))
+                        (-> (into {} player-2) (assoc :db/id (:db/id player-2)
+                                                 :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
+        (println (str player-1 " vs " player-2 ": " result))
         (if-not (:error result)
-          (let [match-info {:match/bots [player-1 player-2]
+          (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
                             :match/moves (get-in result [:game-state "history"])}
                 match-info (if-let [winner (:winner result)]
                              (assoc match-info :match/winner winner)
                              match-info)]
             (db/with-conn
-              (db/create-entity match)
+              (db/create-entity match-info)
               (ranking/update-rankings player-1 player-2 (:winner result))))
           (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
                                    [player-2 player-1]
