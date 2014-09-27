@@ -310,13 +310,15 @@
         (dom/header nil
                     (dom/h1 nil "The Cyber League")
                     (dom/h2 nil "Build AI bots to play games. Best bot wins!")
-                    (dom/a #js {:onClick (nav :games nil)} "All Games")
-                    (if-let [user (data :user)]
-                      (dom/div #js {:className "user"}
-                        (dom/img #js {:src (:avatar_url user)})
-                        (dom/a #js {:onClick (nav :user (:id user))} (:name user))
-                        (dom/a #js {:className "log-out" :onClick (fn [e] (log-out))}  "Log Out"))
-                      (dom/a #js {:onClick (fn [e] (log-in))} "Log In")))
+                    (dom/nav nil
+                             (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
+                             (when-let [user (data :user)]
+                               (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
+                                 (dom/img #js {:src (:avatar_url user)})
+                                 "My Bots"))
+                             (if-let [user (data :user)]
+                               (dom/a #js {:className "button log-out" :onClick (fn [e] (log-out))}  "Log Out")
+                               (dom/a #js {:className "button" :onClick (fn [e] (log-in))} "Log In"))))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
                  (om/build (condp = (:type card)
