@@ -6,6 +6,7 @@
                  [javax.servlet/servlet-api "2.5"]
                  [com.datomic/datomic-pro "0.9.4899"]
                  [http-kit  "2.1.16"]
+                 [org.clojure/data.json "0.2.5"]
                  [compojure "1.1.8"]
                  [org.clojure/clojurescript "0.0-2280"]
                  [org.clojure/core.async "0.1.303.0-886421-alpha"]
