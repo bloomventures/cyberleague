@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [put! chan <! sub pub]]
+            [cljs.core.async :refer [put! chan <! timeout]]
             [clojure.string :as string]
             [goog.events :as events]
             [cljs.reader :as reader])
@@ -26,6 +26,28 @@
                 "Accept" "application/edn"
                 "Authorization" (str "Basic " (js/btoa (string/join ":" auth)))})))
 
+ (defn debounce
+  "Given the input channel source and a debouncing time of msecs, return a new
+  channel that will forward the latest event from source at most every msecs
+  milliseconds"
+  [source msecs]
+  (let [out (chan)]
+    (go
+      (loop [state ::init
+             lastv nil
+             chans [source]]
+        (let [[_ threshold] chans]
+          (let [[v sc] (alts! chans)]
+            (condp = sc
+              source (recur ::debouncing v
+                            (case state
+                              ::init (conj chans (timeout msecs))
+                              ::debouncing (conj (pop chans) (timeout msecs))))
+              threshold (do (when lastv
+                              (put! out lastv))
+                            (recur ::init nil (pop chans))))))))
+    out))
+
 (def app-state (atom {:cards []}))
 
 (defn open-card [card]
@@ -45,6 +67,16 @@
 (defn nav [type id]
   (fn [e]
     (open-card {:type type :id id})))
+
+(defn save-code [id code]
+  (edn-xhr {:url (str "/api/bots/" id)
+            :method :put
+            :data code }))
+
+(defn deploy-bot [id]
+  (edn-xhr {:url (str "/api/bots/" id "/deploy")
+            :method :post
+            :on-complete (nav :bot id)}))
 
 (defn close [card]
   (fn [e]
@@ -129,16 +161,96 @@
                                          (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
                                            (:name other-bot)))))) (:matches bot))))))))))
 
+
+(defn move-view [move owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:log-show false})
+    om/IRenderState
+    (render-state [_ state]
+      (dom/tbody nil
+                 (dom/tr #js {:className "clickable" :onClick (fn [e] (om/update-state! owner :log-show not))}
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil move)
+                         (dom/td nil (if (state :log-show) "▴" "▾")))
+                 (dom/tr #js {:className (str "log" " " (if (state :log-show) "show" "hide"))}
+                         (dom/td #js {:colSpan 6} "console logs"))))))
+
+
+(defn test-view [bot owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {})
+    om/IRenderState
+    (render-state [_ state]
+      (dom/div #js {:className "test"}
+
+        (dom/a #js {:className "button"} "TEST")
+        (dom/a #js {:className "button" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
+
+        (apply dom/table nil
+          (concat [(dom/thead nil
+                              (dom/tr nil
+                                      (dom/th nil "Trophy")
+                                      (dom/th nil "Your Move")
+                                      (dom/th nil "Your Score")
+                                      (dom/th nil "Their Move")
+                                      (dom/th nil "Their Score")
+                                      (dom/th nil "")))
+                   (dom/tfoot nil
+                              (dom/tr nil
+                                      (dom/th nil  "Final")
+                                      (dom/th nil nil)
+                                      (dom/th nil 5)
+                                      (dom/th nil nil)
+                                      (dom/th nil 6)
+                                      (dom/th nil nil)))]
+                  (om/build-all move-view [1 2 3 4 5])))
+        "you win!"))))
+
+(defn code-view [bot owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:update-chan (chan)})
+
+    om/IDidMount
+    (did-mount [_]
+      (let [update-chan (om/get-state owner :update-chan)
+            debounced-update-chan (debounce update-chan 2000)]
+        (go (loop []
+              (let [content (<! debounced-update-chan)]
+                (save-code (bot :id) content)
+                (recur))))
+
+        (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
+                                                                :mode "clojure"
+                                                                :lineNumbers true})]
+          (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
+
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "source"}
+        (dom/div #js {:ref "editor"})))))
+
 (defn code-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card code"}
-        (dom/header nil "CODE"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
-        (dom/div #js {:className "content"}
-          (:name data)
-          (:code data))))))
+      (let [bot data]
+        (dom/div #js {:className "card code"}
+          (dom/header nil "CODE"
+                      (:name bot)
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/div #js {:className "content"}
+            (om/build code-view bot)
+            (om/build test-view bot)
+            ))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
   (reify
@@ -167,8 +279,9 @@
 (defn init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
-  (let [cards [{:type :games}]
-        cards [{:type :games}
+  (let [cards [{:type :code
+                :id 345}]
+        _cards [{:type :games}
                {:type :game
                 :id 123}
                {:type :rules
