@@ -106,6 +106,7 @@
                         (dom/span #js {:className "bot-name"} nil (:name bot))
                         (dom/span #js {:className "user-name"} (:name (:user bot)))
                         (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot))))
+                      (dom/a #js {:onClick (nav :code (:id bot))} "CODE")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div nil "TODO RATING OVER TIME GRAPH")
           (dom/table #js {:className "matches"}
