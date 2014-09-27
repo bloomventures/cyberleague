@@ -80,6 +80,12 @@
             :method :post
             :on-complete (nav :bot id)}))
 
+
+(defn new-bot []
+  (edn-xhr {:url (str "/api/bots")
+            :method :post
+            :on-complete (fn [data] ((nav :code (:id data))))}))
+
 (defn close [card]
   (fn [e]
     (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
@@ -95,6 +101,7 @@
           (dom/div #js {:className "content"}
             (apply dom/div nil
               (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) games))))))))
+
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
@@ -103,7 +110,7 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (:name game)
-                      (dom/a #js {:className "button" :onClick (nav :rules (:id game))} "RULES")
+                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot))} "SPAWN BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/p nil (:description game))
@@ -247,6 +254,7 @@
         (dom/div #js {:className "card code"}
           (dom/header nil "CODE"
                       (:name bot)
+                      (dom/a #js {:className "button" :onClick (nav :rules (:id (:game bot)))} "RULES")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)

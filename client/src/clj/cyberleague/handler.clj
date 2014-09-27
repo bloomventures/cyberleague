@@ -95,6 +95,9 @@
                      :game {:id 123 :name "foo"}
                      :code "(fn [state])"}))
 
+    (POST "/bots" _
+      (edn-response {:id 123}))
+
     (PUT "/bots/:id" [id]
       (edn-response {:status "OK"}))
 
