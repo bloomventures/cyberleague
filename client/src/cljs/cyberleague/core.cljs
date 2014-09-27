@@ -112,7 +112,7 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (:name game)
-                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "SPAWN BOT")
+                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "NEW BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/p nil (:description game))
