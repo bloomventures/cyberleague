@@ -75,7 +75,7 @@
                                (if (= 1 (count winner))
                                  (update-in sc [(ffirst winner)] (fnil (partial + trophy) 0))
                                  sc)))
-                           {} (:moves state))
+                           {} (:history state))
             high-score (reduce max 0 (vals scores))
             winner (filter (comp (partial = high-score) second) scores)]
         (when (= 1 (count winner))

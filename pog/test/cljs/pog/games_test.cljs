@@ -55,4 +55,5 @@
       (is (not (game/game-over? g almost-done-state)))
       (let [done-state (game/next-state g almost-done-state {12345 1 54321 13})]
         (is (game/game-over? g done-state))
+        (is (= 12345 (game/winner g done-state)))
         ))))
