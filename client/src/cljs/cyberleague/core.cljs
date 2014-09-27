@@ -54,6 +54,7 @@
   (let [url (condp = (:type card)
               :game (str "/api/games/" (card :id))
               :games "/api/games"
+              :chat :chat
               :user (str "/api/users/" (card :id))
               :rules (str "/api/games/" (card :id) "/rules")
               :bot (str "/api/bots/" (card :id))
@@ -61,10 +62,12 @@
               :match (str "/api/matches/" (card :id)))]
     (if (some #(= url (:url %)) (:cards @app-state))
       (js/console.log "already open")
-      (edn-xhr {:url url
-                :method :get
-                :on-complete (fn [data]
-                               (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data :url url)])))))}))))
+      (if (= (type "") (type url))
+        (edn-xhr {:url url
+                  :method :get
+                  :on-complete (fn [data]
+                                 (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data :url url)])))))})
+        (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :url url)]))))))))
 
 (defn nav [type id]
   (fn [e]
@@ -301,6 +304,16 @@
             :on-complete (fn []
                            (swap! app-state (fn [cv] (assoc cv :user nil))))}))
 
+(defn chat-card-view [data owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "card chat"}
+        (dom/header nil "Report Bugs"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+        (dom/div #js {:className "content"}
+          (dom/iframe #js {:src "http://www.hipchat.com/g5EB5iQjr?anonymous=1&minimal=1&timezone=CDT" :width "100%" :height "100%"}))))))
+
 (defn app-view [data owner]
   (reify
     om/IRender
@@ -311,6 +324,7 @@
                     (dom/h2 nil "Build AI bots to play games. Best bot wins!")
                     (dom/nav nil
                              (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
+                             (dom/a #js {:className "button" :onClick (nav :chat nil)} "Report Bugs")
                              (when-let [user (data :user)]
                                (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
                                  (dom/img #js {:src (:avatar_url user)})
@@ -323,6 +337,7 @@
                  (om/build (condp = (:type card)
                              :game game-card-view
                              :games games-card-view
+                             :chat chat-card-view
                              :rules rules-card-view
                              :bot bot-card-view
                              :code code-card-view

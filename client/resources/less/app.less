@@ -90,6 +90,7 @@ body {
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 1px 1.5px 0 rgba(0,0,0,0.12);
+  position: relative;
 
   header {
     background: @blue;
@@ -126,8 +127,20 @@ body {
 
   .content {
     padding: 1em;
+    position: absolute;
+    top: 3em;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
   }
 
+  &.chat {
+    width: 500px;
+    .content {
+      padding: 0;
+    }
+  }
   &.code {
     width: 900px;
     .button.rules {
@@ -141,7 +154,6 @@ body {
     }
     .content {
       padding: 0;
-      height: 100%;
 
       .source, .test {
         width: 50%;
