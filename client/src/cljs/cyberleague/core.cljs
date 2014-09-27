@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [put! chan <! sub pub]]
+            [cljs.core.async :refer [put! chan <! timeout]]
             [clojure.string :as string]
             [goog.events :as events]
             [cljs.reader :as reader])
@@ -26,6 +26,28 @@
                 "Accept" "application/edn"
                 "Authorization" (str "Basic " (js/btoa (string/join ":" auth)))})))
 
+ (defn debounce
+  "Given the input channel source and a debouncing time of msecs, return a new
+  channel that will forward the latest event from source at most every msecs
+  milliseconds"
+  [source msecs]
+  (let [out (chan)]
+    (go
+      (loop [state ::init
+             lastv nil
+             chans [source]]
+        (let [[_ threshold] chans]
+          (let [[v sc] (alts! chans)]
+            (condp = sc
+              source (recur ::debouncing v
+                            (case state
+                              ::init (conj chans (timeout msecs))
+                              ::debouncing (conj (pop chans) (timeout msecs))))
+              threshold (do (when lastv
+                              (put! out lastv))
+                            (recur ::init nil (pop chans))))))))
+    out))
+
 (def app-state (atom {:cards []}))
 
 (defn open-card [card]
@@ -41,6 +63,11 @@
               :method :get
               :on-complete (fn [data]
                              (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data)])))))})))
+
+(defn save-code [id code]
+  (edn-xhr {:url (str "/api/bots/" id)
+            :method :put
+            :data code }))
 
 (defn nav [type id]
   (fn [e]
@@ -129,16 +156,42 @@
                                          (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
                                            (:name other-bot)))))) (:matches bot))))))))))
 
+(defn code-view [game owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:update-chan (chan)})
+
+    om/IDidMount
+    (did-mount [_]
+      (let [update-chan (om/get-state owner :update-chan)
+            debounced-update-chan (debounce update-chan 2000)]
+        (go (loop []
+              (let [content (<! debounced-update-chan)]
+                (save-code (game :id) content)
+                (recur))))
+
+        (let [cm (js/CodeMirror (om/get-node owner "code") #js {:value (:code game)
+                                                                :mode "clojure"
+                                                                :lineNumbers true})]
+          (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
+
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "code" :ref "code"}))))
+
 (defn code-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card code"}
-        (dom/header nil "CODE"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
-        (dom/div #js {:className "content"}
-          (:name data)
-          (:code data))))))
+      (let [game data]
+        (dom/div #js {:className "card code"}
+          (dom/header nil "CODE"
+                      (:name game)
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/div #js {:className "content"}
+            (om/build code-view game)
+            ))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
   (reify
