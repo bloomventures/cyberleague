@@ -54,11 +54,11 @@
   (let [url (condp = (:type card)
               :game (str "/api/games/" (card :id))
               :games "/api/games"
+              :user (str "/api/users/" (card :id))
               :rules (str "/api/games/" (card :id) "/rules")
               :bot (str "/api/bots/" (card :id))
               :code (str "/api/bots/" (card :id) "/code")
               :match (str "/api/matches/" (card :id)))]
-
     (if (some #(= url (:url %)) (:cards @app-state))
       (js/console.log "already open")
       (edn-xhr {:url url
@@ -95,7 +95,6 @@
           (dom/div #js {:className "content"}
             (apply dom/div nil
               (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) games))))))))
-
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
@@ -144,7 +143,7 @@
           (dom/header nil
                       (dom/div #js {:className "bot"}
                         (dom/span #js {:className "bot-name"} nil (:name bot))
-                        (dom/span #js {:className "user-name"} (:name (:user bot)))
+                        (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
                         (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot))))
                       (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
@@ -264,6 +263,20 @@
         (dom/div #js {:className "content"}
           (:name (:game data)))))))
 
+(defn user-card-view [{:keys [data] :as card} owner]
+  (reify
+    om/IRender
+    (render [_]
+      (let [user data]
+        (dom/div #js {:className "card user"}
+          (dom/header nil "USER"
+                      (dom/span nil (:name user))
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/div #js {:className "content"}
+            (apply dom/div nil
+              (map (fn [bot]
+                     (dom/a #js {:onClick (nav :bot (:id bot))} (:name (:game bot)) "/" (:name bot))) (user :bots)))))))))
+
 (def login-csrf-key (atom ""))
 
 (defn log-in []
@@ -292,7 +305,7 @@
                     (if-let [user (data :user)]
                       (dom/div #js {:className "user"}
                         (dom/img #js {:src (:avatar_url user)})
-                        (dom/span nil (:name user))
+                        (dom/a #js {:onClick (nav :user (:id user))} (:name user))
                         (dom/a #js {:className "log-out" :onClick (fn [e] (log-out))}  "Log Out"))
                       (dom/a #js {:onClick (fn [e] (log-in))} "Log In")))
         (apply dom/div #js {:className "cards"}
@@ -303,6 +316,7 @@
                              :rules rules-card-view
                              :bot bot-card-view
                              :code code-card-view
+                             :user user-card-view
                              :match match-card-view) card)) (data :cards)))))))
 
 (defn init []

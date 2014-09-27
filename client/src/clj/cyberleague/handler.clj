@@ -54,6 +54,9 @@
     (GET "/user" _
          (edn-response session))
 
+    (GET "/users/:id" [id]
+      (edn-response {:id 555 :name "asdgagd" :avatar_url "asdfasdfsfd" :bots [{:name "mk36" :id 456 :game {:id 234 :name "goofspiel"}}]}))
+
     (GET "/games" _
       (edn-response [{:id 123 :name "foo" :bot-count 123}]))
 
