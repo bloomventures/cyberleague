@@ -21,7 +21,7 @@
   (context "/api" _
 
     (GET "/games" _
-      (edn-response {:games [{:id 123 :name "foo" :bot-count 123}]}))
+      (edn-response [{:id 123 :name "foo" :bot-count 123}]))
 
     (GET "/games/:id" [id]
       (edn-response {:id 123
