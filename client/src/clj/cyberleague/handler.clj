@@ -17,7 +17,7 @@
   (GET "/" []
     (response/resource-response "index.html"))
 
-  (POST "/oauth-message" _
+  (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))
 
   (POST "/login" _
