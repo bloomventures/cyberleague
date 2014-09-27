@@ -262,11 +262,21 @@
         (dom/div #js {:className "content"}
           (:name (:game data)))))))
 
-(defn login-with-github []
+(def login-csrf-key (atom ""))
+
+(defn log-in []
+  (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
+
   (.open js/window
-         "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=123"
+         (str "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=" @login-csrf-key)
          "GitHub Auth"
          "width=300,height=400"))
+
+(defn log-out []
+  (edn-xhr {:url "/logout"
+            :method :post
+            :on-complete (fn []
+                           (swap! app-state (fn [cv] (assoc cv :user nil))))}))
 
 (defn app-view [data owner]
   (reify
@@ -279,8 +289,8 @@
                     (if (data :user)
                       (dom/div nil
                         (dom/span nil (:name (data :user)))
-                        (dom/a nil "Log Out"))
-                      (dom/a #js {:onClick (fn [e] (login-with-github))} "Log In")))
+                        (dom/a #js {:onClick (fn [e] (log-out))}  "Log Out"))
+                      (dom/a #js {:onClick (fn [e] (log-in))} "Log In")))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
                  (om/build (condp = (:type card)
@@ -295,13 +305,20 @@
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
   (js/window.addEventListener "message" (fn [e]
-                                          (println (.-data e))
-                                          ))
+                                          (let [resp (js->clj (.-data e))]
+                                            (if (= (resp "state" @login-csrf-key))
+                                              (edn-xhr {:url (str "/login/" (resp "code"))
+                                                        :method :post
+                                                        :on-complete (fn [data]
+                                                                       (swap! app-state (fn [cv] (assoc cv :user data)))) })
+                                              (js/alert "csrf token error")))))
 
-  #_(edn-xhr {:url "/login"
-            :method :post
+  (edn-xhr {:url "/api/user"
+            :method :get
             :on-complete (fn [data]
-                           (swap! app-state (fn [cv] (assoc cv :user data))))})
+                           (when (data :id)
+                             (swap! app-state (fn [cv] (assoc cv :user data))))
+                           )})
 
   (let [cards [{:type :code
                 :id 345}]
