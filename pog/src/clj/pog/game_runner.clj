@@ -6,8 +6,6 @@
             [clojure.java.io :as io])
   (:import [javax.script ScriptEngineManager ScriptContext ScriptException]))
 
-(defn tee [x] (println (pr-str x)) x)
-
 (defn eval-js
   ([js] (eval-js js {}))
   ([js extra-bindings]
@@ -19,7 +17,6 @@
        (try
          (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
            (.put bindings binding-name (.eval eng script)))
-         (println "adding binding for " binding-name)
          (catch ScriptException ex
            (println "Failed to add binding for " binding-name (.getMessage ex)))))
      (try
@@ -48,9 +45,6 @@
 
         (defn ^:export run-game
           [game bots bot-fns]
-          (println "Running game" game)
-          (println "with bots" bots)
-          (println "and functions " bot-fns)
           (let [game (cljs.reader/read-string game)
                 bots (->> (cljs.reader/read-string bots)
                           (map (fn [botfn bot] (assoc bot :bot/function botfn)) (seq bot-fns)))
