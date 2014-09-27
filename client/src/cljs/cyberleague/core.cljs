@@ -59,10 +59,12 @@
               :code (str "/api/bots/" (card :id) "/code")
               :match (str "/api/matches/" (card :id)))]
 
-    (edn-xhr {:url url
-              :method :get
-              :on-complete (fn [data]
-                             (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data)])))))})))
+    (if (some #(= url (:url %)) (:cards @app-state))
+      (js/console.log "already open")
+      (edn-xhr {:url url
+                :method :get
+                :on-complete (fn [data]
+                               (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data :url url)])))))}))))
 
 (defn nav [type id]
   (fn [e]
