@@ -68,8 +68,8 @@
              app-routes
              (route/resources "/" ))))
 
-(defn -main  [& args]
-  (let [port (Integer/parseInt (System/getenv "PORT"))]
+(defn -main  [& [port & args]]
+  (let [port (if port (Integer/parseInt port) 3000)]
     (run-server app {:port port})
     (println "starting on port " port)))
 
