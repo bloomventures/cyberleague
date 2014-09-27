@@ -64,14 +64,19 @@
               :on-complete (fn [data]
                              (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data)])))))})))
 
+(defn nav [type id]
+  (fn [e]
+    (open-card {:type type :id id})))
+
 (defn save-code [id code]
   (edn-xhr {:url (str "/api/bots/" id)
             :method :put
             :data code }))
 
-(defn nav [type id]
-  (fn [e]
-    (open-card {:type type :id id})))
+(defn deploy-bot [id]
+  (edn-xhr {:url (str "/api/bots/" id "/deploy")
+            :method :post
+            :on-complete (nav :bot id)}))
 
 (defn close [card]
   (fn [e]
@@ -176,7 +181,7 @@
                          (dom/td #js {:colSpan 6} "console logs"))))))
 
 
-(defn test-view [game owner]
+(defn test-view [bot owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -186,7 +191,7 @@
       (dom/div #js {:className "test"}
 
         (dom/a #js {:className "button"} "TEST")
-        (dom/a #js {:className "button"} "DEPLOY")
+        (dom/a #js {:className "button" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
 
         (apply dom/table nil
           (concat [(dom/thead nil
@@ -208,7 +213,7 @@
                   (om/build-all move-view [1 2 3 4 5])))
         "you win!"))))
 
-(defn code-view [game owner]
+(defn code-view [bot owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -220,10 +225,10 @@
             debounced-update-chan (debounce update-chan 2000)]
         (go (loop []
               (let [content (<! debounced-update-chan)]
-                (save-code (game :id) content)
+                (save-code (bot :id) content)
                 (recur))))
 
-        (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code game)
+        (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
                                                                 :mode "clojure"
                                                                 :lineNumbers true})]
           (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
@@ -237,14 +242,14 @@
   (reify
     om/IRender
     (render [_]
-      (let [game data]
+      (let [bot data]
         (dom/div #js {:className "card code"}
           (dom/header nil "CODE"
-                      (:name game)
+                      (:name bot)
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
-            (om/build code-view game)
-            (om/build test-view game)
+            (om/build code-view bot)
+            (om/build test-view bot)
             ))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
@@ -274,8 +279,9 @@
 (defn init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
-  (let [cards [{:type :games}]
-        cards [{:type :games}
+  (let [cards [{:type :code
+                :id 345}]
+        _cards [{:type :games}
                {:type :game
                 :id 123}
                {:type :rules
