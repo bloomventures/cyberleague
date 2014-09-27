@@ -27,7 +27,9 @@
 
   :profiles {:uberjar {:aot :all}
              :dev {:repl-options {:init-ns cyberleague.handler}
-                   :plugins [[lein-cljsbuild "1.0.3"]]
+                   :plugins [[lein-cljsbuild "1.0.3"]
+                             [quickie "0.2.5"]]
+                   :test-paths ["test/clj"]
                    :cljsbuild {:builds [{:id "cyberleague"
                                          :source-paths ["src/cljs" ]
                                          :compiler {:output-to "resources/public/js/out/cyberleague.js"
