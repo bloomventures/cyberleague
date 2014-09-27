@@ -8,6 +8,7 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
             [org.httpkit.server :refer  [run-server]]
+            [cyberleague.mocks :as mocks]
             [clojure.data.json :as json]
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
@@ -88,20 +89,35 @@
                      :matches [{:id 888 :winner 456 :bots [{:name "foo" :id 456}]}]}))
 
     (GET "/bots/:id/code" [id]
-      (edn-response {:id 123
-                     :name "foo"
-                     :user {:id 555 :name "person"}
-                     :game {:id 123 :name "foo"}
-                     :code "(fn [state])"}))
+      ; TODO GET THE BOT
+      (let [bot  {:id 123
+                 :name "foo"
+                 :user {:id (session :id) :name "person"}
+                 :game {:id 123 :name "foo"}
+                 :code "(fn [state])"}]
+        (if (= (:id session) (:id (:user bot)))
+          (edn-response bot)
+          {:status 500})))
 
     (POST "/bots" _
-      (edn-response {:id 123}))
+      (if (:id session)
+        ;TODO CREATE THE BOT
+        (edn-response {:id (mocks/rand-id)})
+        {:status 500}))
 
     (PUT "/bots/:id" [id]
-      (edn-response {:status "OK"}))
+      ;TODO GET THE BOT
+      (let [bot (mocks/gen-bot (session :id) (mocks/rand-id))]
+        (if (= (:id session) (:id (:user bot)))
+          (edn-response {:status "OK"})
+          {:status 500})))
 
     (POST "/bots/:id/deploy" [id]
-      (edn-response {:status "OK"}))))
+      ;TODO GET THE BOT
+      (let [bot (mocks/gen-bot (session :id) (mocks/rand-id))]
+        (if (= (:id session) (:id (:user bot)))
+          (edn-response {:status "OK"})
+          {:status 500})))))
 
 (def app (handler/site
            (wrap-session
