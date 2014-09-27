@@ -40,7 +40,7 @@
     (edn-xhr {:url url
               :method :get
               :on-complete (fn [data]
-                             (swap! app-state (fn [cv] (assoc cv :cards (conj (cv :cards) (assoc card :data data))))))})))
+                             (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data)])))))})))
 
 (defn nav [type id]
   (fn [e]
