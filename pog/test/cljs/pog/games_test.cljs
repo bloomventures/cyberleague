@@ -1,5 +1,6 @@
 (ns pog.games-test
-  (:require [clojure.test :refer :all]
+  (:require-macros [cemerick.cljs.test :refer [is deftest with-test run-tests testing test-var]])
+  (:require [cemerick.cljs.test :as t]
             [pog.games :as game]))
 
 (deftest goofspiel-engine
