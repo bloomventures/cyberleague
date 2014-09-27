@@ -98,14 +98,16 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card bot"}
-        (dom/header nil "BOT"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
-        (:name data)
-        (:name (:user data))
-      (:name (:game data))
-      "todo history"
-      "todo matches"))))
+      (let [bot data]
+        (dom/div #js {:className "card bot"}
+          (dom/header nil
+                      (dom/div #js {:className "bot"}
+                        (dom/span #js {:className "bot-name"} nil (:name bot))
+                        (dom/span #js {:className "user-name"} (:name (:user bot)))
+                        (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot))))
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          "todo history"
+          "todo matches")))))
 
 (defn code-card-view [{:keys [data] :as card} owner]
   (reify
