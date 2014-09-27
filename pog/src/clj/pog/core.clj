@@ -30,8 +30,7 @@
                              match-info)]
             (db/with-conn
               (db/create-entity match)
-              (ranking/update-rankings player-1 player-2 (:winner result))
-              ))
+              (ranking/update-rankings player-1 player-2 (:winner result))))
           (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
                                    [player-2 player-1]
                                    [player-1 player-2])]
