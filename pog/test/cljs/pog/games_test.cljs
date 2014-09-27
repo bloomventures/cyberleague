@@ -23,7 +23,7 @@
 
   (testing "progressing game state"
     (let [g (game/make-engine {:game/name "goofspiel"})
-          state (game/init-state g 12345 54321)]
+          state (game/init-state g [12345 54321])]
 
       (testing "starting with a good state"
         (is (<= 1 (:current-trophy state) 13))
