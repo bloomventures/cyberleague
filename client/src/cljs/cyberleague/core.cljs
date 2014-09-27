@@ -285,11 +285,13 @@
       (dom/div #js {:className "app"}
         (dom/header nil
                     (dom/div nil "The Cyber League")
+                    (dom/div nil "Build AI bots to play games. Best bot wins!")
                     (dom/a #js {:onClick (nav :games nil)} "All Games")
-                    (if (data :user)
-                      (dom/div nil
-                        (dom/span nil (:name (data :user)))
-                        (dom/a #js {:onClick (fn [e] (log-out))}  "Log Out"))
+                    (if-let [user (data :user)]
+                      (dom/div #js {:className "user"}
+                        (dom/img #js {:src (:avatar_url user)})
+                        (dom/span nil (:name user))
+                        (dom/a #js {:className "log-out" :onClick (fn [e] (log-out))}  "Log Out"))
                       (dom/a #js {:onClick (fn [e] (log-in))} "Log In")))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
