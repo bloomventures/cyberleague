@@ -54,15 +54,20 @@
   (let [url (condp = (:type card)
               :game (str "/api/games/" (card :id))
               :games "/api/games"
+              :chat :chat
+              :user (str "/api/users/" (card :id))
               :rules (str "/api/games/" (card :id) "/rules")
               :bot (str "/api/bots/" (card :id))
               :code (str "/api/bots/" (card :id) "/code")
               :match (str "/api/matches/" (card :id)))]
-
-    (edn-xhr {:url url
-              :method :get
-              :on-complete (fn [data]
-                             (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data)])))))})))
+    (if (some #(= url (:url %)) (:cards @app-state))
+      (js/console.log "already open")
+      (if (= (type "") (type url))
+        (edn-xhr {:url url
+                  :method :get
+                  :on-complete (fn [data]
+                                 (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data :url url)])))))})
+        (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :url url)]))))))))
 
 (defn nav [type id]
   (fn [e]
@@ -77,6 +82,14 @@
   (edn-xhr {:url (str "/api/bots/" id "/deploy")
             :method :post
             :on-complete (nav :bot id)}))
+
+
+(defn new-bot [game-id]
+  (edn-xhr {:url (str "/api/bots")
+            :method :post
+            :data {:game-id game-id}
+            :on-complete (fn [data] ((nav :code (:id data)))
+                                    ((nav :rules game-id)))}))
 
 (defn close [card]
   (fn [e]
@@ -102,7 +115,7 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (:name game)
-                      (dom/a #js {:className "button" :onClick (nav :rules (:id game))} "RULES")
+                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "NEW BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/p nil (:description game))
@@ -140,14 +153,13 @@
       (let [bot data]
         (dom/div #js {:className "card bot"}
           (dom/header nil
-                      (dom/div #js {:className "bot"}
-                        (dom/span #js {:className "bot-name"} nil (:name bot))
-                        (dom/span #js {:className "user-name"} (:name (:user bot)))
-                        (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot))))
+                      (:name bot)
                       (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
 
           (dom/div #js {:className "content"}
+            (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
+            (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
             (dom/div nil "TODO RATING OVER TIME GRAPH")
             (dom/table #js {:className "matches"}
               (dom/thead nil)
@@ -190,9 +202,6 @@
     (render-state [_ state]
       (dom/div #js {:className "test"}
 
-        (dom/a #js {:className "button"} "TEST")
-        (dom/a #js {:className "button" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
-
         (apply dom/table nil
           (concat [(dom/thead nil
                               (dom/tr nil
@@ -229,8 +238,8 @@
                 (recur))))
 
         (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
-                                                                :mode "clojure"
-                                                                :lineNumbers true})]
+                                                                  :mode "clojure"
+                                                                  :lineNumbers true})]
           (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
     om/IRender
@@ -246,6 +255,9 @@
         (dom/div #js {:className "card code"}
           (dom/header nil "CODE"
                       (:name bot)
+                      (dom/a #js {:className "button rules" :onClick (nav :rules (:id (:game bot)))} "RULES")
+                      (dom/a #js {:className "button test"} "TEST")
+                      (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)
@@ -261,6 +273,20 @@
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
           (:name (:game data)))))))
+
+(defn user-card-view [{:keys [data] :as card} owner]
+  (reify
+    om/IRender
+    (render [_]
+      (let [user data]
+        (dom/div #js {:className "card user"}
+          (dom/header nil "USER"
+                      (dom/span nil (:name user))
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/div #js {:className "content"}
+            (apply dom/div nil
+              (map (fn [bot]
+                     (dom/a #js {:onClick (nav :bot (:id bot))} (:name (:game bot)) "/" (:name bot))) (user :bots)))))))))
 
 (def login-csrf-key (atom ""))
 
@@ -278,27 +304,44 @@
             :on-complete (fn []
                            (swap! app-state (fn [cv] (assoc cv :user nil))))}))
 
+(defn chat-card-view [data owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "card chat"}
+        (dom/header nil "Report Bugs"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+        (dom/div #js {:className "content"}
+          (dom/iframe #js {:src "http://www.hipchat.com/g5EB5iQjr?anonymous=1&minimal=1&timezone=CDT" :width "100%" :height "100%"}))))))
+
 (defn app-view [data owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className "app"}
         (dom/header nil
-                    (dom/div nil "The Cyber League")
-                    (dom/a #js {:onClick (nav :games nil)} "All Games")
-                    (if (data :user)
-                      (dom/div nil
-                        (dom/span nil (:name (data :user)))
-                        (dom/a #js {:onClick (fn [e] (log-out))}  "Log Out"))
-                      (dom/a #js {:onClick (fn [e] (log-in))} "Log In")))
+                    (dom/h1 nil "The Cyber League")
+                    (dom/h2 nil "Build AI bots to play games. Best bot wins!")
+                    (dom/nav nil
+                             (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
+                             (dom/a #js {:className "button" :onClick (nav :chat nil)} "Report Bugs")
+                             (when-let [user (data :user)]
+                               (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
+                                 (dom/img #js {:src (:avatar_url user)})
+                                 "My Bots"))
+                             (if-let [user (data :user)]
+                               (dom/a #js {:className "button log-out" :onClick (fn [e] (log-out))}  "Log Out")
+                               (dom/a #js {:className "button" :onClick (fn [e] (log-in))} "Log In"))))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
                  (om/build (condp = (:type card)
                              :game game-card-view
                              :games games-card-view
+                             :chat chat-card-view
                              :rules rules-card-view
                              :bot bot-card-view
                              :code code-card-view
+                             :user user-card-view
                              :match match-card-view) card)) (data :cards)))))))
 
 (defn init []
