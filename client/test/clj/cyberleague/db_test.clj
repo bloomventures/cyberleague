@@ -11,5 +11,8 @@
 
 (deftest database-stuff
   (testing "Can create a user"
-    (println (db/create-user "token" "name"))
-    ))
+    (let [new-user (db/create-user "token" "name")]
+      (is (= "name" (:user/name new-user)))
+      (is (= "token" (:user/token new-user)))
+      (is (= new-user (db/by-id (:db/id new-user))))
+      )))
