@@ -127,4 +127,4 @@
                                          :user/token token
                                          :user/name uname}])]
     (->> (d/resolve-tempid db-after tempids new-id)
-        (d/entity db-after))))
+         (d/entity db-after))))
