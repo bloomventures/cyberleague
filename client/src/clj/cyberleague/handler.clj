@@ -68,11 +68,6 @@
                              :rating 100
                              :id 456 }]}))
 
-    (GET "/games/:id/rules" [id]
-      (edn-response {:id 123
-                     :name "foo"
-                     :rules "foo rules"}))
-
     (GET "/matches/:id" [id]
       (edn-response {:id 890
                      :winner 456
