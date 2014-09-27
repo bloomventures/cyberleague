@@ -5,13 +5,20 @@
             [compojure.route :as route]
             [ring.util.response :as response]
             [ring.util.codec :refer  [url-encode]]
+            [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.session.cookie :refer [cookie-store]]
             [org.httpkit.server :refer  [run-server]]
+            [clojure.data.json :as json]
+            [org.httpkit.client :refer [request]]
             [clojure.string :as string]
             [clojure.java.io :as io]))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
    :body (pr-str clj-body)})
+
+(defn string-keys-to-keywords [m]
+  (reduce-kv #(assoc %1 (keyword %2) %3) {} m))
 
 (defroutes app-routes
   (GET "/" []
@@ -20,10 +27,32 @@
   (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))
 
-  (POST "/login" _
-    (edn-response {:id 555 :name "person"} ))
+  (POST "/login/:code" [code]
+    (let [resp @(request {:url  "https://github.com/login/oauth/access_token"
+                          :method :post
+                          :headers {"Accept" "application/json"}
+                          :query-params {"client_id" "c3e1d987d59e4ab7f433"
+                                         "client_secret" "62ace985f21627c0d4c6703ac24fed3b38cb3447"
+                                         "code" code }
+                          } nil)
+          token (get (json/read-str (resp :body)) "access_token")
+          user-raw (json/read-str (:body @(request {:url  "https://api.github.com/user"
+                                                    :method :get
+                                                    :headers {"Accept" "application/json"}
+                                                    :oauth-token token} nil)))
+          user {:id (get user-raw "id")
+                :avatar_url (get user-raw "avatar_url")
+                :name (get user-raw "login")}]
 
-  (context "/api" _
+      (assoc (edn-response user) :session user)))
+
+   (POST "/logout" _
+     (assoc (edn-response {:status "OK"}) :session nil))
+
+  (context "/api" {session :session}
+
+    (GET "/user" _
+         (edn-response session))
 
     (GET "/games" _
       (edn-response [{:id 123 :name "foo" :bot-count 123}]))
@@ -70,9 +99,11 @@
       (edn-response {:status "OK"}))))
 
 (def app (handler/site
-           (routes
-             app-routes
-             (route/resources "/" ))))
+           (wrap-session
+             (routes
+               app-routes
+               (route/resources "/" ))
+             {:store (cookie-store {:key "runG4aurf8ek9caK"})})))
 
 (defn -main  [& [port & args]]
   (let [port (if port (Integer/parseInt port) 3000)]
