@@ -54,7 +54,7 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
+      (dom/div #js {:className "card games"}
         (dom/header nil "GAMES"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (apply dom/div nil
@@ -65,7 +65,7 @@
     om/IRender
     (render [_]
       (let [game data]
-        (dom/div #js {:className "card"}
+        (dom/div #js {:className "card game"}
           (dom/header nil (:name game)
                      (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div nil
@@ -88,7 +88,7 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
+      (dom/div #js {:className "card rules"}
         (dom/header nil "RULES"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/span nil (:name data))
@@ -98,7 +98,7 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
+      (dom/div #js {:className "card bot"}
         (dom/header nil "BOT"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name data)
@@ -111,7 +111,7 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
+      (dom/div #js {:className "card code"}
         (dom/header nil "CODE"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name data)
@@ -121,7 +121,7 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "card"}
+      (dom/div #js {:className "card match"}
         (dom/header nil "MATCH"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (:name (:game data))))))
