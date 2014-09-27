@@ -9,17 +9,13 @@
                    {:game/name "goofspiel"}
                    [{:db/id 1234
                      :bot/code-version 28
-                     :bot/deployed-code '(fn [state]
-                                           (println "I always play the current value")
-                                           (state "current-trophy"))}
+                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
                     {:db/id 54321
                      :bot/code-version 15
                      :bot/deployed-code '(fn [state]
-                                           (println "I always play one less than current value")
                                            (if (= 1 (state "current-trophy"))
                                              13
                                              (dec (state "current-trophy"))))}])]
-      (println result)
       (is (map? result))
       (is (not (:error result)))
       (is (= 1234 (:winner result)))
