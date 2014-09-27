@@ -262,22 +262,46 @@
         (dom/div #js {:className "content"}
           (:name (:game data)))))))
 
+(defn login-with-github []
+  (.open js/window
+         "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=http://localhost:9999/oauth-message&state=123"
+         "GitHub Auth"
+         ""))
+
 (defn app-view [data owner]
   (reify
     om/IRender
     (render [_]
-      (apply dom/div #js {:className "cards"}
-        (map (fn [card]
-               (om/build (condp = (:type card)
-                           :game game-card-view
-                           :games games-card-view
-                           :rules rules-card-view
-                           :bot bot-card-view
-                           :code code-card-view
-                           :match match-card-view) card)) (data :cards))))))
+      (dom/div #js {:className "app"}
+        (dom/header nil
+                    (dom/div nil "The Cyber League")
+                    (dom/a #js {:onClick (nav :games nil)} "All Games")
+                    (if (data :user)
+                      (dom/div nil
+                        (dom/span nil (:name (data :user)))
+                        (dom/a nil "Log Out"))
+                      (dom/a #js {:onClick (fn [e] (login-with-github))} "Log In")))
+        (apply dom/div #js {:className "cards"}
+          (map (fn [card]
+                 (om/build (condp = (:type card)
+                             :game game-card-view
+                             :games games-card-view
+                             :rules rules-card-view
+                             :bot bot-card-view
+                             :code code-card-view
+                             :match match-card-view) card)) (data :cards)))))))
 
 (defn init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
+
+  (js/window.addEventListener "message" (fn [e]
+                                          (println (.-data e))
+                                          ))
+
+  #_(edn-xhr {:url "/login"
+            :method :post
+            :on-complete (fn [data]
+                           (swap! app-state (fn [cv] (assoc cv :user data))))})
 
   (let [cards [{:type :code
                 :id 345}]
