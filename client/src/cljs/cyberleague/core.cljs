@@ -9,6 +9,17 @@
 
 (def app-state (atom {}))
 
+
+(defn games-card-view [data owner])
+
+(defn game-card-view [data owner])
+
+(defn rules-card-view [data owner])
+
+(defn code-card-view [data owner])
+
+(defn match-card-view [data owner])
+
 (defn app-view [data owner]
   (reify
     om/IRender
