@@ -9,6 +9,9 @@
             [clojure.string :as string]
             [clojure.java.io :as io]))
 
+(defn edn-response [clj-body]
+  {:headers {"Content-Type" "application/edn; charset=utf-8" }
+   :body (pr-str clj-body)})
 
 (defroutes app-routes
   (GET "/" []
@@ -17,24 +20,48 @@
 
   (context "/api" _
 
-    (GET "/games" _)
+    (GET "/games" _
+      (edn-response {:games [{:id 123 :name "foo" :bot-count 123}]}))
 
-    (GET "/games/:id" [id])
+    (GET "/games/:id" [id]
+      (edn-response {:id 123
+                     :name "foo"
+                     :description "foo description"
+                     :bots [{:name "mk36"
+                             :rating 100
+                             :id 456 }]}))
 
-    (GET "/games/:id/rules" [id])
+    (GET "/games/:id/rules" [id]
+      (edn-response {:id 123
+                     :name "foo"
+                     :rules "foo rules"}))
 
-    (GET "/games/:id/code" [id])
+    (GET "/matches/:id" [id]
+      (edn-response {:id 890
+                     :winner 456
+                     :game {:name "foo" :id 123}
+                     :bots [{:name "foo" :id 456}]
+                     :moves [ {} ]}))
 
-    (GET "/bots/:id" [id])
+    (GET "/bots/:id" [id]
+      (edn-response {:name "foo"
+                     :user {:id 555 :name "person"}
+                     :game {:id 123 :name "foo"}
+                     :history [{:rating 123 :rating-dev 123 :code-version 999}]
+                     :matches [{:id 888 :winner 456 :bots [{:name "foo" :id 456}]}]}))
 
-    (PUT "/bots/:id" [id])
+    (GET "/bots/:id/code" [id]
+      (edn-response {:id 123
+                     :name "foo"
+                     :user {:id 555 :name "person"}
+                     :game {:id 123 :name "foo"}
+                     :code "(fn [state])"}))
 
-    (POST "/bots/:id/deploy" [id])
+    (PUT "/bots/:id" [id]
+      (edn-response {:status "OK"}))
 
-    (GET "/matches/:id" [id])
-
-
-    ))
+    (POST "/bots/:id/deploy" [id]
+      (edn-response {:status "OK"}))))
 
 (def app (handler/site
            (routes
