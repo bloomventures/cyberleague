@@ -57,7 +57,7 @@
 (def game-goofspiel
   {:name "Goofspiel"
    :description "Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with simple rules but surprising depth.
-                3 suits are taken from the game, one is yours to play with, another is your opponent's, and the third is the trophy deck (what you fight over). Each round, one of the trophy cards is revealed, then you and your opponent simultaneously bid one of your cards. The player with the higher bid score the value of the trophy card. If there's a tie, no one scores. The trophy and bid cards are removed. Once all trophy cards have been revealed, the scores are tallied: the winner is the player with the most points (sum of the value of the trophy cards they scored)."
+                3 suits are taken from the game, one is yours to play with, another is your opponent's, and the third is the trophy deck (what you fight over). Each round, one of the trophy cards is revealed, then you and your opponent simultaneously bid one of your cards. The player with the higher bid scores the value of the trophy card. If there's a tie, no one scores. The spent trophy and bid cards are removed, and the next round is played. Once all cards have been played, the scores are tallied: the winner is the player with the most points (the sum of the value of the trophy cards they scored)."
 
    :rules "For our purposes, the game is played with the integers 1 through 12.
 
