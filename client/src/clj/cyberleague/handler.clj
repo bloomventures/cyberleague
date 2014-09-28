@@ -103,7 +103,9 @@
                        })))
 
     (GET "/bots/:bot-id" [bot-id]
-      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))
+            matches (db/with-conn (db/get-bot-matches (:db/id bot)))
+            history (db/with-conn (db/get-bot-history (:db/id bot)))]
         (edn-response {:id (:db/id bot)
                        :name (:bot/name bot)
                        :game (let [game (:bot/game bot)]
@@ -113,9 +115,11 @@
                                {:id (:db/id user)
                                 :name (:user/name user)
                                 :gh-id (:user/gh-id user)})
-                       ;                       :history nil ; TODO
-                       ;                       :matches nil ; TODO
-                       })))
+                       :history (map (fn [point] {:rating (:bot/rating point)
+                                                  :rating-dev (:bot/rating-dev point)
+                                                  :deployed false ; TODO
+                                                  }) history)
+                       :matches (map (fn [match] {:id (:db/id match)} ) matches)})))
 
     (GET "/bots/:bot-id/code" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]

@@ -205,6 +205,11 @@
         :db-after
         (d/entity bot-id))))
 
+(defn update-bot-rating [bot-id rating rating-dev]
+  @(d/transact *conn*
+              [[:db/add bot-id :bot/rating rating]
+               [:db/add bot-id :bot/rating-dev rating-dev]]))
+
 (defn code-history
   [bot-id]
   (->> (d/q '[:find ?code ?tx
@@ -244,6 +249,35 @@
 (defn get-bot [id]
   (by-id id))
 
+(defn get-bot-matches [bot-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :match/bots ?p-id]]
+              db
+              bot-id)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-bot-history
+  [bot-id]
+  (->> (d/q '[:find ?inst ?attr ?val
+              :in $ ?e
+              :where
+              [?e ?a ?val ?tx]
+              [?a :db/ident ?attr]
+              [?tx :db/txInstant ?inst]]
+            (d/history (d/db *conn*))
+            bot-id
+            )
+       (group-by first)
+       (reduce-kv (fn [memo k v]
+                    (let [rating (last (first (filter #(and (= :bot/rating (second %))) v)))
+                          rating-dev (last (first (filter #(and (= :bot/rating-dev (second %))) v)))]
+                      (if (and rating rating-dev)
+                        (conj memo {:inst k :rating rating :rating-dev rating-dev})
+                        memo))) [])
+       (sort-by :inst)
+       vec))
 
 ;; Matches
 

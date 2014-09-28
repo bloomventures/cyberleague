@@ -57,6 +57,7 @@
     bot))
 
 
+(db/update-bot-rating (:db/id bot-goofspiel) (rand-int 2000) (rand-int 500))
 
 
 (def game-ultimate-tic-tac-toe
