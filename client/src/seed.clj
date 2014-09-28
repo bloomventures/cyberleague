@@ -37,21 +37,21 @@
     bot))
 
 (def bot-goofspiel-2
-  (let [bot (db/with-conn (db/create-tob (:db/id user-raf) (:db/id game-goofspiel)))
+  (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-goofspiel)))
         _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                     (let [trophy (state "current-trophy")]
                                                                       (get [1 2 3 4 5 6 7 8 9 10 11 12] (- trophy 1)))))))]
     bot))
 
 (def bot-goofspiel-3
-  (let [bot (db/with-conn (db/create-tob (:db/id user-james) (:db/id game-goofspiel)))
+  (let [bot (db/with-conn (db/create-bot (:db/id user-james) (:db/id game-goofspiel)))
         _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                     (let [trophy (state "current-trophy")]
                                                                       trophy)))))]
     bot))
 
 (def bot-goofspiel-4
-  (let [bot (db/with-conn (db/create-tob (:db/id user-raf) (:db/id game-goofspiel)))
+  (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-goofspiel)))
         _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                     (rand-nth (vec (get-in state ["player-cards" (:db/id bot)])))))))]
     bot))
