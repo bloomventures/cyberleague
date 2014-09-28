@@ -56,6 +56,7 @@
               :game (str "/api/games/" (card :id))
               :games "/api/games"
               :chat :chat
+              :users "/api/users"
               :user (str "/api/users/" (card :id))
               :bot (str "/api/bots/" (card :id))
               :code (str "/api/bots/" (card :id) "/code")
@@ -93,6 +94,26 @@
 (defn close [card]
   (fn [e]
     (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
+
+(defn users-card-view [{:keys [data] :as card} owner]
+  (reify
+    om/IRender
+    (render [_]
+      (let [users data]
+        (dom/div #js {:className "card users"}
+          (dom/header nil "USERS"
+                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/div #js {:className "content"}
+            (dom/table nil
+              (dom/thead nil
+                         (dom/tr nil
+                                 (dom/th nil "Name")
+                                 (dom/th nil "Active Bots")))
+              (apply dom/tbody nil
+                (map (fn [user]
+                       (dom/tr nil
+                               (dom/td nil (dom/a #js {:onClick (nav :user (user :id))} (user :name) ))
+                               (dom/td nil (user :bot-count)))) users)))))))))
 
 (defn games-card-view [{:keys [data] :as card} owner]
   (reify
@@ -336,6 +357,7 @@
                     (dom/h2 nil "Build AI bots to play games. Best bot wins!")
                     (dom/nav nil
                              (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
+                             (dom/a #js {:className "button" :onClick (nav :users nil)} "All Users")
                              (dom/a #js {:className "button" :onClick (nav :chat nil)} "Chat")
                              (when-let [user (data :user)]
                                (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
@@ -349,6 +371,7 @@
                  (om/build (condp = (:type card)
                              :game game-card-view
                              :games games-card-view
+                             :users users-card-view
                              :chat chat-card-view
                              :bot bot-card-view
                              :code code-card-view

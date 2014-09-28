@@ -64,6 +64,17 @@
     (GET "/user" _
       (edn-response session))
 
+    (GET "/users" _
+      (let [users (db/with-conn (db/get-users))]
+        (edn-response (map
+                        (fn [user]
+                          {:id (:db/id user)
+                           :name (:user/name user)
+                           :gh-id (:user/gh-id user)
+                           ; TODO likely a better way to fetch counts in datomic
+                           :bot-count (count (db/with-conn (db/get-user-bots (:db/id user))))}
+                          ) users))))
+
     (GET "/users/:other-user-id" [other-user-id]
       (let [user (db/with-conn (db/get-user (to-long other-user-id)))
             bots (db/with-conn (db/get-user-bots (to-long other-user-id)))]
