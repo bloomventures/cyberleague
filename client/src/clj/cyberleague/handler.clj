@@ -56,7 +56,7 @@
   (POST "/logout" _
     (assoc (edn-response {:status 200}) :session nil))
 
-  (context "/api" {{:keys [user-id] :as session} :session}
+  (context "/api" {{:keys [id] :as session} :session}
 
     (GET "/user" _
       (edn-response session))
@@ -116,7 +116,7 @@
 
     (GET "/bots/:bot-id/code" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
-        (if (= user-id (:db/id (:bot/user bot)))
+        (if (= id (:db/id (:bot/user bot)))
           (edn-response {:id (:db/id bot)
                          :name (:db/name bot)
                          :code (:code/code (:bot/code bot))
@@ -130,23 +130,25 @@
           {:status 500})))
 
     (POST "/games/:game-id/bot" [game-id]
-      (if user-id
-        (edn-response {:id (:db/id (db/with-conn (db/create-bot user-id (to-long game-id))))})
+      (if id
+        (let [bot (db/with-conn (db/create-bot id (to-long game-id)))
+              _ (db/with-conn (db/update-bot-code (:db/id bot) "(fn [state] )"))]
+          (edn-response {:id (:db/id bot)}))
         {:status 500}))
 
     (PUT "/bots/:bot-id/code" [bot-id code]
-      (if user-id
+      (if id
         (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
-          (if (= user-id (:id (:user bot)))
-            (do (db/with-conn (db/update-bot-code (:id bot) code))
+          (if (= id (:db/id (:bot/user bot)))
+            (do (db/with-conn (db/update-bot-code (:db/id bot) code))
                 (edn-response {:status 200}))
             {:status 500}))
         {:status 500}))
 
     (POST "/bots/:bot-id/deploy" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
-        (if (and bot (= (:id session) (:id (:user bot))))
-          (do (db/with-conn (db/deploy-bot (to-long bot-id)))
+        (if (and bot (= id (:db/id (:bot/user bot))))
+          (do (db/with-conn (db/deploy-bot (:db/id bot)))
               (edn-response {:status 200}))
           {:status 500})))))
 
