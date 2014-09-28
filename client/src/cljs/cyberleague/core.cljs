@@ -131,8 +131,8 @@
                                  (dom/th nil "Rank")
                                  (dom/th nil "Bot")
                                  (dom/th nil "Rating")))
-              (dom/tbody nil
-                         (apply (fn [bot]
+              (apply dom/tbody nil
+                         (map (fn [bot]
                                   (dom/tr nil
                                           (dom/td nil "#")
                                           (dom/td nil
