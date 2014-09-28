@@ -27,81 +27,76 @@
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -4]
-                :db/ident :game/rules
-                :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/string
-                :db.install/_attribute :db.part/db}
 
                ; bot
-               {:db/id #db/id [:db.part/db -5]
+               {:db/id #db/id [:db.part/db -4]
                 :db/ident :bot/user
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -6]
+               {:db/id #db/id [:db.part/db -5]
                 :db/ident :bot/game
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -7]
+               {:db/id #db/id [:db.part/db -6]
                 :db/ident :bot/code
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -8]
+               {:db/id #db/id [:db.part/db -7]
                 :db/ident :bot/code-version
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long ; transaction id
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -9]
+               {:db/id #db/id [:db.part/db -8]
                 :db/ident :bot/rating
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -10]
+               {:db/id #db/id [:db.part/db -9]
                 :db/ident :bot/rating-dev
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
 
                ; code
-               {:db/id #db/id [:db.part/db -11]
+               {:db/id #db/id [:db.part/db -10]
                 :db/ident :code/code
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
 
                ;user
-               {:db/id #db/id [:db.part/db -12]
-                :db/ident :user/token
+               {:db/id #db/id [:db.part/db -11]
+                :db/ident :user/gh-id
                 :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/string
+                :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -13]
+               {:db/id #db/id [:db.part/db -12]
                 :db/ident :user/name
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
 
                ;match
-               {:db/id #db/id [:db.part/db -14]
+               {:db/id #db/id [:db.part/db -13]
                 :db/ident :match/bots
                 :db/cardinality :db.cardinality/many
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -15]
+               {:db/id #db/id [:db.part/db -14]
                 :db/ident :match/moves
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db/doc "Stored as edn vector"
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -17]
+               {:db/id #db/id [:db.part/db -15]
                 :db/ident :match/winner
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -18]
+               {:db/id #db/id [:db.part/db -16]
                 :db/ident :match/error
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/boolean
@@ -130,24 +125,34 @@
 ;; Users
 
 (defn create-user
-  [token uname]
-  (create-entity {:user/token token :user/name uname}))
+  [gh-id uname]
+  (create-entity {:user/gh-id gh-id :user/name uname}))
 
-(defn user-bots
-  "Get a list of all bots"
-  [user]
-  (let []
-    ))
+(defn get-user-bots
+  "Get a list of all bots for a user"
+  [user-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/user ?p-id]]
+              db
+              user-id)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-user [id]
+  (by-id id))
 
 ;; Games
 
 (defn create-game
-  [name description rules]
+  [name description]
   (create-entity {:game/name name
-                  :game/description description
-                  :game/rules rules}))
+                  :game/description description}))
 
-(defn games
+(defn get-game [id]
+  (by-id id))
+
+(defn get-games
   "Get all the game entities"
   []
   (let [db (d/db *conn*)]
@@ -155,6 +160,16 @@
                 :where
                 [?e :game/name _]]
               db)
+         (map (comp (partial d/entity db) first)))))
+
+
+(defn get-game-bots [game-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/game ?p-id]]
+              db
+              game-id)
          (map (comp (partial d/entity db) first)))))
 
 ;; Bots
@@ -209,3 +224,20 @@
       (-> (d/as-of (d/db *conn*) vers)
           (d/entity code-id)
           :code/code))))
+
+
+(defn get-code [id]
+  (by-id id))
+
+(defn get-bot [id]
+  (by-id id))
+
+
+;; Matches
+
+(defn get-match [id]
+  (by-id id))
+
+(defn create-match [foo]
+  ; TODO
+  )

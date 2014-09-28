@@ -84,9 +84,8 @@
 
 
 (defn new-bot [game-id]
-  (edn-xhr {:url (str "/api/bots")
+  (edn-xhr {:url (str "/api/games/" game-id "/bot")
             :method :post
-            :data {:game-id game-id}
             :on-complete (fn [data] ((nav :code (:id data)))
                                     ((nav :game game-id)))}))
 
