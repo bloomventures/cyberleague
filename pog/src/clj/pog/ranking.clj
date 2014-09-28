@@ -1,32 +1,55 @@
 (ns pog.ranking
   (:require [pog.db :as db]
+            [clojure.math.numeric-tower :refer [expt]]
             [datomic.api :as d]))
 
-;(def glicko-c 0.5)
+(def PI 3.14159)
 
-;(def glicko-q (/ (Math/log 10) 400))
+(defn sq [x] (expt x 2))
 
-;(defn sq [x] (* x x))
+(defn glicko [p1r p1rd p2r p2rd outcome]
 
-;(defn glicko
-  ;[player-1 player-2 outcome]
-  ;(letfn [(g [rd] (/ (Math/sqrt (+ 1 (* 3 (sq glicko-q) (sq rd) (/ (sq Math/PI)))))))
-          ;(d2 [op-r op-rd]
-            ;(/ (*  (sq glicko-q)
-                  ;(sq (g op-rd))
-                  ;)
-               ;)
-            ;)
-          ;(new-rating [r rd op-r op-rd outcome]
-            ;(+ r
-               ;(/ glicko-q (+ (/ (sq rd))
-                              ;(/ d2)
-                              ;))
-               ;)
-            ;) ])
-  ;)
+  (let [s (case outcome
+            :win 1
+            :loss 0
+            :tie 0.5)
+        R1 p1r
+        R2 p2r
+        RD1 p1rd
+        RD2 p2rd
+        q 0.0057565
+        g (fn [RD] (expt (+ 1 (* 3 q q RD RD (/ PI) (/ PI))) -1/2))
+        E (/ (+ 1 (expt 10 (* -1 (g RD2) (- R1 R2) (/ 400)))))
+        dsq (/ (* (sq q) (sq (g RD2)) E (- 1 E)))
+        new-R1 (+ R1 (* (/ q (+ (/ (sq RD1)) (/ dsq ))) (g RD2) (- s E)))
+        new-RD1 (expt (+ (/ (sq RD1)) (/ dsq)) -1/2)]
 
-(defn update-rankings
+    [new-R1 new-RD1]))
+
+(defn update-rankings [p1 p2 winner]
+  (let [[p1r p1rd] (glicko
+                     (:bot/rating p1) (:bot/rating-dev p1)
+                     (:bot/rating p2) (:bot/rating-dev p2)
+                     (cond
+                       (= winner (:db/id p1)) :win
+                       (nil? winner) :tie
+                       :else :loss))
+        [p2r p2rd] (glicko
+                     (:bot/rating p2) (:bot/rating-dev p2)
+                     (:bot/rating p1) (:bot/rating-dev p1)
+                     (cond
+                       (= winner (:db/id p2)) :win
+                       (nil? winner) :tie
+                       :else :loss))]
+   (d/transact db/*conn*
+               [[:db/add (:db/id p1) :bot/rating p1r]
+                [:db/add (:db/id p2) :bot/rating p2r]
+                [:db/add (:db/id p1) :bot/rating-dev p1rd]
+                [:db/add (:db/id p2) :bot/rating-dev p2rd]
+                ])))
+
+
+#_(defn update-rankings
   [p1 p2 winner]
   (d/transact db/*conn*
     [[:db/add (:db/id p1) :bot/rating (+ (:bot/rating p1)
