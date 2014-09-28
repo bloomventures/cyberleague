@@ -3,6 +3,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <! timeout]]
+            [markdown.core :as markdown]
             [clojure.string :as string]
             [goog.events :as events]
             [cljs.reader :as reader])
@@ -124,7 +125,7 @@
                       (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "NEW BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
-            (dom/p nil (:description game))
+            (dom/div #js {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
             (dom/table nil
               (dom/thead nil
                          (dom/tr nil
@@ -132,12 +133,12 @@
                                  (dom/th nil "Bot")
                                  (dom/th nil "Rating")))
               (apply dom/tbody nil
-                         (map (fn [bot]
-                                  (dom/tr nil
-                                          (dom/td nil "#")
-                                          (dom/td nil
-                                                  (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
-                                          (dom/td nil (:rating bot)))) (:bots game))))))))))
+                (map (fn [bot]
+                       (dom/tr nil
+                               (dom/td nil "#")
+                               (dom/td nil
+                                       (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
+                               (dom/td nil (:rating bot)))) (:bots game))))))))))
 
 (defn bot-card-view [{:keys [data] :as card} owner]
   (reify
