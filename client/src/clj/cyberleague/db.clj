@@ -147,6 +147,24 @@
 (defn get-user [id]
   (by-id id))
 
+(defn get-users
+  "Get all the user entities"
+  []
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :where
+                [?e :user/name _]]
+              db)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-user-bots [user-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/user ?p-id]]
+              db
+              user-id)
+         (map (comp (partial d/entity db) first)))))
 ;; Games
 
 (defn create-game
