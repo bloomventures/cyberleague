@@ -213,7 +213,7 @@ body {
 
 a {
   cursor: pointer;
-  color: blue;
+  color: @blue;
   text-decoration: underline;
 }
 
@@ -240,4 +240,26 @@ a {
 
 .clickable {
   cursor: pointer;
+}
+
+svg {
+  margin: 0 -1em;
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #ccc;
+    shape-rendering: crispEdges;
+  }
+  text {
+    fill: #ccc;
+    font-size: 10px;
+  }
+  .line {
+    stroke: @blue;
+    fill: none;
+  }
+  .area {
+    fill: #eee;
+  }
 }

@@ -115,10 +115,7 @@
                                {:id (:db/id user)
                                 :name (:user/name user)
                                 :gh-id (:user/gh-id user)})
-                       :history (map (fn [point] {:rating (:bot/rating point)
-                                                  :rating-dev (:bot/rating-dev point)
-                                                  :deployed false ; TODO
-                                                  }) history)
+                       :history history
                        :matches (map (fn [match] {:id (:db/id match)} ) matches)})))
 
     (GET "/bots/:bot-id/code" [bot-id]

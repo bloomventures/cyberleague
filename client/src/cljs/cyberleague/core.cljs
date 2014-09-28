@@ -141,6 +141,10 @@
 
 (defn bot-card-view [{:keys [data] :as card} owner]
   (reify
+    om/IDidMount
+    (did-mount [_]
+      (js/bot_graph (om/get-node owner "graph") (clj->js (:history data))))
+
     om/IRender
     (render [_]
       (let [bot data]
@@ -154,7 +158,9 @@
           (dom/div #js {:className "content"}
             (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
             (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
-            (dom/div nil "TODO RATING OVER TIME GRAPH")
+
+            (dom/div #js {:ref "graph"})
+
             (dom/table #js {:className "matches"}
               (dom/thead nil)
               (apply dom/tbody nil
