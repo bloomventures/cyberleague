@@ -91,10 +91,10 @@
             :method :post
             :on-complete (fn [data] ((nav :code (:id data)))
                                     ((nav :game game-id)))}))
-(defn test-bot [bot-id]
+(defn test-bot [bot-id cb]
   (edn-xhr {:url (str "/api/bots/" bot-id "/test")
             :method :post
-            :on-complete (fn [d]) }))
+            :on-complete (fn [match] (cb match)) }))
 
 (def login-csrf-key (atom ""))
 
@@ -226,15 +226,15 @@
     (render-state [_ state]
       (dom/tbody nil
                  (dom/tr #js {:className "clickable" :onClick (fn [e] (om/update-state! owner :log-show not))}
-                         (dom/td nil move)
-                         (dom/td nil move)
-                         (dom/td nil move)
+                         (dom/td nil (move "trophy"))
+                         (dom/td nil (second (second move)))
+                         (dom/td nil (second (last move)))
                          (dom/td nil (if (state :log-show) "×" "▾")))
                  (dom/tr #js {:className (str "log" " " (if (state :log-show) "show" "hide"))}
-                         (dom/td #js {:colSpan 4} "console logs"))))))
+                         (dom/td #js {:colSpan 4} "console logging TODO"))))))
 
 
-(defn test-view [bot owner]
+(defn test-view [data owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -242,27 +242,27 @@
     om/IRenderState
     (render-state [_ state]
       (dom/div #js {:className "test"}
-        (let [result :error]
-          (dom/p nil (case result
-                       :error "Your bot had an error."
-                       :win "You win!"
-                       :loss "You lost!")))
-
-        (apply dom/table nil
-          (concat [(dom/thead nil
-                              (dom/tr nil
-                                      (dom/th nil "Trophy")
-                                      (dom/th nil "You")
-                                      (dom/th nil "Them")
-                                      (dom/th nil "")))
-                   (dom/tfoot nil
-                              (dom/tr nil
-                                      (dom/td nil "Score")
-                                      (dom/td nil 5)
-                                      (dom/td nil 6)
-                                      (dom/td nil nil)))]
-                  (om/build-all move-view [1 2 3 4 5])))
-        ))))
+        (when (data :test-match)
+          (dom/p nil (cond
+                       (:error (data :test-match)) "Your bot had an error."
+                       (nil? (:winner (data :test-match))) "Tie!"
+                       (= (:id (data :bot)) (:winner (data :test-match))) "You Won!"
+                       :else "You Lost!")))
+        (when (data :test-match)
+          (apply dom/table nil
+            (concat [(dom/thead nil
+                                (dom/tr nil
+                                        (dom/th nil "Trophy")
+                                        (dom/th nil "You")
+                                        (dom/th nil "Them")
+                                        (dom/th nil "")))
+                     (dom/tfoot nil
+                                (dom/tr nil
+                                        (dom/td nil "Score")
+                                        (dom/td nil "TODO")
+                                        (dom/td nil "TODO")
+                                        (dom/td nil nil)))]
+                    (om/build-all move-view (:history (data :test-match))))))))))
 
 (defn code-view [bot owner]
   (reify
@@ -294,6 +294,7 @@
     om/IInitState
     (init-state [_]
       {:status :saved ; :editing :saved :passing :failing :deployed
+       :test-match nil
        })
 
     om/IRenderState
@@ -307,13 +308,15 @@
                         (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
                         (dom/a #js {:onClick (fn [e] (log-in))} "Log in with Github to save your bot"))
                       (when (= :saved (state :status))
-                        (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST"))
+                        (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)
+                                                                                        (fn [match] (om/set-state! owner :test-match match))))} "TEST"))
                       (when (= :passing (state :status))
                         (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)
-            (om/build test-view bot)
+            (om/build test-view {:test-match (state :test-match)
+                                 :bot bot})
             ))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]

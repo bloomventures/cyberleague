@@ -171,6 +171,15 @@
             {:status 500}))
         {:status 500}))
 
+    (POST "/bots/:bot-id/test" [bot-id]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (if (and bot (= id (:db/id (:bot/user bot))))
+          (do #_(get-the-match-result)
+              (edn-response {:error false
+                             :winner 123
+                             :history [{"trophy" 12 122 12 123 12} {"trophy" 12 122 12 123 12}]}))
+          {:status 500})))
+
     (POST "/bots/:bot-id/deploy" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (and bot (= id (:db/id (:bot/user bot))))
