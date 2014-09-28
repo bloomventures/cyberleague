@@ -86,6 +86,15 @@
                      }]
        (is (= expected (:body (edn-request app :get (str "/api/bots/" (:db/id bot-u1g1))))))))
 
+    #_(testing "POST /api/bots/:bot-id/test"
+      (let [goof (db/with-conn (db/create-game "goofspiel" "aaa"))
+            user (db/with-conn (db/create-user 1234567 "bloop"))
+            bot (db/with-conn (db/create-bot (:db/id user) (:db/id goof)))]
+        (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state] (get state "current-trophy")))))
+        (db/with-conn (db/deploy-bot (:db/id bot)))
+        (is true)
+        (println (:body (edn-request app :post (str "/api/bots/" (:db/id bot) "/test")))))
+      )
 
 
     ; TODO following need to be tested with session

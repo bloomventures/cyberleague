@@ -10,3 +10,5 @@ pom.xml
 Session.vim
 /.repl
 /resources/public/css/**
+/resources/precompiled.js
+/out
