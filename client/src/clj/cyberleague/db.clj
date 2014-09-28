@@ -128,11 +128,16 @@
   [gh-id uname]
   (create-entity {:user/gh-id gh-id :user/name uname}))
 
-(defn user-bots
-  "Get a list of all bots"
-  [user]
-  (let []
-    ))
+(defn get-user-bots
+  "Get a list of all bots for a user"
+  [user-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/user ?p-id]]
+              db
+              user-id)
+         (map (comp (partial d/entity db) first)))))
 
 (defn get-user [id]
   (by-id id))
@@ -155,6 +160,16 @@
                 :where
                 [?e :game/name _]]
               db)
+         (map (comp (partial d/entity db) first)))))
+
+
+(defn get-game-bots [game-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/game ?p-id]]
+              db
+              game-id)
          (map (comp (partial d/entity db) first)))))
 
 ;; Bots
