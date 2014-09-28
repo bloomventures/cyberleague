@@ -64,7 +64,7 @@
                     ;; For simulatenous turns, get all the moves
                     (let [moves (reduce
                                   (fn [moves bot]
-                                    (let [move ((:bot/function bot) state)]
+                                    (let [move ((:bot/function bot) (assoc state "me" (:db/id bot)))]
                                       (cond
                                         (not (games/valid-move? g move))
                                         (throw (GameException.
@@ -86,7 +86,7 @@
                       (recur (games/next-state g state moves) players))
                     ;; For one-at-a-time, just get the next player's move
                     (let [bot (first players)
-                          move ((:bot/function bot) state)]
+                          move ((:bot/function bot) (assoc state "me" (:db/id bot)))]
                       (cond
                         (not (games/valid-move? g move))
                         (throw (GameException.

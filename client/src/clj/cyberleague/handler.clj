@@ -166,9 +166,9 @@
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if true ; (and bot (= id (:db/id (:bot/user bot))))
           (let [random-bot {:db/id 1234
-                            :bot/code-version 1
+                            :bot/code-version 2
                             :bot/deployed-code '(fn [state]
-                                                  (rand-nth (vec (get-in state ["player-cards" 1234]))))}
+                                                  (rand-nth (vec (get-in state ["player-cards" (state "me")]))))}
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                 :bot/code-version (rand-int 10000000)
