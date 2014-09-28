@@ -90,6 +90,10 @@
             :method :post
             :on-complete (fn [data] ((nav :code (:id data)))
                                     ((nav :game game-id)))}))
+(defn test-bot [bot-id]
+  (edn-xhr {:url (str "/api/bots/" bot-id "/test")
+            :method :post
+            :on-complete (fn [d]) }))
 
 (defn close [card]
   (fn [e]
@@ -277,10 +281,9 @@
         (dom/div #js {:className "card code"}
           (dom/header nil
                       (dom/span nil (:name bot))
-                      (dom/span nil (:name (:game bot)))
-                      (dom/span nil (:name (:user bot)))
-                      (dom/a #js {:className "button rules" :onClick (nav :game (:id (:game bot)))} "RULES")
-                      (dom/a #js {:className "button test"} "TEST")
+                      (dom/a #js {:onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
+                      (dom/a #js {:onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
+                      (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST")
                       (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
@@ -356,16 +359,17 @@
                     (dom/h1 nil "The Cyber League")
                     (dom/h2 nil "Build AI bots to play games. Best bot wins!")
                     (dom/nav nil
-                             (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
-                             (dom/a #js {:className "button" :onClick (nav :users nil)} "All Users")
-                             (dom/a #js {:className "button" :onClick (nav :chat nil)} "Chat")
+                             (dom/a #js {:className "" :onClick (nav :games nil)} "Games")
+                             (dom/a #js {:className "" :onClick (nav :users nil)} "Users")
+                             (dom/a #js {:className "" :onClick (nav :chat nil)} "Chat")
                              (when-let [user (data :user)]
-                               (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
+                               (dom/a #js {:onClick (nav :user (:id user)) :className "user"}
                                  (dom/img #js {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")})
-                                 "My Bots"))
+                                 "My Bots"
+                                 ))
                              (if-let [user (data :user)]
-                               (dom/a #js {:className "button log-out" :onClick (fn [e] (log-out))}  "Log Out")
-                               (dom/a #js {:className "button" :onClick (fn [e] (log-in))} "Log In"))))
+                               (dom/a #js {:className "log-out" :onClick (fn [e] (log-out)) :title "Log Out"} "×")
+                               (dom/a #js {:className "log-in" :onClick (fn [e] (log-in))} "Log In"))))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
                  (om/build (condp = (:type card)
