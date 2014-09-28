@@ -314,10 +314,10 @@
     om/IRender
     (render [_]
       (dom/div #js {:className "card chat"}
-        (dom/header nil "Report Bugs"
+        (dom/header nil "Chat"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
-          (dom/iframe #js {:src "http://www.hipchat.com/g5EB5iQjr?anonymous=1&minimal=1&timezone=CDT" :width "100%" :height "100%"}))))))
+          (dom/iframe #js {:src (str "/chat/" (or (:name (:user @app-state)) "anonymous")) :width "100%" :height "100%"}))))))
 
 (defn app-view [data owner]
   (reify
@@ -329,7 +329,7 @@
                     (dom/h2 nil "Build AI bots to play games. Best bot wins!")
                     (dom/nav nil
                              (dom/a #js {:className "button" :onClick (nav :games nil)} "All Games")
-                             (dom/a #js {:className "button" :onClick (nav :chat nil)} "Report Bugs")
+                             (dom/a #js {:className "button" :onClick (nav :chat nil)} "Chat")
                              (when-let [user (data :user)]
                                (dom/a #js {:onClick (nav :user (:id user)) :className "user button"}
                                  (dom/img #js {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")})
