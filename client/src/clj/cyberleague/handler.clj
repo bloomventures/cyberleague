@@ -5,9 +5,10 @@
             [compojure.route :as route]
             [ring.util.response :as response]
             [ring.util.codec :refer  [url-encode]]
+            [ring.middleware.edn :refer [wrap-edn-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
-            [org.httpkit.server :refer  [run-server]]
+            [org.httpkit.server :refer [run-server]]
             [cyberleague.mocks :as mocks]
             [clojure.data.json :as json]
             [org.httpkit.client :refer [request]]
@@ -21,6 +22,9 @@
 
 (defn string-keys-to-keywords [m]
   (reduce-kv #(assoc %1 (keyword %2) %3) {} m))
+
+(defn to-long [v]
+  (java.lang.Long. v))
 
 (defroutes app-routes
   (GET "/" []
@@ -38,89 +42,108 @@
                                          "code" code }
                           } nil)
           token (get (json/read-str (resp :body)) "access_token")
-          user-raw (json/read-str (:body @(request {:url  "https://api.github.com/user"
-                                                    :method :get
-                                                    :headers {"Accept" "application/json"}
-                                                    :oauth-token token} nil)))
-          user {:id (get user-raw "id")
-                :name (get user-raw "login")}]
+          gh-user (json/read-str (:body @(request {:url  "https://api.github.com/user"
+                                                   :method :get
+                                                   :headers {"Accept" "application/json"}
+                                                   :oauth-token token} nil)))
+          user (db/with-conn (db/create-user (get gh-user "id") (get gh-user "login")))]
 
       (assoc (edn-response user) :session user)))
 
-   (POST "/logout" _
-     (assoc (edn-response {:status "OK"}) :session nil))
 
-  (context "/api" {session :session}
+   (POST "/logout" _
+     (assoc (edn-response {:status 200}) :session nil))
+
+  (context "/api" {{:keys [user-id] :as session} :session}
 
     (GET "/user" _
-         (edn-response session))
+      (edn-response session))
 
-    (GET "/users/:id" [id]
-      (edn-response {:id 555 :name "asdgagd" :bots [{:name "mk36" :id 456 :game {:id 234 :name "goofspiel"}}]}))
+    (GET "/users/:other-user-id" [other-user-id]
+      (let [user (db/with-conn (db/get-user (to-long other-user-id)))]
+        (edn-response {:id (:db/id user)
+                       :name (:user/name user)
+                       :bots nil}))) ; TODO
 
     (GET "/games" _
-      (edn-response [{:id 123 :name "foo" :bot-count 123}]))
+      (let [games (db/with-conn (db/get-games))]
+        (edn-response (map (fn [game] {:id (:db/id game)
+                                       :name (:game/name game)
+                                       :bot-count nil} ;TODO
+                             ) games))))
 
-    (GET "/games/:id" [id]
-      (edn-response {:id 123
-                     :name "foo"
-                     :description "foo description"
-                     :bots [{:name "mk36"
-                             :rating 100
-                             :id 456 }]}))
+    (GET "/games/:game-id" [game-id]
+      (let [game (db/with-conn (db/get-game (to-long game-id)))]
+        (edn-response {:id (:db/id game)
+                       :name (:game/name game)
+                       :description (:game/description game)
+                       :bots nil ; TODO
+                       })))
 
-    (GET "/matches/:id" [id]
-      (edn-response {:id 890
-                     :winner 456
-                     :game {:name "foo" :id 123}
-                     :bots [{:name "foo" :id 456}]
-                     :moves [ {} ]}))
+    (GET "/matches/:match-id" [match-id]
+      (let [match (db/with-conn (db/get-match (to-long match-id)))]
+        (edn-response {:id (:db/id match)
+                       ; TODO
+                       })))
 
-    (GET "/bots/:id" [id]
-      (edn-response {:id 123
-                     :name "foo"
-                     :user {:id 555 :name "person"}
-                     :game {:id 123 :name "foo"}
-                     :history [{:rating 123 :rating-dev 123 :code-version 999}]
-                     :matches [{:id 888 :winner 456 :bots [{:name "foo" :id 456}]}]}))
+    (GET "/bots/:bot-id" [bot-id]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (edn-response {:id (:db/id bot)
+                       :name (:bot/name bot)
+                       :game (let [game (:bot/game bot)]
+                               {:id (:db/id game)
+                                :name (:game/name game) })
+                       :user (let [user (:bot/user bot)]
+                               {:id (:db/id user)
+                                :name (:user/name user)
+                                :gh-id (:user/gh-id user)})
+                       :history nil ; TODO
+                       :matches nil ; TODO
+                       })))
 
-    (GET "/bots/:id/code" [id]
-      ; TODO GET THE BOT
-      (let [bot  {:id 123
-                 :name "foo"
-                 :user {:id (session :id) :name "person"}
-                 :game {:id 123 :name "foo"}
-                 :code "(fn [state])"}]
-        (if (= (:id session) (:id (:user bot)))
-          (edn-response bot)
+    (GET "/bots/:bot-id/code" [bot-id]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (if (= user-id (:db/id (:bot/user bot)))
+          (edn-response {:id (:db/id bot)
+                         :name (:db/name bot)
+                         :code (:code/code (:bot/code bot))
+                         :user (let [user (:bot/user bot)]
+                                 {:id (:db/id user)
+                                  :name (:user/name user)
+                                  :gh-id (:user/gh-id user)})
+                         :game (let [game (:bot/game bot)]
+                                 {:id (:db/id game)
+                                  :name (:game/name game) }) })
           {:status 500})))
 
-    (POST "/bots" _
-      (if (:id session)
-        ;TODO CREATE THE BOT
-        (edn-response {:id (mocks/rand-id)})
+    (POST "/games/:game-id/bot" [game-id]
+      (if user-id
+        (edn-response {:id (:db/id (db/with-conn (db/create-bot user-id (to-long game-id))))})
         {:status 500}))
 
-    (PUT "/bots/:id" [id]
-      ;TODO GET THE BOT
-      (let [bot (mocks/gen-bot (session :id) (mocks/rand-id))]
-        (if (= (:id session) (:id (:user bot)))
-          (edn-response {:status "OK"})
-          {:status 500})))
+    (PUT "/bots/:bot-id/code" [bot-id code]
+      (if user-id
+        (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+          (if (= user-id (:id (:user bot)))
+            (do (db/with-conn (db/update-bot-code (:id bot) code))
+                (edn-response {:status 200}))
+            {:status 500}))
+        {:status 500}))
 
-    (POST "/bots/:id/deploy" [id]
-      ;TODO GET THE BOT
-      (let [bot (mocks/gen-bot (session :id) (mocks/rand-id))]
-        (if (= (:id session) (:id (:user bot)))
-          (edn-response {:status "OK"})
+    (POST "/bots/:bot-id/deploy" [bot-id]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (if (and bot (= (:id session) (:id (:user bot))))
+          (do (db/with-conn (db/deploy-bot (to-long bot-id)))
+              (edn-response {:status 200}))
           {:status 500})))))
 
 (def app (handler/site
-           (wrap-session
-             (routes
-               app-routes
-               (route/resources "/" ))
-             {:store (cookie-store {:key "***REMOVED***"})})))
+           (wrap-edn-params
+             (wrap-session
+               (routes
+                 app-routes
+                 (route/resources "/" ))
+               {:store (cookie-store {:key "***REMOVED***"})}))))
 
 (defn -main  [& [port & args]]
   (db/init)
