@@ -59,44 +59,49 @@
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
+               {:db/id #db/id [:db.part/db -10]
+                :db/ident :bot/name
+                :db/cardinality :db.cardinality/one
+                :db/valueType :db.type/string
+                :db.install/_attribute :db.part/db}
 
                ; code
-               {:db/id #db/id [:db.part/db -10]
+               {:db/id #db/id [:db.part/db -11]
                 :db/ident :code/code
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
 
                ;user
-               {:db/id #db/id [:db.part/db -11]
+               {:db/id #db/id [:db.part/db -12]
                 :db/ident :user/gh-id
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -12]
+               {:db/id #db/id [:db.part/db -13]
                 :db/ident :user/name
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
 
                ;match
-               {:db/id #db/id [:db.part/db -13]
+               {:db/id #db/id [:db.part/db -14]
                 :db/ident :match/bots
                 :db/cardinality :db.cardinality/many
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -14]
+               {:db/id #db/id [:db.part/db -15]
                 :db/ident :match/moves
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db/doc "Stored as edn vector"
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -15]
+               {:db/id #db/id [:db.part/db -16]
                 :db/ident :match/winner
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -16]
+               {:db/id #db/id [:db.part/db -17]
                 :db/ident :match/error
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/boolean
@@ -174,10 +179,17 @@
 
 ;; Bots
 
+
+(defn gen-bot-name []
+  (str (apply str (take 3 (repeatedly #(rand-nth "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))))
+       "-"
+       (+ 1000 (rand-int 8999))))
+
 (defn create-bot
   [user-id game-id]
   (create-entity {:bot/user user-id
                   :bot/game game-id
+                  :bot/name (gen-bot-name)
                   :bot/rating 1500
                   :bot/rating-dev 350}))
 
