@@ -246,8 +246,10 @@
     (render [_]
       (let [bot data]
         (dom/div #js {:className "card code"}
-          (dom/header nil "CODE"
-                      (:name bot)
+          (dom/header nil
+                      (dom/span nil (:name bot))
+                      (dom/span nil (:name (:game bot)))
+                      (dom/span nil (:name (:user bot)))
                       (dom/a #js {:className "button rules" :onClick (nav :game (:id (:game bot)))} "RULES")
                       (dom/a #js {:className "button test"} "TEST")
                       (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
