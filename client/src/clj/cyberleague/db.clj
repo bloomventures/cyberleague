@@ -133,6 +133,17 @@
   [gh-id uname]
   (create-entity {:user/gh-id gh-id :user/name uname}))
 
+(defn get-or-create-user
+  [gh-id uname]
+  (let [db (d/db *conn*)]
+    (if-let [user-id (first (first (d/q '[:find ?e
+                                          :in $ ?gh-id
+                                          :where [?e :user/gh-id ?gh-id]]
+                                        db
+                                        gh-id)))]
+      (d/entity db user-id)
+      (create-user gh-id uname))))
+
 (defn get-user-bots
   "Get a list of all bots for a user"
   [user-id]

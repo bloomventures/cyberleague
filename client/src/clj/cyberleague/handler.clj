@@ -48,7 +48,7 @@
                                                    :method :get
                                                    :headers {"Accept" "application/json"}
                                                    :oauth-token token} nil)))
-          user (db/with-conn (db/create-user (get gh-user "id") (get gh-user "login")))
+          user (db/with-conn (db/get-or-create-user (get gh-user "id") (get gh-user "login")))
           out-user {:id (:db/id user)
                     :name (:user/name user)
                     :gh-id (:user/gh-id user)}]
