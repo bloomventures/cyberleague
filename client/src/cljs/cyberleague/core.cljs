@@ -56,6 +56,7 @@
               :game (str "/api/games/" (card :id))
               :games "/api/games"
               :chat :chat
+              :intro :intro
               :users "/api/users"
               :user (str "/api/users/" (card :id))
               :bot (str "/api/bots/" (card :id))
@@ -94,6 +95,22 @@
   (edn-xhr {:url (str "/api/bots/" bot-id "/test")
             :method :post
             :on-complete (fn [d]) }))
+
+(def login-csrf-key (atom ""))
+
+(defn log-in []
+  (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
+
+  (.open js/window
+         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=" @login-csrf-key)
+         "GitHub Auth"
+         "width=300,height=400"))
+
+(defn log-out []
+  (edn-xhr {:url "/logout"
+            :method :post
+            :on-complete (fn []
+                           (swap! app-state (fn [cv] (assoc cv :user nil))))}))
 
 (defn close [card]
   (fn [e]
@@ -278,14 +295,17 @@
     (init-state [_]
       {:status :saved ; :editing :saved :passing :failing :deployed
        })
+
     om/IRenderState
     (render-state [_ state]
       (let [bot data]
         (dom/div #js {:className "card code"}
           (dom/header nil
                       (dom/span nil (:name bot))
-                      (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
                       (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
+                      (if (:id (:user bot))
+                        (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
+                        (dom/a #js {:onClick (fn [e] (log-in))} "Log in with Github to save your bot"))
                       (when (= :saved (state :status))
                         (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST"))
                       (when (= :passing (state :status))
@@ -329,22 +349,6 @@
                                (dom/td nil (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
                                (dom/td nil (:rating bot)))) (user :bots))))))))))
 
-(def login-csrf-key (atom ""))
-
-(defn log-in []
-  (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
-
-  (.open js/window
-         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=" @login-csrf-key)
-         "GitHub Auth"
-         "width=300,height=400"))
-
-(defn log-out []
-  (edn-xhr {:url "/logout"
-            :method :post
-            :on-complete (fn []
-                           (swap! app-state (fn [cv] (assoc cv :user nil))))}))
-
 (defn chat-card-view [card owner]
   (reify
     om/IRender
@@ -354,6 +358,23 @@
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
           (dom/iframe #js {:src (str "/chat/" (or (:name (:user @app-state)) "anonymous")) :width "100%" :height "100%"}))))))
+
+
+(defn intro-card-view [card owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "card intro"}
+        (dom/header nil
+                    "Welcome to the Cyber League!"
+                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+        (dom/div #js {:className "content"}
+          (dom/p nil "You enjoy playing games. Board games, card games, whatever... you're always up for a challenge. You try to improve your strategy every time you play. However, there just isn't enough time to play out all the possibilities.")
+          (dom/p nil "On this site, instead of playing games yourself, you code AI bots to play games for you.")
+          (dom/p nil "For now, there's one game (Goofspiel) and one language (ClojureScript).")
+          (dom/p nil "Enjoy!")
+          (dom/p nil "- Raf & James")
+          )))))
 
 (defn app-view [data owner]
   (reify
@@ -382,6 +403,7 @@
                              :games games-card-view
                              :users users-card-view
                              :chat chat-card-view
+                             :intro intro-card-view
                              :bot bot-card-view
                              :code code-card-view
                              :user user-card-view
@@ -402,11 +424,9 @@
   (edn-xhr {:url "/api/user"
             :method :get
             :on-complete (fn [data]
-                           (when (data :id)
-                             (swap! app-state (fn [cv] (assoc cv :user data))))
-                           )})
-
-  (let [cards [{:type :games
-                :id nil}] ]
-    (doseq [card cards]
-      (open-card card))))
+                           (if (data :id)
+                             (do
+                               (swap! app-state (fn [cv] (assoc cv :user data)))
+                               (open-card {:type :user :id (data :id)}))
+                             (do (doseq [card [{:type :intro :id nil} {:type :code :id "default"}]]
+                                   (open-card card)))))}))
