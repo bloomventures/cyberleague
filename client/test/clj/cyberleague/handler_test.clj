@@ -86,7 +86,7 @@
                      }]
        (is (= expected (:body (edn-request app :get (str "/api/bots/" (:db/id bot-u1g1))))))))
 
-    #_(testing "POST /api/bots/:bot-id/test"
+    (testing "POST /api/bots/:bot-id/test"
       (let [goof (db/with-conn (db/create-game "goofspiel" "aaa"))
             user (db/with-conn (db/create-user 1234567 "bloop"))
             bot (db/with-conn (db/create-bot (:db/id user) (:db/id goof)))]
