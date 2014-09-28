@@ -63,6 +63,14 @@
 
   (context "/api" {{:keys [id] :as session} :session}
 
+    (GET "/bots/default/code" [bot-id]
+      (edn-response {:id "new"
+                     :name (db/gen-bot-name)
+                     :code (slurp (io/resource "goofspiel-default.txt"))
+                     :user nil
+                     :game {:name "goofspiel"}
+                     }))
+
     (GET "/user" _
       (edn-response session))
 
@@ -130,6 +138,9 @@
                                 :gh-id (:user/gh-id user)})
                        :history history
                        :matches (map (fn [match] {:id (:db/id match)} ) matches)})))
+
+
+
 
     (GET "/bots/:bot-id/code" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
