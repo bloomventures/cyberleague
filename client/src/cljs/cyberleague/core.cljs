@@ -164,7 +164,8 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (str "#" (:name game))
-                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "CREATE A BOT")
+                      (when (get-in @app-state [:user :id])
+                        (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "CREATE A BOT"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/div #js {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
@@ -375,6 +376,7 @@
           (dom/p nil "You enjoy playing games. Board games, card games, whatever... you're always up for a challenge. You try to improve your strategy every time you play. However, there just isn't enough time to play out all the possibilities.")
           (dom/p nil "On this site, instead of playing games yourself, you code AI bots to play games for you.")
           (dom/p nil "For now, there's one game (Goofspiel) and one language (ClojureScript).")
+          (dom/p nil "You need to log in with Github to create bots.")
           (dom/p nil "Enjoy!")
           (dom/p nil "- Raf & James")
           )))))
@@ -431,5 +433,5 @@
                              (do
                                (swap! app-state (fn [cv] (assoc cv :user data)))
                                (open-card {:type :user :id (data :id)}))
-                             (do (doseq [card [{:type :intro :id nil} {:type :code :id "default"}]]
+                             (do (doseq [card [{:type :intro :id nil} {:type :games :id nil}]]
                                    (open-card card)))))}))
