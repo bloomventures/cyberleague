@@ -147,7 +147,7 @@
         (dom/div #js {:className "card game"}
           (dom/header nil
                       (str "#" (:name game))
-                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "NEW BOT")
+                      (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "CREATE A BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/div #js {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
