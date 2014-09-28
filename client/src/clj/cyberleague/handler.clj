@@ -13,7 +13,8 @@
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            [cyberleague.db :as db]))
+            [cyberleague.db :as db]
+            [cyberleague.game-runner :as game-runner]))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
@@ -159,6 +160,19 @@
                 (edn-response {:status 200}))
             {:status 500}))
         {:status 500}))
+
+    (POST "/bots/:bot-id/test" [bot-id]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (if (and bot (= id (:db/id (:bot/user bot))))
+          (let [random-bot {:db/id 1234
+                            :bot/code-version 1
+                            :bot/deployed-code '(fn [state]
+                                                  (rand-nth (vec (get-in state ["player-cards" 1234])))
+                                                  )}
+                result (game-runner/run-game (:bot/game bot)
+                                             [bot random-bot])]
+              (edn-response result))
+          {:status 500})))
 
     (POST "/bots/:bot-id/deploy" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
