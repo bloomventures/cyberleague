@@ -73,9 +73,9 @@
     (open-card {:type type :id id})))
 
 (defn save-code [id code]
-  (edn-xhr {:url (str "/api/bots/" id)
+  (edn-xhr {:url (str "/api/bots/" id "/code")
             :method :put
-            :data code }))
+            :data {:code code} }))
 
 (defn deploy-bot [id]
   (edn-xhr {:url (str "/api/bots/" id "/deploy")
