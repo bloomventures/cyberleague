@@ -45,9 +45,12 @@
                                                    :method :get
                                                    :headers {"Accept" "application/json"}
                                                    :oauth-token token} nil)))
-          user (db/with-conn (db/create-user (get gh-user "id") (get gh-user "login")))]
+          user (db/with-conn (db/create-user (get gh-user "id") (get gh-user "login")))
+          out-user {:id (:db/id user)
+                    :name (:user/name user)
+                    :gh-id (:user/gh-id user)}]
 
-      (assoc (edn-response user) :session user)))
+      (assoc (edn-response out-user) :session out-user)))
 
 
   (POST "/logout" _
