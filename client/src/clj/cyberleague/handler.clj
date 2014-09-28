@@ -147,7 +147,7 @@
     (POST "/games/:game-id/bot" [game-id]
       (if id
         (let [bot (db/with-conn (db/create-bot id (to-long game-id)))
-              _ (db/with-conn (db/update-bot-code (:db/id bot) "(fn [state] )"))]
+              _ (db/with-conn (db/update-bot-code (:db/id bot) (slurp (io/resource "goofspiel-default.txt"))))]
           (edn-response {:id (:db/id bot)}))
         {:status 500}))
 
