@@ -118,7 +118,7 @@
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= id (:db/id (:bot/user bot)))
           (edn-response {:id (:db/id bot)
-                         :name (:db/name bot)
+                         :name (:bot/name bot)
                          :code (:code/code (:bot/code bot))
                          :user (let [user (:bot/user bot)]
                                  {:id (:db/id user)
