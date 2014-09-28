@@ -65,6 +65,7 @@
                        :name (:user/name user)
                        :bots (map (fn [bot] {:name (:bot/name bot)
                                              :id (:db/id bot)
+                                             :rating (:bot/rating bot)
                                              :game (let [game (:bot/game bot)]
                                                      {:id (:db/id game)
                                                       :name (:game/name game)})} ) bots)})))
