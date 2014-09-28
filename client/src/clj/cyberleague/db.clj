@@ -27,42 +27,42 @@
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -4]
-                :db/ident :game/rules
-                :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/string
-                :db.install/_attribute :db.part/db}
 
                ; bot
-               {:db/id #db/id [:db.part/db -5]
+               {:db/id #db/id [:db.part/db -4]
                 :db/ident :bot/user
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -6]
+               {:db/id #db/id [:db.part/db -5]
                 :db/ident :bot/game
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -7]
+               {:db/id #db/id [:db.part/db -6]
                 :db/ident :bot/code
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -8]
+               {:db/id #db/id [:db.part/db -7]
                 :db/ident :bot/code-version
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long ; transaction id
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -9]
+               {:db/id #db/id [:db.part/db -8]
                 :db/ident :bot/rating
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -10]
+               {:db/id #db/id [:db.part/db -9]
                 :db/ident :bot/rating-dev
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/long
+                :db.install/_attribute :db.part/db}
+               {:db/id #db/id [:db.part/db -10]
+                :db/ident :bot/name
+                :db/cardinality :db.cardinality/one
+                :db/valueType :db.type/string
                 :db.install/_attribute :db.part/db}
 
                ; code
@@ -74,9 +74,9 @@
 
                ;user
                {:db/id #db/id [:db.part/db -12]
-                :db/ident :user/token
+                :db/ident :user/gh-id
                 :db/cardinality :db.cardinality/one
-                :db/valueType :db.type/string
+                :db/valueType :db.type/long
                 :db.install/_attribute :db.part/db}
                {:db/id #db/id [:db.part/db -13]
                 :db/ident :user/name
@@ -96,12 +96,12 @@
                 :db/valueType :db.type/string
                 :db/doc "Stored as edn vector"
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -17]
+               {:db/id #db/id [:db.part/db -16]
                 :db/ident :match/winner
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/ref
                 :db.install/_attribute :db.part/db}
-               {:db/id #db/id [:db.part/db -18]
+               {:db/id #db/id [:db.part/db -17]
                 :db/ident :match/error
                 :db/cardinality :db.cardinality/one
                 :db/valueType :db.type/boolean
@@ -130,24 +130,63 @@
 ;; Users
 
 (defn create-user
-  [token uname]
-  (create-entity {:user/token token :user/name uname}))
+  [gh-id uname]
+  (create-entity {:user/gh-id gh-id :user/name uname}))
 
-(defn user-bots
-  "Get a list of all bots"
-  [user]
-  (let []
-    ))
+(defn get-or-create-user
+  [gh-id uname]
+  (let [db (d/db *conn*)]
+    (if-let [user-id (first (first (d/q '[:find ?e
+                                          :in $ ?gh-id
+                                          :where [?e :user/gh-id ?gh-id]]
+                                        db
+                                        gh-id)))]
+      (d/entity db user-id)
+      (create-user gh-id uname))))
 
+(defn get-user-bots
+  "Get a list of all bots for a user"
+  [user-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/user ?p-id]]
+              db
+              user-id)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-user [id]
+  (by-id id))
+
+(defn get-users
+  "Get all the user entities"
+  []
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :where
+                [?e :user/name _]]
+              db)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-user-bots [user-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/user ?p-id]]
+              db
+              user-id)
+         (map (comp (partial d/entity db) first)))))
 ;; Games
 
 (defn create-game
-  [name description rules]
+  [name description]
   (create-entity {:game/name name
-                  :game/description description
-                  :game/rules rules}))
+                  :game/description description}))
 
-(defn games
+(defn get-game [id]
+  (by-id id))
+
+(defn get-games
   "Get all the game entities"
   []
   (let [db (d/db *conn*)]
@@ -157,12 +196,29 @@
               db)
          (map (comp (partial d/entity db) first)))))
 
+
+(defn get-game-bots [game-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :bot/game ?p-id]]
+              db
+              game-id)
+         (map (comp (partial d/entity db) first)))))
+
 ;; Bots
+
+
+(defn gen-bot-name []
+  (str (apply str (take 3 (repeatedly #(rand-nth "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))))
+       "-"
+       (+ 1000 (rand-int 8999))))
 
 (defn create-bot
   [user-id game-id]
   (create-entity {:bot/user user-id
                   :bot/game game-id
+                  :bot/name (gen-bot-name)
                   :bot/rating 1500
                   :bot/rating-dev 350}))
 
@@ -177,6 +233,11 @@
                           [:db/add bot-id :bot/code code-id]])))
         :db-after
         (d/entity bot-id))))
+
+(defn update-bot-rating [bot-id rating rating-dev]
+  @(d/transact *conn*
+              [[:db/add bot-id :bot/rating rating]
+               [:db/add bot-id :bot/rating-dev rating-dev]]))
 
 (defn code-history
   [bot-id]
@@ -209,3 +270,49 @@
       (-> (d/as-of (d/db *conn*) vers)
           (d/entity code-id)
           :code/code))))
+
+
+(defn get-code [id]
+  (by-id id))
+
+(defn get-bot [id]
+  (by-id id))
+
+(defn get-bot-matches [bot-id]
+  (let [db (d/db *conn*)]
+    (->> (d/q '[:find ?e
+                :in $ ?p-id
+                :where [?e :match/bots ?p-id]]
+              db
+              bot-id)
+         (map (comp (partial d/entity db) first)))))
+
+(defn get-bot-history
+  [bot-id]
+  (->> (d/q '[:find ?inst ?attr ?val
+              :in $ ?e
+              :where
+              [?e ?a ?val ?tx]
+              [?a :db/ident ?attr]
+              [?tx :db/txInstant ?inst]]
+            (d/history (d/db *conn*))
+            bot-id
+            )
+       (group-by first)
+       (reduce-kv (fn [memo k v]
+                    (let [rating (last (first (filter #(and (= :bot/rating (second %))) v)))
+                          rating-dev (last (first (filter #(and (= :bot/rating-dev (second %))) v)))]
+                      (if (and rating rating-dev)
+                        (conj memo {:inst k :rating rating :rating-dev rating-dev})
+                        memo))) [])
+       (sort-by :inst)
+       vec))
+
+;; Matches
+
+(defn get-match [id]
+  (by-id id))
+
+(defn create-match [foo]
+  ; TODO
+  )
