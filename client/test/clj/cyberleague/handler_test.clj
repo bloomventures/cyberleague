@@ -80,8 +80,9 @@
                      :name (:bot/name bot-u1g1)
                      :user {:id (:db/id user-1) :gh-id (:user/gh-id user-1) :name (:user/name user-1)}
                      :game {:id (:db/id game-1) :name (:game/name game-1)}
-                    ; :history [{:rating 123 :rating-dev 123 :code-version 999}] ; TODO
-                    ; :matches [{:id 888 :winner 456 :bots [{:name "foo" :id 456}]}] ; TODO
+                     :history (db/with-conn (db/get-bot-history (:db/id bot-u1g1)))
+                     :matches (let [matches (db/with-conn (db/get-bot-matches (:db/id bot-u1g1)))]
+                                (map (fn [match] {:id (:db/id match)} ) matches)) ; TODO
                      }]
        (is (= expected (:body (edn-request app :get (str "/api/bots/" (:db/id bot-u1g1))))))))
 
