@@ -273,13 +273,22 @@
     (render [_]
       (let [user data]
         (dom/div #js {:className "card user"}
-          (dom/header nil "USER"
+          (dom/header nil
                       (dom/span nil (:name user))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
-            (apply dom/div nil
-              (map (fn [bot]
-                     (dom/a #js {:onClick (nav :bot (:id bot))} (:name (:game bot)) "/" (:name bot))) (user :bots)))))))))
+            (dom/table nil
+              (dom/thead nil
+                         (dom/tr nil
+                                 (dom/th nil "Game")
+                                 (dom/th nil "Bot")
+                                 (dom/th nil "Rating")))
+              (apply dom/tbody nil
+                (map (fn [bot]
+                       (dom/tr nil
+                               (dom/td nil (:name (:game bot)))
+                               (dom/td nil (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
+                               (dom/td nil (:rating bot)))) (user :bots))))))))))
 
 (def login-csrf-key (atom ""))
 
