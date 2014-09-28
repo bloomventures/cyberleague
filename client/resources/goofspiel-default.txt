@@ -1,10 +1,10 @@
 ; Code a bot to play Goofspiel
 ;
-; The game is played with 3 'decks' of 1 through 12.
+; The game is played with 3 'decks' of 1 through 13.
 ; Each turn, a trophy card is revealed and you
 ; and your opponent bid with one of your cards.
 ; The highest bid scores the value of the trophy card.
-; Highest score after 12 cards wins.
+; Highest score after 13 cards wins.
 ;
 ; Sample Input:
 ;    { "me" 12345
