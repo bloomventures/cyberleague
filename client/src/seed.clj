@@ -45,6 +45,9 @@ Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with
 
 
 (db/with-conn (db/update-bot-rating (:db/id user/bot-goofspiel) (rand-int 2000) (rand-int 500)))
+(db/with-conn
+  (doseq [bot [bot-goofspiel bot-goofspiel-2 bot-goofspiel-3 bot-goofspiel-4]]
+    (db/deploy-bot (:db/id bot))))
 
 
 (def game-ultimate-tic-tac-toe
