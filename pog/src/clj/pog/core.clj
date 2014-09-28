@@ -1,4 +1,5 @@
 (ns pog.core
+  (:gen-class)
   (:require [pog.db :as db]
             [datomic.api :as d]
             [pog.ranking :as ranking]
@@ -46,4 +47,5 @@
                                                             (get-in result [:move :move])))
                                  :match/winner winner})
               (d/transact db/*conn*
-                [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]]))))))))
+                [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]
+                 [:db/retract cheater :bot/code-version (:bot/code-version cheater)]]))))))))
