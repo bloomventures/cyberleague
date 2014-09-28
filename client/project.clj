@@ -12,6 +12,7 @@
                  [compojure "1.1.8"]
                  [org.clojure/clojurescript "0.0-2280"]
                  [org.clojure/core.async "0.1.303.0-886421-alpha"]
+                 [me.raynes/fs "1.4.4"]
                  [om "0.7.1"]]
 
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
