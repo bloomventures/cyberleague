@@ -175,7 +175,8 @@
 
     (POST "/bots/:bot-id/test" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
-        (if true ; (and bot (= id (:db/id (:bot/user bot))))
+        (if (and bot (= id (:db/id (:bot/user bot))))
+          ; TODO: use an appropriate random bot for different games
           (let [random-bot {:db/id 1234
                             :bot/code-version 2
                             :bot/deployed-code '(fn [state]
