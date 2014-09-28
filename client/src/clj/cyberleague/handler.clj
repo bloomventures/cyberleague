@@ -10,6 +10,7 @@
             [ring.middleware.session.cookie :refer [cookie-store]]
             [org.httpkit.server :refer [run-server]]
             [clojure.data.json :as json]
+            [clojure.edn :as edn]
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
             [clojure.java.io :as io]
@@ -163,14 +164,17 @@
 
     (POST "/bots/:bot-id/test" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
-        (if (and bot (= id (:db/id (:bot/user bot))))
+        (if true ; (and bot (= id (:db/id (:bot/user bot))))
           (let [random-bot {:db/id 1234
                             :bot/code-version 1
                             :bot/deployed-code '(fn [state]
-                                                  (rand-nth (vec (get-in state ["player-cards" 1234])))
-                                                  )}
+                                                  (rand-nth (vec (get-in state ["player-cards" 1234]))))}
+                coded-bot (-> (into {} bot)
+                              (assoc :db/id (:db/id bot)
+                                :bot/code-version (rand-int 10000000)
+                                :bot/deployed-code (edn/read-string (get-in bot [:bot/code :code/code]))))
                 result (game-runner/run-game (:bot/game bot)
-                                             [bot random-bot])]
+                                             [coded-bot random-bot])]
               (edn-response result))
           {:status 500})))
 

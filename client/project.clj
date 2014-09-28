@@ -36,7 +36,7 @@
                              [quickie "0.2.5"]]
                    :test-paths ["test/clj"]
                    :cljsbuild {:builds [{:id "cyberleague"
-                                         :source-paths ["src/cljs" ]
+                                         :source-paths ["src/cljs"]
                                          :compiler {:output-to "resources/public/js/out/cyberleague.js"
                                                     :output-dir "resources/public/js/out"
                                                     :optimizations :none
