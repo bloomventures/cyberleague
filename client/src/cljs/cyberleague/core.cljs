@@ -364,16 +364,7 @@
                              (swap! app-state (fn [cv] (assoc cv :user data))))
                            )})
 
-  (let [cards [{:type :code
-                :id 345}]
-        _cards [{:type :games}
-               {:type :game
-                :id 123}
-               {:type :bot
-                :id 345}
-               {:type :code
-                :id 345}
-               {:type :match
-                :id 456}]]
+  (let [cards [{:type :games
+                :id nil}] ]
     (doseq [card cards]
       (open-card card))))
