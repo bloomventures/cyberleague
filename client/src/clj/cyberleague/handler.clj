@@ -9,7 +9,6 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
             [org.httpkit.server :refer [run-server]]
-            [cyberleague.mocks :as mocks]
             [clojure.data.json :as json]
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
