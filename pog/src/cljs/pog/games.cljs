@@ -80,3 +80,54 @@
             winner (filter (comp (partial = high-score) second) scores)]
         (when (= 1 (count winner))
           (ffirst winner))))))
+
+;; Ultimate Tic-Tac-Toe
+(comment
+  ; Example game state
+  {
+   "grid" [  [ "x" nil "o"  ... (comment "nine total things")]
+           ; repeated 8 more times
+           ]
+   "history" [ { "player" 1234 "move" [0 0] } ; first player placed an x at [0 0]
+               { "player" 54321 "move" [0 3 ] } ; second player places o at [0 3]
+              ]
+  }
+  )
+(defmethod make-engine "ultimate tic-tac-toe"
+  [_]
+  (reify
+    IGameEngine
+    (simultaneous-turns? [_] false)
+
+    (number-of-players [_] 2)
+
+    (init-state [_ players]
+      {"grid" (vec (repeat 9 (vec (repeat 9 nil))))
+       "history" []
+       (first players) "x"
+       (second players) "o"})
+
+    (valid-move? [_ move]
+      (and (coll? move)
+        (= 2 (count move))
+        (every? #(<= 0 % 8) move)))
+
+    (legal-move? [_ {:strs [history grid] :as state} player move]
+      ; move must be to sub-board corresponding to the location in the
+      ; subboard of the previous move, unless that board is full, in which
+      ; case the player can now play anywhere that hasn't already been played
+      (let [[_ subboard] ((last history) "move")]
+        (if (some nil? (get grid subboard))
+          (and (= subboard (first move)) (nil? (get-in grid move)))
+          (nil? (get-in grid move)))))
+
+    (next-state [_ state move]
+      (let [[player] (keys move)
+            [loc] (vals move)]
+        (assoc-in state (cons "grid" loc) (state player))))
+
+    (game-over? [_ state]
+      )
+
+    (winner [_ state]
+      )))
