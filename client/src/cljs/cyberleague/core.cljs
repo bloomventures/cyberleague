@@ -212,7 +212,7 @@
                          (dom/td nil move)
                          (dom/td nil move)
                          (dom/td nil move)
-                         (dom/td nil (if (state :log-show) "▴" "▾")))
+                         (dom/td nil (if (state :log-show) "×" "▾")))
                  (dom/tr #js {:className (str "log" " " (if (state :log-show) "show" "hide"))}
                          (dom/td #js {:colSpan 4} "console logs"))))))
 
