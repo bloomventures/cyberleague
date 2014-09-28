@@ -6,6 +6,7 @@
                  [javax.servlet/servlet-api "2.5"]
                  [com.datomic/datomic-pro "0.9.4899"]
                  [http-kit  "2.1.16"]
+                 [fogus/ring-edn "0.2.0"]
                  [org.clojure/data.json "0.2.5"]
                  [compojure "1.1.8"]
                  [org.clojure/clojurescript "0.0-2280"]
@@ -28,6 +29,7 @@
 
   :profiles {:uberjar {:aot :all}
              :dev {:repl-options {:init-ns cyberleague.handler}
+                   :dependencies [[org.clojure/tools.reader "0.8.9"]]
                    :plugins [[lein-cljsbuild "1.0.3"]
                              [quickie "0.2.5"]]
                    :test-paths ["test/clj"]
