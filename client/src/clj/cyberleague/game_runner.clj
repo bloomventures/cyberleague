@@ -161,7 +161,7 @@
         (concat
           [(slurp game-runner-js)]
           [(str "cyberleague.precompiled.run_game("
-                (pr-str (pr-str game))
+                (pr-str (pr-str (into {} game)))
                 ","
                 (pr-str (pr-str bots))
                 ","

@@ -1,4 +1,4 @@
-(ns pog.games)
+(ns cyberleague.games)
 
 (defprotocol IGameEngine
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
