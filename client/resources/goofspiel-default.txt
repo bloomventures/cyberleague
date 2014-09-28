@@ -1,15 +1,18 @@
 ; Code a bot to play Goofspiel
 ;
-; The game is played with 3 'decks' of 1 through 12.
-; Each turn, a trophy card is revealed and you and your opponent bid with one of your cards.
-; The highest bid scores the value of the trophy card. Highest score after 12 cards wins.
+; The game is played with 3 'decks' of 1 through 13.
+; Each turn, a trophy card is revealed and you
+; and your opponent bid with one of your cards.
+; The highest bid scores the value of the trophy card.
+; Highest score after 13 cards wins.
 ;
 ; Sample Input:
-;    { :your-cards #{ 1 2 3 12 }
-;      :their-cards #{ 2 3 12 52 }
-;      :trophy-cards #{ 1 2 3 }
-;      :current-trophy 6
-;      :history [ { :you 1 :them 1 :trophy 1 } … ] } }
+;    { "me" 12345
+;      "player-cards" {12345 #{ 1 2 3 13 }
+;                      54321 #{ 1 2 3 13 }}
+;      "trophy-cards" #{ 1 2 3 13 }
+;      "current-trophy" 4
+;      "history"  [ { 12345 1 54321 1 "trophy" 1 } … ] }
 ;
 ; Sample Output:
 ;   5
