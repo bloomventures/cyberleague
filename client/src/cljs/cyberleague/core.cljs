@@ -147,7 +147,8 @@
         (dom/div #js {:className "card bot"}
           (dom/header nil
                       (:name bot)
-                      (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE")
+                      (when (= (get-in @app-state [:user :id]) (:id (:user bot)))
+                        (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
 
           (dom/div #js {:className "content"}
