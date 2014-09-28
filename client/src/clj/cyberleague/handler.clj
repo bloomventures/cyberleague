@@ -51,8 +51,8 @@
       (assoc (edn-response user) :session user)))
 
 
-   (POST "/logout" _
-     (assoc (edn-response {:status 200}) :session nil))
+  (POST "/logout" _
+    (assoc (edn-response {:status 200}) :session nil))
 
   (context "/api" {{:keys [user-id] :as session} :session}
 
@@ -60,25 +60,35 @@
       (edn-response session))
 
     (GET "/users/:other-user-id" [other-user-id]
-      (let [user (db/with-conn (db/get-user (to-long other-user-id)))]
+      (let [user (db/with-conn (db/get-user (to-long other-user-id)))
+            bots (db/with-conn (db/get-user-bots (to-long other-user-id)))]
         (edn-response {:id (:db/id user)
                        :name (:user/name user)
-                       :bots nil}))) ; TODO
+                       :bots (map (fn [bot] {:name (:bot/name bot)
+                                             :id (:db/id bot)
+                                             :game (let [game (:bot/game bot)]
+                                                     {:id (:db/id game)
+                                                      :name (:game/name game)})} ) bots)})))
 
     (GET "/games" _
       (let [games (db/with-conn (db/get-games))]
-        (edn-response (map (fn [game] {:id (:db/id game)
-                                       :name (:game/name game)
-                                       :bot-count nil} ;TODO
-                             ) games))))
+        (edn-response (map
+                        (fn [game]
+                          {:id (:db/id game)
+                           :name (:game/name game)
+                           ; TODO likely a better way to fetch counts in datomic
+                           :bot-count (count (db/with-conn (db/get-game-bots (:db/id game))))}
+                          ) games))))
 
     (GET "/games/:game-id" [game-id]
-      (let [game (db/with-conn (db/get-game (to-long game-id)))]
+      (let [game (db/with-conn (db/get-game (to-long game-id)))
+            bots (db/with-conn (db/get-game-bots (to-long game-id)))]
         (edn-response {:id (:db/id game)
-                       :name (:game/name game)
+                       :name (:game/name game  )
                        :description (:game/description game)
-                       :bots nil ; TODO
-                       })))
+                       :bots (map (fn [bot] {:name (:bot/name bot)
+                                             :rating (:bot/rating bot)
+                                             :id (:db/id bot) } ) bots)})))
 
     (GET "/matches/:match-id" [match-id]
       (let [match (db/with-conn (db/get-match (to-long match-id)))]
@@ -97,8 +107,8 @@
                                {:id (:db/id user)
                                 :name (:user/name user)
                                 :gh-id (:user/gh-id user)})
-                       :history nil ; TODO
-                       :matches nil ; TODO
+                       ;                       :history nil ; TODO
+                       ;                       :matches nil ; TODO
                        })))
 
     (GET "/bots/:bot-id/code" [bot-id]

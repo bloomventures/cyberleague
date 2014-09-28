@@ -62,10 +62,16 @@
              (db/deploy-bot (:db/id bot))
              (db/update-bot-code (:db/id bot) "(fn [] 4)")
              (is (= "(fn [] 3)" (db/deployed-code (:db/id bot))))
-             (is (= "(fn [] 4)" (get-in (db/by-id (:db/id bot)) [:bot/code :code/code]))))))))))
+             (is (= "(fn [] 4)" (get-in (db/by-id (:db/id bot)) [:bot/code :code/code]))))))
+
+       (testing "and get game bots"
+         (is (= (db/get-game-bots (:db/id game)) [bot])))
+
+       (testing "and get user bots"
+         (is (= (db/get-user-bots (:db/id user)) [bot])))))))
 
 
-(deftest matches
+#_(deftest matches
   (testing "can get match"
     (let [match (db/create-match {})
           match-get (db/get-match (:id match))]
