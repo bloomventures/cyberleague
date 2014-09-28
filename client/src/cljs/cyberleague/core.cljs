@@ -102,8 +102,16 @@
           (dom/header nil "GAMES"
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
-            (apply dom/div nil
-              (map (fn [game] (dom/a #js {:onClick (nav :game (game :id))} (game :name) (game :bot-count))) games))))))))
+            (dom/table nil
+              (dom/thead nil
+                         (dom/tr nil
+                                 (dom/th nil "Name")
+                                 (dom/th nil "Active Bots")))
+              (apply dom/tbody nil
+                (map (fn [game]
+                       (dom/tr nil
+                               (dom/td nil (dom/a #js {:onClick (nav :game (game :id))} (game :name) ))
+                               (dom/td nil (game :bot-count)))) games)))))))))
 
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
