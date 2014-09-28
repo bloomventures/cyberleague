@@ -116,7 +116,7 @@
               (apply dom/tbody nil
                 (map (fn [user]
                        (dom/tr nil
-                               (dom/td nil (dom/a #js {:onClick (nav :user (user :id))} (user :name) ))
+                               (dom/td nil (dom/a #js {:onClick (nav :user (user :id))} (str "@" (user :name)) ))
                                (dom/td nil (user :bot-count)))) users)))))))))
 
 (defn games-card-view [{:keys [data] :as card} owner]
@@ -136,7 +136,7 @@
               (apply dom/tbody nil
                 (map (fn [game]
                        (dom/tr nil
-                               (dom/td nil (dom/a #js {:onClick (nav :game (game :id))} (game :name) ))
+                               (dom/td nil (dom/a #js {:onClick (nav :game (game :id))} (str "#" (game :name)) ))
                                (dom/td nil (game :bot-count)))) games)))))))))
 
 (defn game-card-view [{:keys [data] :as card} owner]
@@ -146,7 +146,7 @@
       (let [game data]
         (dom/div #js {:className "card game"}
           (dom/header nil
-                      (:name game)
+                      (str "#" (:name game))
                       (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "NEW BOT")
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
@@ -176,14 +176,14 @@
       (let [bot data]
         (dom/div #js {:className "card bot"}
           (dom/header nil
-                      (:name bot)
+                      (dom/span nil (:name bot))
+                      (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
+                      (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
                       (when (= (get-in @app-state [:user :id]) (:id (:user bot)))
                         (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
 
           (dom/div #js {:className "content"}
-            (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
-            (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
 
             (dom/div #js {:ref "graph"})
 
@@ -284,8 +284,8 @@
         (dom/div #js {:className "card code"}
           (dom/header nil
                       (dom/span nil (:name bot))
-                      (dom/a #js {:onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
-                      (dom/a #js {:onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
+                      (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
+                      (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
                       (when (= :saved (state :status))
                         (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST"))
                       (when (= :passing (state :status))
@@ -304,7 +304,7 @@
         (dom/header nil "MATCH"
                     (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
-          (:name (:game data)))))))
+          (str "#" (:name (:game data))))))))
 
 (defn user-card-view [{:keys [data] :as card} owner]
   (reify
@@ -313,7 +313,7 @@
       (let [user data]
         (dom/div #js {:className "card user"}
           (dom/header nil
-                      (dom/span nil (:name user))
+                      (dom/span nil (str "@" (:name user)))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/table nil
