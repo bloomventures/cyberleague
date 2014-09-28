@@ -212,11 +212,9 @@
                          (dom/td nil move)
                          (dom/td nil move)
                          (dom/td nil move)
-                         (dom/td nil move)
-                         (dom/td nil move)
                          (dom/td nil (if (state :log-show) "▴" "▾")))
                  (dom/tr #js {:className (str "log" " " (if (state :log-show) "show" "hide"))}
-                         (dom/td #js {:colSpan 6} "console logs"))))))
+                         (dom/td #js {:colSpan 4} "console logs"))))))
 
 
 (defn test-view [bot owner]
@@ -227,26 +225,27 @@
     om/IRenderState
     (render-state [_ state]
       (dom/div #js {:className "test"}
+        (let [result :error]
+          (dom/p nil (case result
+                       :error "Your bot had an error."
+                       :win "You win!"
+                       :loss "You lost!")))
 
         (apply dom/table nil
           (concat [(dom/thead nil
                               (dom/tr nil
                                       (dom/th nil "Trophy")
-                                      (dom/th nil "Your Move")
-                                      (dom/th nil "Your Score")
-                                      (dom/th nil "Their Move")
-                                      (dom/th nil "Their Score")
+                                      (dom/th nil "You")
+                                      (dom/th nil "Them")
                                       (dom/th nil "")))
                    (dom/tfoot nil
                               (dom/tr nil
-                                      (dom/th nil  "Final")
-                                      (dom/th nil nil)
-                                      (dom/th nil 5)
-                                      (dom/th nil nil)
-                                      (dom/th nil 6)
-                                      (dom/th nil nil)))]
+                                      (dom/td nil "Score")
+                                      (dom/td nil 5)
+                                      (dom/td nil 6)
+                                      (dom/td nil nil)))]
                   (om/build-all move-view [1 2 3 4 5])))
-        "you win!"))))
+        ))))
 
 (defn code-view [bot owner]
   (reify
@@ -275,16 +274,22 @@
 
 (defn code-card-view [{:keys [data] :as card} owner]
   (reify
-    om/IRender
-    (render [_]
+    om/IInitState
+    (init-state [_]
+      {:status :saved ; :editing :saved :passing :failing :deployed
+       })
+    om/IRenderState
+    (render-state [_ state]
       (let [bot data]
         (dom/div #js {:className "card code"}
           (dom/header nil
                       (dom/span nil (:name bot))
                       (dom/a #js {:onClick (nav :game (:id (:game bot)))} (:name (:game bot)))
                       (dom/a #js {:onClick (nav :user (:id (:user bot)))} (:name (:user bot)))
-                      (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST")
-                      (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
+                      (when (= :saved (state :status))
+                        (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)))} "TEST"))
+                      (when (= :passing (state :status))
+                        (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)

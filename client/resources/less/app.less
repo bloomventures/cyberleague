@@ -235,13 +235,13 @@ a {
     }
   }
   &.code {
-    width: 900px;
+    width: 800px;
     .status {
       right: 50%;
       margin-right: 1em;
     }
     .button.test {
-      left: 50%;
+      left: 70%;
       right: inherit;
       margin-left: 1em;
     }
@@ -249,7 +249,6 @@ a {
       padding: 0;
 
       .source, .test {
-        width: 50%;
         display: inline-block;
         vertical-align: top;
         height: 100%;
@@ -257,20 +256,41 @@ a {
       }
 
       .source {
+        width: 70%;
         > div {
           height: 100%;
         }
       }
       .test {
-        padding: 1em;
+        width: 30%;
         background: #f7f7f7;
         border-left: 1px solid #ddd;
+        p {
+          margin: 1em;
+          text-align: center;
+        }
+        table {
+          width: 100%;
+          th {
+            text-align: center;
+          }
+          td {
+            text-align: center;
+          }
+          tfoot {
+            td {
+              padding-top: 1em;
+            }
+
+          }
+        }
         .hide {
           display: none;
         }
         .log {
           background: #ccc;
           font-family: Inconsolata, monospace;
+          text-align: left;
         }
       }
 
