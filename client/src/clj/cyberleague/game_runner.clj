@@ -1,4 +1,4 @@
-(ns pog.game-runner
+(ns cyberleague.game-runner
   (:require [me.raynes.fs :as fs]
             [cljs.closure :as cljsc]
             [clojure.string :as string]
@@ -33,9 +33,9 @@
       (fs/delete-dir output-dir))
     (fs/mkdirs output-dir)
     (cljsc/build
-      '[(ns pog.precompiled
+      '[(ns cyberleague.precompiled
           (:require cljs.reader
-                    [pog.games :as games]))
+                    [cyberleague.games :as games]))
 
         (set-print-fn! js/print)
 
@@ -160,8 +160,8 @@
         "\n"
         (concat
           [(slurp game-runner-js)]
-          [(str "pog.precompiled.run_game("
-                (pr-str (pr-str game))
+          [(str "cyberleague.precompiled.run_game("
+                (pr-str (pr-str (into {} game)))
                 ","
                 (pr-str (pr-str bots))
                 ","
