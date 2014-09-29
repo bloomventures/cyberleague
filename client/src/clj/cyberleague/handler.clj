@@ -3,6 +3,7 @@
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
+            [clostache.parser :as clostache]
             [ring.util.response :as response]
             [ring.util.codec :refer  [url-encode]]
             [ring.middleware.edn :refer [wrap-edn-params]]
@@ -29,9 +30,15 @@
 (defn to-long [v]
   (java.lang.Long. v))
 
+
+(def in-prod?
+  (= "production" (System/getenv "ENVIRONMENT")))
+
 (defroutes app-routes
   (GET "/" []
-    (response/resource-response "index.html"))
+    (clostache/render-resource "index.html" (if in-prod?
+                                              {:production true}
+                                              {:development true})))
 
   (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))

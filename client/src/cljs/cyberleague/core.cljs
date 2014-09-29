@@ -415,7 +415,7 @@
                              :user user-card-view
                              :match match-card-view) card)) (data :cards)))))))
 
-(defn init []
+(defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
   (js/window.addEventListener "message" (fn [e]
