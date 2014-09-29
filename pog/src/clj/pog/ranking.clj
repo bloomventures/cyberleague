@@ -3,7 +3,7 @@
             [clojure.math.numeric-tower :refer [expt]]
             [datomic.api :as d]))
 
-(def PI 3.14159)
+(def PI Math/PI)
 
 (defn sq [x] (expt x 2))
 

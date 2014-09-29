@@ -1,5 +1,5 @@
 (ns cyberleague.seed
-  (:require [cyberleague.db :as db]))
+  (:require [pog.db :as db]))
 
 (defn seed []
 
