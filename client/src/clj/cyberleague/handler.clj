@@ -218,8 +218,7 @@
          {:store (cookie-store {:key "runG4aurf8ek9caK"})})))))
 
 (defn -main  [& [port & args]]
-  ;(db/init)
-  (seed/seed)
+  (db/init)
   (let [port (if port (Integer/parseInt port) 3000)]
     (run-server app {:port port})
     (println "starting on port " port)))
