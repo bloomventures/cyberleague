@@ -103,7 +103,8 @@
                                              :rating (:bot/rating bot)
                                              :game (let [game (:bot/game bot)]
                                                      {:id (:db/id game)
-                                                      :name (:game/name game)})} ) bots)})))
+                                                      :name (:game/name game)})})
+                                  bots)})))
 
     (GET "/games" _
       (let [games (db/with-conn (db/get-games))]
