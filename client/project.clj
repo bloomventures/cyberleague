@@ -4,7 +4,7 @@
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [javax.servlet/servlet-api "2.5"]
-                 [com.datomic/datomic-pro "0.9.4899"]
+                 [pog "1.0.0"]
                  [http-kit  "2.1.16"]
                  [fogus/ring-edn "0.2.0"]
                  [de.ubercode.clostache/clostache "1.4.0"]

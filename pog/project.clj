@@ -1,4 +1,4 @@
-(defproject pog "0.1.0-SNAPSHOT"
+(defproject pog "1.0.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
