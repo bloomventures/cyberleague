@@ -14,7 +14,16 @@ flexrm/datomic-config & run `bin/transactor <path to copied tempalte>`.
 
 
 
-  $ (binding [db/*uri* "datomic:free://localhost:4334/cldev"] (wrap-reload e))
+  (binding [db/*uri* "datomic:free://localhost:4334/cldev"] ... )
+
+## Port forward
+
+  $ ./pf.sh 8080
+
+to clear:
+
+  $ ./pf.sh
+
 
 ## Running server
 
