@@ -1,4 +1,4 @@
-(ns clj.cyberleague.seed
+(ns cyberleague.seed
   (:require [cyberleague.db :as db]))
 
 (defn seed []
