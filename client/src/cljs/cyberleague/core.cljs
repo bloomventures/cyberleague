@@ -346,12 +346,14 @@
                          (dom/tr nil
                                  (dom/th nil "Game")
                                  (dom/th nil "Bot")
+                                 (dom/th nil "Status")
                                  (dom/th nil "Rating")))
               (apply dom/tbody nil
                 (map (fn [bot]
                        (dom/tr nil
                                (dom/td nil (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot)))))
                                (dom/td nil (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
+                               (dom/td nil (if (= :active (:status bot)) "●" "○"))
                                (dom/td nil (:rating bot)))) (user :bots))))))))))
 
 (defn chat-card-view [card owner]
