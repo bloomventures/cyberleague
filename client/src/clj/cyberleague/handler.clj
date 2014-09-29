@@ -16,10 +16,8 @@
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
             [clojure.java.io :as io]
-            [cyberleague.db :as db]
-            [cyberleague.game-runner :as game-runner]
-            [cyberleague.seed :as seed]
-            ))
+            [pog.db :as db]
+            [pog.game-runner :as game-runner]))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
@@ -106,7 +104,8 @@
                                              :status (if (nil? (:bot/current-version bot)) :inactive :active)
                                              :game (let [game (:bot/game bot)]
                                                      {:id (:db/id game)
-                                                      :name (:game/name game)})} ) bots)})))
+                                                      :name (:game/name game)})})
+                                  bots)})))
 
     (GET "/games" _
       (let [games (db/with-conn (db/get-games))]

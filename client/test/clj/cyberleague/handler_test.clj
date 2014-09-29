@@ -1,6 +1,6 @@
 (ns cyberleague.handler-test
   (:require [clojure.test :refer :all]
-            [cyberleague.db :as db]
+            [pog.db :as db]
             [clojure.tools.reader.edn :as edn]
             [cyberleague.handler :refer [app] :as handler]))
 
