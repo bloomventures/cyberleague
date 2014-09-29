@@ -15,7 +15,9 @@
             [clojure.string :as string]
             [clojure.java.io :as io]
             [cyberleague.db :as db]
-            [cyberleague.game-runner :as game-runner]))
+            [cyberleague.game-runner :as game-runner]
+            [cyberleague.seed :as seed]
+            ))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
@@ -206,7 +208,8 @@
                {:store (cookie-store {:key "runG4aurf8ek9caK"})}))))
 
 (defn -main  [& [port & args]]
-  (db/init)
+  ;(db/init)
+  (seed/seed)
   (let [port (if port (Integer/parseInt port) 3000)]
     (run-server app {:port port})
     (println "starting on port " port)))
