@@ -262,6 +262,16 @@
         :db-after
         (d/entity bot-id))))
 
+(defn active-bots
+  "Get all bots with deployed code"
+  []
+  (->> (d/q '[:find ?e
+              :where
+              [?e :bot/code-version _]]
+            (d/db *conn*))
+       (map (comp by-id first))
+       (group-by :bot/game)))
+
 (defn deployed-code
   [bot-id]
   (let [bot (by-id bot-id)
