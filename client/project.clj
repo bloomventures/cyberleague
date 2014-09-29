@@ -44,7 +44,8 @@
                                        :optimizations :advanced}}]}}
 
              :dev {:repl-options {:init-ns cyberleague.handler}
-                   :dependencies [[org.clojure/tools.reader "0.8.9"]]
+                   :dependencies [[org.clojure/tools.reader "0.8.9"]
+                                  [ring/ring-devel "1.3.0"]]
                    :plugins [[lein-cljsbuild "1.0.3"]
                              [quickie "0.2.5"]]
                    :test-paths ["test/clj"]

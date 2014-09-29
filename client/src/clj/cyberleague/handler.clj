@@ -9,6 +9,7 @@
             [ring.middleware.edn :refer [wrap-edn-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
+            [ring.middleware.reload :refer [wrap-reload]]
             [org.httpkit.server :refer [run-server]]
             [clojure.data.json :as json]
             [clojure.edn :as edn]
@@ -206,13 +207,15 @@
               (edn-response {:status 200}))
           {:status 500})))))
 
-(def app (handler/site
-           (wrap-edn-params
-             (wrap-session
-               (routes
-                 app-routes
-                 (route/resources "/" ))
-               {:store (cookie-store {:key "runG4aurf8ek9caK"})}))))
+(def app
+  ((if in-prod? identity wrap-reload)
+   (handler/site
+     (wrap-edn-params
+       (wrap-session
+         (routes
+           app-routes
+           (route/resources "/" ))
+         {:store (cookie-store {:key "runG4aurf8ek9caK"})})))))
 
 (defn -main  [& [port & args]]
   ;(db/init)
