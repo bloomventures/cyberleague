@@ -350,7 +350,7 @@
               (apply dom/tbody nil
                 (map (fn [bot]
                        (dom/tr nil
-                               (dom/td nil (:name (:game bot)))
+                               (dom/td nil (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot)))))
                                (dom/td nil (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
                                (dom/td nil (:rating bot)))) (user :bots))))))))))
 
