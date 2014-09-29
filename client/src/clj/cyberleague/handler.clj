@@ -3,11 +3,13 @@
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
+            [clostache.parser :as clostache]
             [ring.util.response :as response]
             [ring.util.codec :refer  [url-encode]]
             [ring.middleware.edn :refer [wrap-edn-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
+            [ring.middleware.reload :refer [wrap-reload]]
             [org.httpkit.server :refer [run-server]]
             [clojure.data.json :as json]
             [clojure.edn :as edn]
@@ -29,9 +31,15 @@
 (defn to-long [v]
   (java.lang.Long. v))
 
+
+(def in-prod?
+  (= "production" (System/getenv "ENVIRONMENT")))
+
 (defroutes app-routes
   (GET "/" []
-    (response/resource-response "index.html"))
+    (clostache/render-resource "index.html" (if in-prod?
+                                              {:production true}
+                                              {:development true})))
 
   (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))
@@ -199,13 +207,15 @@
               (edn-response {:status 200}))
           {:status 500})))))
 
-(def app (handler/site
-           (wrap-edn-params
-             (wrap-session
-               (routes
-                 app-routes
-                 (route/resources "/" ))
-               {:store (cookie-store {:key "runG4aurf8ek9caK"})}))))
+(def app
+  ((if in-prod? identity wrap-reload)
+   (handler/site
+     (wrap-edn-params
+       (wrap-session
+         (routes
+           app-routes
+           (route/resources "/" ))
+         {:store (cookie-store {:key "runG4aurf8ek9caK"})})))))
 
 (defn -main  [& [port & args]]
   ;(db/init)
