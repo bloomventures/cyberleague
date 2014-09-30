@@ -1,5 +1,6 @@
 (ns pog.db
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [clojure.edn :as edn]))
 
 (def ^:dynamic *uri*
   "URI for the datomic database"
@@ -279,7 +280,8 @@
     (when-let [vers (:bot/code-version bot)]
       (-> (d/as-of (d/db *conn*) vers)
           (d/entity code-id)
-          :code/code))))
+          :code/code
+          edn/read-string))))
 
 
 (defn get-code [id]

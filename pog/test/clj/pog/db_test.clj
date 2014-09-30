@@ -61,7 +61,7 @@
            (testing "and set the current version of the code"
              (db/deploy-bot (:db/id bot))
              (db/update-bot-code (:db/id bot) "(fn [] 4)")
-             (is (= "(fn [] 3)" (db/deployed-code (:db/id bot))))
+             (is (= '(fn [] 3) (db/deployed-code (:db/id bot))))
              (is (= "(fn [] 4)" (get-in (db/by-id (:db/id bot)) [:bot/code :code/code]))))))
 
        (testing "and get game bots"
