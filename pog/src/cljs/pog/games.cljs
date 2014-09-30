@@ -1,4 +1,5 @@
-(ns pog.games)
+(ns pog.games
+  (:require [clojure.set :refer [map-invert]]))
 
 (defprotocol IGameEngine
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
@@ -89,10 +90,37 @@
            ; repeated 8 more times
            ]
    "history" [ { "player" 1234 "move" [0 0] } ; first player placed an x at [0 0]
-               { "player" 54321 "move" [0 3 ] } ; second player places o at [0 3]
+              { "player" 54321 "move" [0 3 ] } ; second player places o at [0 3]
               ]
-  }
+   "marker" {
+             12345 "x"
+             54321 "o"
+             }
+   }
   )
+
+(defn won-subboard
+  "Return the winner (x or o) of a basic tic-tac-toe game, false no winner"
+  [board]
+  (let [all-equal (fn [v] (and (apply = v) (first v)))]
+    (or
+      ; horizontal lines
+      (all-equal (subvec board 0 3))
+      (all-equal (subvec board 3 6))
+      (all-equal (subvec board 6 9))
+      ; vertical lines
+      (all-equal (vals (select-keys board [0 3 6])))
+      (all-equal (vals (select-keys board [1 4 7])))
+      (all-equal (vals (select-keys board [2 5 8])))
+      ; diagonals
+      (all-equal (vals (select-keys board [0 4 8])))
+      (all-equal (vals (select-keys board [2 4 6]))))))
+
+(defn board-decided?
+  "Has the given board either been won or played to a draw?"
+  [board]
+  (or (won-subboard board) (not-any? nil? board)))
+
 (defmethod make-engine "ultimate tic-tac-toe"
   [_]
   (reify
@@ -104,8 +132,10 @@
     (init-state [_ players]
       {"grid" (vec (repeat 9 (vec (repeat 9 nil))))
        "history" []
-       (first players) "x"
-       (second players) "o"})
+       "marker"
+       {(first players) "x"
+        (second players) "o"}
+       })
 
     (valid-move? [_ move]
       (and (coll? move)
@@ -113,21 +143,24 @@
         (every? #(<= 0 % 8) move)))
 
     (legal-move? [_ {:strs [history grid] :as state} player move]
-      ; move must be to sub-board corresponding to the location in the
-      ; subboard of the previous move, unless that board is full, in which
-      ; case the player can now play anywhere that hasn't already been played
-      (let [[_ subboard] ((last history) "move")]
-        (if (some nil? (get grid subboard))
-          (and (= subboard (first move)) (nil? (get-in grid move)))
-          (nil? (get-in grid move)))))
+      (or (empty? history)
+          (and
+            (nil? (get-in grid move)) ; the space is currently unoccupied and....
+            (not (board-decided? (get-in state ["grid" (first move)]))) ; the grid is undecided
+            (let [[_ subboard] ((last history) "move")]
+              (or (board-decided? (get-in state ["grid" subboard]))
+                  (= subboard (first move)))))))
 
     (next-state [_ state move]
       (let [[player] (keys move)
             [loc] (vals move)]
-        (assoc-in state (cons "grid" loc) (state player))))
+        (-> state
+            (assoc-in (cons "grid" loc) (get-in state ["marker" player]))
+            (update-in ["history"] conj {"player" player "move" loc}))))
 
     (game-over? [_ state]
-      )
+      (let [won-subboards (mapv #(won-subboard (get-in state ["grid" %])) (range 9))]
+        (won-subboard won-subboards)))
 
-    (winner [_ state]
-      )))
+    (winner [this state]
+      (get (map-invert (state "marker")) (game-over? this state)))))
