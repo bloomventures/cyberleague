@@ -107,7 +107,7 @@
 
               (catch GameException e
                 (pr-str (.getInfo e))))))]
-      {:optimizations :whitespace
+      {:optimizations :advanced
        :elide-asserts true
        :output-dir output-dir
        :output-to game-runner-js
