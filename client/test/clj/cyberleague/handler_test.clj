@@ -35,6 +35,7 @@
                      :bots [{:name (:bot/name bot-u1g1)
                              :id (:db/id bot-u1g1)
                              :rating (:bot/rating bot-u1g1)
+                             :status :inactive
                              :game {:id (:db/id game-1)
                                     :name (:game/name game-1)}}]}]
        (is (= expected (:body (edn-request app :get (str "/api/users/" (:db/id user-1)))))))
