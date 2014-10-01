@@ -3,6 +3,7 @@
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
+            [clojure.tools.nrepl.server :as nrepl]
             [clostache.parser :as clostache]
             [ring.util.response :as response]
             [ring.util.codec :refer  [url-encode]]
@@ -217,9 +218,15 @@
            (route/resources "/" ))
          {:store (cookie-store {:key "***REMOVED***"})})))))
 
-(defn -main  [& [port & args]]
+(defn -main  [& [port nrepl-port & args]]
   (db/init)
   (let [port (if port (Integer/parseInt port) 3000)]
     (run-server app {:port port})
-    (println "starting on port " port)))
+    (println "starting on port " port))
+  (try
+    (let [nrepl-port (Integer/parseInt nrepl-port)]
+      (println "Starting nrepl on port " nrepl-port)
+      (nrepl/start-server :port nrepl-port))
+    (catch NumberFormatException _
+      (println "No nrepl port, not starting"))))
 

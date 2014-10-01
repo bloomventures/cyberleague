@@ -7,7 +7,8 @@
                  [com.datomic/datomic-pro "0.9.4899"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [me.raynes/fs "1.4.4"]
-                 [org.clojure/clojurescript "0.0-2356"]]
+                 [org.clojure/clojurescript "0.0-2356"]
+                 [org.clojure/tools.nrepl "0.2.3"]]
 
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                    :username "james@leanpixel.com"
