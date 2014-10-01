@@ -2,11 +2,19 @@
   (:gen-class)
   (:require [pog.db :as db]
             [datomic.api :as d]
+            [clojure.tools.nrepl.server :as nrepl]
             [pog.ranking :as ranking]
             [pog.game-runner :as game-runner]))
 
 (defn -main
-  [& args]
+  [& [nrepl-port & args]]
+  (try
+    (let [port (Integer. nrepl-port)]
+      (println "Starting nrepl on port " port)
+      (nrepl/start-server :port port))
+    (catch NumberFormatException ex
+      (println "Not starting nrepl")))
+
   (println "Running games")
   (while true
     (doseq [[game all-bots] (db/with-conn (db/active-bots))]
