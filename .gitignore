@@ -1,1 +1,15 @@
-/datomic-pro-0.9.4899
+pom.xml
+*jar
+/classes/
+/resources/public/js/**
+/target/
+.lein-deps-sum
+.lein-repl-history
+.lein-plugins/
+.nrepl-port
+Session.vim
+/.repl
+/resources/public/css/**
+/resources/precompiled.js
+/out
+datomic-pro-0.9.4899/
