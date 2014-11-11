@@ -1,1 +1,12 @@
-/datomic-pro-0.9.4899
+/target
+/classes
+/checkouts
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/.lein-*
+/.nrepl-port
+Session.vim
+/out
+resources/precompiled.js
