@@ -35,7 +35,7 @@
                                                  :bot/deployed-code (db/deployed-code (:db/id player-1))))
                         (-> (into {} player-2) (assoc :db/id (:db/id player-2)
                                                  :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
-        (println (str player-1 " vs " player-2 ": " (:winner result)))
+        (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
         (if-not (:error result)
           (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
                             :match/moves (pr-str (get-in result [:game-state "history"]))}
@@ -45,15 +45,18 @@
             (db/with-conn
               (db/create-entity match-info)
               (ranking/update-rankings player-1 player-2 (:winner result))))
-          (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
-                                   [player-2 player-1]
-                                   [player-1 player-2])]
-            (db/with-conn
-              (db/create-entity {:match/bots [(:db/id player-1) (:db/id player-2)]
-                                 :match/error true
-                                 :match/moves (pr-str (conj (get-in result [:game-state "history"])
-                                                            (get-in result [:move :move])))
-                                 :match/winner winner})
-              (d/transact db/*conn*
-                [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]
-                 [:db/retract cheater :bot/code-version (:bot/code-version cheater)]]))))))))
+          (if (= (:error result) :exception-executing)
+            (println "Exception executing " (:bot result) (:info result))
+            (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
+                                     [player-2 player-1]
+                                     [player-1 player-2])]
+              (println "Bad move from " cheater)
+              (db/with-conn
+                (db/create-entity {:match/bots [(:db/id player-1) (:db/id player-2)]
+                                   :match/error true
+                                   :match/moves (pr-str (conj (get-in result [:game-state "history"])
+                                                              (get-in result [:move :move])))
+                                   :match/winner winner})
+                (d/transact db/*conn*
+                  [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]
+                   [:db/retract cheater :bot/code-version (:bot/code-version cheater)]])))))))))
