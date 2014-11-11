@@ -64,7 +64,14 @@
                     ;; For simulatenous turns, get all the moves
                     (let [moves (reduce
                                   (fn [moves bot]
-                                    (let [move ((:bot/function bot) (assoc state "me" (:db/id bot)))]
+                                    (let [move (try
+                                                 ((:bot/function bot) (assoc state "me" (:db/id bot)))
+                                                 (catch :default e
+                                                   (throw (GameException.
+                                                            {:error :exception-executing
+                                                             :info (str e)
+                                                             :bot (:db/id bot)
+                                                             :game-state state}))))]
                                       (cond
                                         (not (games/valid-move? g move))
                                         (throw (GameException.
@@ -86,7 +93,14 @@
                       (recur (games/next-state g state moves) players))
                     ;; For one-at-a-time, just get the next player's move
                     (let [bot (first players)
-                          move ((:bot/function bot) (assoc state "me" (:db/id bot)))]
+                          move (try
+                                 ((:bot/function bot) (assoc state "me" (:db/id bot)))
+                                 (catch :default e
+                                   (throw (GameException.
+                                            {:error :exception-executing
+                                             :info (str e)
+                                             :bot (:db/id bot)
+                                             :game-state state}))))]
                       (cond
                         (not (games/valid-move? g move))
                         (throw (GameException.
@@ -135,9 +149,10 @@
         (vector
           (list 'ns (bot-namespace bot))
           '(set-print-fn! js/print)
-          (list 'defn ^:export 'bot-ai []  (:bot/deployed-code bot))
+          (concat '(defn ^:export bot-ai [])
+                  [(:bot/deployed-code bot)])
           '(bot-ai))
-        {:optimizations :whitespace
+        {:optimizations :advanced
          :elide-asserts true
          :output-dir bot-dir
          :output-to filename
@@ -147,6 +162,8 @@
   [{bot-id :db/id version :bot/code-version :as bot}]
   (str (slurp (str bots-dir "/" bot-id "/" bot-id "-" version ".js"))
        (string/replace (bot-namespace bot) #"-" "_") ".bot_ai();"))
+
+(defn tee [x] (println x) x)
 
 (defn run-game
   [game bots]

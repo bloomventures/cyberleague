@@ -96,6 +96,9 @@
              12345 "x"
              54321 "o"
              }
+
+   "helpers" {"won-subboard" won-subboard-fn
+              "board-decided?" board-decided?-fn}
    }
   )
 
@@ -132,10 +135,10 @@
     (init-state [_ players]
       {"grid" (vec (repeat 9 (vec (repeat 9 nil))))
        "history" []
-       "marker"
-       {(first players) "x"
-        (second players) "o"}
-       })
+       "marker" {(first players) "x"
+                 (second players) "o"}
+       "helpers" {"won-subboard" won-subboard
+                  "board-decided?" board-decided?}})
 
     (valid-move? [_ move]
       (and (coll? move)
