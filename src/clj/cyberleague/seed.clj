@@ -48,8 +48,8 @@
 
   (db/with-conn
     (doseq [bot [bot-goofspiel bot-goofspiel-2 bot-goofspiel-3 bot-goofspiel-4]]
-      (db/deploy-bot (:db/id bot))))
+      (db/deploy-bot (:db/id bot)))))
 
-
-
-)
+(defn -main
+  [& args]
+  (seed))
