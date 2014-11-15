@@ -8,6 +8,7 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [me.raynes/fs "1.4.4"]
                  [org.clojure/clojurescript "0.0-2356"]
+                 [org.clojure/google-closure-library "0.0-20140718-946a7d39"]
                  [org.clojure/tools.nrepl "0.2.3"]]
 
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
