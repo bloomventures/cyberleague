@@ -37,6 +37,7 @@
                                                  :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
         (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
         (if-not (:error result)
+          ; TODO: handle ties?
           (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
                             :match/moves (pr-str (get-in result [:game-state "history"]))}
                 match-info (if-let [winner (:winner result)]
