@@ -42,10 +42,10 @@
                        (nil? winner) :tie
                        :else :loss))]
     (d/transact db/*conn*
-      [[:db/add (:db/id p1) :bot/rating (Math/round p1r)]
-       [:db/add (:db/id p2) :bot/rating (Math/round p2r)]
-       [:db/add (:db/id p1) :bot/rating-dev (Math/round p1rd)]
-       [:db/add (:db/id p2) :bot/rating-dev (Math/round p2rd)]])))
+      [[:db/add (:db/id p1) :bot/rating (Math/max 0 (Math/round p1r))]
+       [:db/add (:db/id p2) :bot/rating (Math/max 0 (Math/round p2r))]
+       [:db/add (:db/id p1) :bot/rating-dev (Math/max 50 (Math/round p1rd))]
+       [:db/add (:db/id p2) :bot/rating-dev (Math/max 50 (Math/round p2rd))]])))
 
 
 #_(defn update-rankings
