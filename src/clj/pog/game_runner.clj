@@ -65,7 +65,8 @@
                     (let [moves (reduce
                                   (fn [moves bot]
                                     (let [move (try
-                                                 ((:bot/function bot) (pr-str (assoc state "me" (:db/id bot))))
+                                                 ((:bot/function bot)
+                                                  (pr-str (games/anonymize-state-for g (:db/id bot) state)))
                                                  (catch :default e
                                                    (throw (GameException.
                                                             {:error :exception-executing
@@ -94,7 +95,8 @@
                     ;; For one-at-a-time, just get the next player's move
                     (let [bot (first players)
                           move (try
-                                 ((:bot/function bot) (pr-str (assoc state "me" (:db/id bot))))
+                                 ((:bot/function bot)
+                                  (pr-str (games/anonymize-state-for g (:db/id bot) state)))
                                  (catch :default e
                                    (throw (GameException.
                                             {:error :exception-executing
