@@ -34,7 +34,7 @@
       (is (= {:bot 54322 :move 15}
              (:move result)))))
 
-  (testing "report illeagl moves"
+  (testing "report illegal moves"
     (let [result (runner/run-game
                    {:game/name "goofspiel"}
                    [{:db/id 1236
