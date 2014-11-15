@@ -58,7 +58,7 @@
          "history" [ ]}))
 
     (anonymize-state-for [_ player-id state]
-      (let [other (-> (state "player-cords")
+      (let [other (-> (state "player-cards")
                       keys set (disj player-id) first)]
         (update-in state ["player-cards"]
                    rename-keys {other "opponent"
