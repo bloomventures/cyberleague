@@ -65,7 +65,7 @@
                     (let [moves (reduce
                                   (fn [moves bot]
                                     (let [move (try
-                                                 ((:bot/function bot) (assoc state "me" (:db/id bot)))
+                                                 ((:bot/function bot) (pr-str (assoc state "me" (:db/id bot))))
                                                  (catch :default e
                                                    (throw (GameException.
                                                             {:error :exception-executing
@@ -94,7 +94,7 @@
                     ;; For one-at-a-time, just get the next player's move
                     (let [bot (first players)
                           move (try
-                                 ((:bot/function bot) (assoc state "me" (:db/id bot)))
+                                 ((:bot/function bot) (pr-str (assoc state "me" (:db/id bot))))
                                  (catch :default e
                                    (throw (GameException.
                                             {:error :exception-executing
@@ -147,11 +147,11 @@
       (fs/mkdirs bot-dir)
       (cljsc/build
         (vector
-          (list 'ns (bot-namespace bot))
+          (list 'ns (bot-namespace bot)
+            '(:require cljs.reader))
           '(set-print-fn! js/print)
           (concat '(defn ^:export bot-ai [])
-                  [(:bot/deployed-code bot)])
-          '(bot-ai))
+                  [(list 'comp (:bot/deployed-code bot) 'cljs.reader/read-string)]))
         {:optimizations :advanced
          :elide-asserts true
          :output-dir bot-dir
