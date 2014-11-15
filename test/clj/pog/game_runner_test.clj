@@ -46,9 +46,7 @@
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))
-      (is (= 1 (count (get-in result [:game-state "history"]))))
-      )
-    ))
+      (is (= 1 (count (get-in result [:game-state "history"])))))))
 
 #_(deftest running-a-game-ultimate-tic-tac-toe
   (testing "can run a game"
