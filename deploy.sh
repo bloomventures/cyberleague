@@ -16,6 +16,6 @@ set -e
 DATE=$(date +"%Y-%m-%d_%H%M%S")
 PROJECT_NAME="cyberleague"
 lein uberjar
-scp target/${PROJECT_NAME}-standalone.jar cloudsigma:/www/${PROJECT_NAME}/${PROJECT_NAME}-${DATE}.jar
-ssh cloudsigma "cd /www/${PROJECT_NAME}/ && ./run.sh '${PROJECT_NAME}-${DATE}.jar'"
+scp target/${PROJECT_NAME}-standalone.jar cyberleague:/www/${PROJECT_NAME}/${PROJECT_NAME}-${DATE}.jar
+ssh cyberleague "cd /www/${PROJECT_NAME}/ && ./run.sh '${PROJECT_NAME}-${DATE}.jar'"
 git tag "${DATE}"
