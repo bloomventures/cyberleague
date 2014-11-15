@@ -47,7 +47,12 @@
               (db/create-entity match-info)
               (ranking/update-rankings player-1 player-2 (:winner result))))
           (if (= (:error result) :exception-executing)
-            (println "Exception executing " (:bot result) (:info result))
+            (let [errd-bot (if (= (:db/id player-1) (:bot result))
+                             player-1 player-2)]
+              (println "Exception executing, will disable:" (:db/id errd-bot) (:info result))
+              (db/with-conn
+                (d/transact db/*conn*
+                  [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
             (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
                                      [player-2 player-1]
                                      [player-1 player-2])]
@@ -59,5 +64,5 @@
                                                               (get-in result [:move :move])))
                                    :match/winner winner})
                 (d/transact db/*conn*
-                  [[:db/add cheater :bot/rating (- 10 (:bot-ranking cheater))]
-                   [:db/retract cheater :bot/code-version (:bot/code-version cheater)]])))))))))
+                  [[:db/add (:db/id cheater) :bot/rating (- 10 (:bot-ranking cheater))]
+                   [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))))
