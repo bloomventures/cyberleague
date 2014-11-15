@@ -42,7 +42,7 @@
   (def bot-goofspiel-4
     (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-goofspiel)))
           _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
-                                                                      (rand-nth (vec (get-in state ["player-cards" (state "me")])))))))]
+                                                                      (rand-nth (vec (get-in state ["player-cards" "me"])))))))]
       bot))
 
 
