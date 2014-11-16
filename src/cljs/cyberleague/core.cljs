@@ -6,8 +6,7 @@
             [markdown.core :as markdown]
             [clojure.string :as string]
             [goog.events :as events]
-            [cljs.reader :as reader]
-            )
+            [cljs.reader :as reader])
   (:import [goog.net XhrIo EventType]))
 
 (enable-console-print!)
