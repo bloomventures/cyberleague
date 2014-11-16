@@ -225,8 +225,9 @@
                            (dom/a #js {:onClick (nav :match (:id match))}
                              (if (= (bot :id) (:winner match)) "won" "lost")
                              " vs "
-                             (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
-                               (:name other-bot)))))) (:matches bot))))))))))
+                             (let [other-bot (first (remove (fn [b] (= (bot :id) b)) (:bots match)))]
+                               (:name other-bot))))))
+                     (:matches bot))))))))))
 
 
 (defn move-view [move owner]
@@ -434,11 +435,11 @@
                      :bot bot-card-view
                      :code code-card-view
                      :user user-card-view
-                     :match match-card-view) card)) (data :cards)))))))
+                     :match match-card-view) card))
+               (data :cards)))))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
-
   (js/window.addEventListener
     "message"
     (fn [e]
@@ -449,13 +450,13 @@
                     :on-complete (fn [data]
                                    (swap! app-state assoc :user data))})
           (js/alert "csrf token error")))))
-
   (edn-xhr {:url "/api/user"
             :method :get
-            :on-complete (fn [data]
-                           (if (data :id)
-                             (do
-                               (swap! app-state assoc :user data)
-                               (open-card {:type :user :id (data :id)}))
-                             (do (doseq [card [{:type :intro :id nil} {:type :games :id nil}]]
-                                   (open-card card)))))}))
+            :on-complete
+            (fn [data]
+              (if (data :id)
+                (do
+                  (swap! app-state assoc :user data)
+                  (open-card {:type :user :id (data :id)}))
+                (do (doseq [card [{:type :intro :id nil} {:type :games :id nil}]]
+                      (open-card card)))))}))
