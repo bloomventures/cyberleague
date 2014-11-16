@@ -128,7 +128,7 @@
       (let [users data]
         (dom/div #js {:className "card users"}
           (dom/header nil "USERS"
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
@@ -148,7 +148,7 @@
       (let [games data]
         (dom/div #js {:className "card games"}
           (dom/header nil "GAMES"
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
@@ -170,10 +170,10 @@
       (let [game data]
         (dom/div #js {:className "card game"}
           (dom/header nil
-                      (str "#" (:name game))
-                      (when (get-in @app-state [:user :id])
-                        (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "CREATE A BOT"))
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (str "#" (:name game))
+            (when (get-in @app-state [:user :id])
+              (dom/a #js {:className "button" :onClick (fn [e] (new-bot (:id game)))} "CREATE A BOT"))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/div #js {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
             (dom/table nil
@@ -201,16 +201,16 @@
       (let [bot data]
         (dom/div #js {:className "card bot"}
           (dom/header nil
-                      (dom/span nil (:name bot))
-                      (dom/a #js {:className "user-name"
-                                  :onClick (nav :user (:id (:user bot)))}
-                        (str "@" (:name (:user bot))))
-                      (dom/a #js {:className "game-name"
-                                  :onClick (nav :game (:id (:game bot)))}
-                        (str "#" (:name (:game bot))))
-                      (when (= (get-in @app-state [:user :id]) (:id (:user bot)))
-                        (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE"))
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (dom/span nil (:name bot))
+            (dom/a #js {:className "user-name"
+                        :onClick (nav :user (:id (:user bot)))}
+              (str "@" (:name (:user bot))))
+            (dom/a #js {:className "game-name"
+                        :onClick (nav :game (:id (:game bot)))}
+              (str "#" (:name (:game bot))))
+            (when (= (get-in @app-state [:user :id]) (:id (:user bot)))
+              (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE"))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
 
           (dom/div #js {:className "content"}
 
@@ -314,22 +314,22 @@
       (let [bot data]
         (dom/div #js {:className "card code"}
           (dom/header nil
-                      (dom/span nil (:name bot))
-                      (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
-                      (if (:id (:user bot))
-                        (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
-                        (dom/a #js {:onClick (fn [e] (log-in))} "Log in with Github to save your bot"))
-                      (when (= :saved (state :status))
-                        (dom/a #js {:className "button test"
-                                    :onClick (fn [e]
-                                               (test-bot
-                                                 (:id bot)
-                                                 (fn [match]
-                                                   (om/set-state! owner :test-match match))))}
-                          "TEST"))
-                      (when (= :passing (state :status))
-                        (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (dom/span nil (:name bot))
+            (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
+            (if (:id (:user bot))
+              (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
+              (dom/a #js {:onClick (fn [e] (log-in))} "Log in with Github to save your bot"))
+            (when (= :saved (state :status))
+              (dom/a #js {:className "button test"
+                          :onClick (fn [e]
+                                     (test-bot
+                                       (:id bot)
+                                       (fn [match]
+                                         (om/set-state! owner :test-match match))))}
+                "TEST"))
+            (when (= :passing (state :status))
+              (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)
             (om/build test-view {:test-match (state :test-match)
@@ -341,7 +341,7 @@
     (render [_]
       (dom/div #js {:className "card match"}
         (dom/header nil "MATCH"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
           (str "#" (:name (:game data))))))))
 
@@ -352,8 +352,8 @@
       (let [user data]
         (dom/div #js {:className "card user"}
           (dom/header nil
-                      (dom/span nil (str "@" (:name user)))
-                      (dom/a #js {:className "close" :onClick (close card)} "×"))
+            (dom/span nil (str "@" (:name user)))
+            (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
@@ -393,8 +393,8 @@
     (render [_]
       (dom/div #js {:className "card intro"}
         (dom/header nil
-                    "Welcome to the Cyber League!"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+          "Welcome to the Cyber League!"
+          (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
           (dom/p nil "You enjoy playing games. Board games, card games, whatever... you're always up for a challenge. You try to improve your strategy every time you play. However, there just isn't enough time to play out all the possibilities.")
           (dom/p nil "On this site, instead of playing games yourself, you code AI bots to play games for you.")
