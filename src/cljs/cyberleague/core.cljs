@@ -68,9 +68,13 @@
       (if (= (type "") (type url))
         (edn-xhr {:url url
                   :method :get
-                  :on-complete (fn [data]
-                                 (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :data data :url url)])))))})
-        (swap! app-state (fn [cv] (assoc cv :cards (concat (cv :cards) [(assoc card :url url)]))))))))
+                  :on-complete
+                  (fn [data]
+                    (swap! app-state
+                           update-in [:cards]
+                           concat [(assoc card :data data :url url)]))})
+        (swap! app-state
+               update-in [:cards] concat [(assoc card :url url)])))))
 
 (defn nav [type id]
   (fn [e]
@@ -196,8 +200,12 @@
         (dom/div #js {:className "card bot"}
           (dom/header nil
                       (dom/span nil (:name bot))
-                      (dom/a #js {:className "user-name" :onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
-                      (dom/a #js {:className "game-name" :onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
+                      (dom/a #js {:className "user-name"
+                                  :onClick (nav :user (:id (:user bot)))}
+                        (str "@" (:name (:user bot))))
+                      (dom/a #js {:className "game-name"
+                                  :onClick (nav :game (:id (:game bot)))}
+                        (str "#" (:name (:game bot))))
                       (when (= (get-in @app-state [:user :id]) (:id (:user bot)))
                         (dom/a #js {:className "button" :onClick (nav :code (:id bot))} "CODE"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
