@@ -14,9 +14,9 @@
                  [me.raynes/fs "1.4.4"]
                  [org.clojure/tools.nrepl  "0.2.3"]
                  ; cljs-related:
-                 [org.clojure/clojurescript "0.0-2280"]
-                 [org.clojure/core.async "0.1.303.0-886421-alpha"]
-                 [om "0.7.1"]]
+                 [org.clojure/clojurescript "0.0-2322"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [om "0.7.3"]]
 
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                    :username "james@leanpixel.com"
