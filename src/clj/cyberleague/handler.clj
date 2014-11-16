@@ -130,8 +130,11 @@
     (GET "/matches/:match-id" [match-id]
       (let [match (db/with-conn (db/get-match (to-long match-id)))]
         (edn-response {:id (:db/id match)
-                       ; TODO
-                       })))
+                       :bots (map (fn [b] {:id (:db/id b)
+                                           :name (:bot/name b)})
+                                  (:match/bots match))
+                       :moves (:match/moves match)
+                       :winner (:db/id (:match/winner match))})))
 
     (GET "/bots/:bot-id" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))
@@ -147,7 +150,14 @@
                                 :name (:user/name user)
                                 :gh-id (:user/gh-id user)})
                        :history history
-                       :matches (map (fn [match] {:id (:db/id match)} ) matches)})))
+                       :matches (map (fn [match]
+                                       {:id (:db/id match)
+                                        :bots (map (fn [b] {:id (:db/id b)
+                                                            :name (:bot/name b)})
+                                                   (:match/bots match))
+                                        :moves (:match/moves match)
+                                        :winner (:db/id (:match/winner match))})
+                                     matches)})))
 
 
 
