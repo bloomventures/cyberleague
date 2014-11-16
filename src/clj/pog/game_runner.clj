@@ -6,17 +6,38 @@
             [clojure.java.io :as io])
   (:import [javax.script ScriptEngineManager ScriptContext ScriptException]))
 
+(defn edn->js
+  []
+  (let [output-file "resources/edn_to_js.js"]
+    (when-not (fs/exists? output-file)
+      (let [output-dir "out/edn-precompile"]
+        (when (fs/directory? output-dir)
+          (fs/delete-dir output-dir))
+        (fs/mkdirs output-dir)
+        (cljsc/build
+          '[(ns pog.edn-to-js
+              (:require cljs.reader))
+            (defn ^:export edn-to-json-fn []
+              (comp clj->js cljs.reader/read-string))]
+          {:optimizations :advanced
+           :elide-asserts true
+           :output-dir output-dir
+           :output-to output-file
+           :pretty-print false})))
+    (str (slurp output-file) "pog.edn_to_js.edn_to_json_fn();")))
+
 (defn eval-js
   ([js] (eval-js js {}))
   ([js extra-bindings]
-   (with-open [f (io/writer "out/debugging.js")]
-     (.write f js))
    (let [engine (.getEngineByName (ScriptEngineManager. ) "nashorn")
-         bindings (.getBindings engine ScriptContext/GLOBAL_SCOPE)]
+         bindings (.getBindings engine ScriptContext/GLOBAL_SCOPE)
+         inner-bindings (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
+                          (doto (.getBindings eng ScriptContext/GLOBAL_SCOPE)
+                            (.put "edn_to_json" (.eval eng (edn->js)))))]
      (doseq [[binding-name script] extra-bindings]
        (try
          (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
-           (.put bindings binding-name (.eval eng script)))
+           (.put bindings binding-name (.eval eng script inner-bindings)))
          (catch ScriptException ex
            (println "Failed to add binding for " binding-name (.getMessage ex)))))
      (try
@@ -139,7 +160,9 @@
   [{bot-id :db/id}]
   (str "bot_code_" bot-id "_run"))
 
-(defn precompile-bot
+(defmulti precompile-bot (fn [bot] (get-in bot [:bot/code :code/language])))
+
+(defmethod precompile-bot :default
   [bot]
   (let [bot-dir (str bots-dir "/" (:db/id bot))
         filename (str bot-dir "/" (:db/id bot) "-" (:bot/code-version bot) ".js")]
@@ -153,19 +176,27 @@
             '(:require cljs.reader))
           '(set-print-fn! js/print)
           (concat '(defn ^:export bot-ai [])
-                  [(list 'comp (:bot/deployed-code bot) 'cljs.reader/read-string)]))
+                  [(list 'comp (edn/read-string (:bot/deployed-code bot)) 'cljs.reader/read-string)]))
         {:optimizations :advanced
          :elide-asserts true
          :output-dir bot-dir
          :output-to filename
          :pretty-print true}))))
 
-(defn code-for
+(defmethod precompile-bot "javascript"
+  [bot]
+  nil)
+
+(defmulti code-for (fn [bot] (get-in bot [:bot/code :code/language])))
+
+(defmethod code-for :default
   [{bot-id :db/id version :bot/code-version :as bot}]
   (str (slurp (str bots-dir "/" bot-id "/" bot-id "-" version ".js"))
-       (string/replace (bot-namespace bot) #"-" "_") ".bot_ai();"))
+         (string/replace (bot-namespace bot) #"-" "_") ".bot_ai();"))
 
-(defn tee [x] (println x) x)
+(defmethod code-for "javascript"
+  [{code :bot/deployed-code :as bot}]
+  code)
 
 (defn run-game
   [game bots]

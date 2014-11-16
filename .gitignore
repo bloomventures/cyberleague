@@ -10,3 +10,4 @@ pom.xml.asc
 Session.vim
 /out
 resources/precompiled.js
+resources/edn_to_js.js
