@@ -9,26 +9,43 @@
                    {:game/name "goofspiel"}
                    [{:db/id 1234
                      :bot/code-version 30
-                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
                     {:db/id 54321
                      :bot/code-version 16
-                     :bot/deployed-code '(fn [state]
-                                           (if (= 1 (state "current-trophy"))
-                                             13
-                                             (dec (state "current-trophy"))))}])]
+                     :bot/deployed-code
+                     (pr-str '(fn [state]
+                                (if (= 1 (state "current-trophy"))
+                                  13
+                                  (dec (state "current-trophy")))))}])]
       (is (map? result))
       (is (not (:error result)))
       (is (= 1234 (:winner result)))))
+
+  (testing "can run a game with a javascript bot"
+    (let [result (runner/run-game
+                   {:game/name "goofspiel"}
+                   [{:db/id 9876
+                     :bot/code-version 1
+                     :bot/deployed-code (str "function (state) { "
+                                             "var trophy = edn_to_json(state)[\"current-trophy\"];"
+                                             "return trophy; };")
+                     :bot/code {:code/language "javascript"}}
+                    {:db/id 1234
+                     :bot/code-version 30
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}])]
+      (is (map? result))
+      (is (not (:error result)))
+      (is (nil? (:winner result)))))
 
   (testing "reports bad moves"
     (let [result (runner/run-game
                    {:game/name "goofspiel"}
                    [{:db/id 1235
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
                     {:db/id 54322
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] 15)}])]
+                     :bot/deployed-code (pr-str '(fn [state] 15))}])]
       (is (= :invalid-move (:error result)))
       (is (= 0 (count (get-in result [:game-state "history"]))))
       (is (= {:bot 54322 :move 15}
@@ -39,10 +56,10 @@
                    {:game/name "goofspiel"}
                    [{:db/id 1236
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
                     {:db/id 54323
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] 13)}])]
+                     :bot/deployed-code (pr-str '(fn [state] 13))}])]
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))
@@ -55,21 +72,21 @@
                    [{:db/id 56789
                      :bot/code-version 1
                      :bot/deployed-code
-                     '(fn [{:strs [history grid helpers] :as state}]
-                        (if (empty? history)
-                          ; I'm first player
-                          [2 2]
-                          (let [[b sb] (get (last history) "move")]
-                            (if-not ((get helpers "board-decided?") (get grid sb))
+                     (pr-str '(fn [{:strs [history grid helpers] :as state}]
+                                (if (empty? history)
+                                  ; I'm first player
+                                  [2 2]
+                                  (let [[b sb] (get (last history) "move")]
+                                    (if-not ((get helpers "board-decided?") (get grid sb))
 
-                              ))))}
+                                      )))))}
                     {:db/id 98765
                      :bot/code-version 1
                      :bot/deployed-code
-                     '(fn [state]
-                        (if (= 1 (state "current-trophy"))
-                          13
-                          (dec (state "current-trophy"))))}])]
+                     (pr-str '(fn [state]
+                                (if (= 1 (state "current-trophy"))
+                                  13
+                                  (dec (state "current-trophy")))))}])]
       (is (map? result))
       (is (not (:error result)))
       (is (= 1234 (:winner result)))))
@@ -79,10 +96,10 @@
                    {:game/name "goofspiel"}
                    [{:db/id 1235
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
                     {:db/id 54322
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] 15)}])]
+                     :bot/deployed-code (pr-str '(fn [state] 15))}])]
       (is (= :invalid-move (:error result)))
       (is (= 0 (count (get-in result [:game-state "history"]))))
       (is (= {:bot 54322 :move 15}
@@ -93,13 +110,12 @@
                    {:game/name "goofspiel"}
                    [{:db/id 1236
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] (state "current-trophy"))}
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
                     {:db/id 54323
                      :bot/code-version 1
-                     :bot/deployed-code '(fn [state] 13)}])]
+                     :bot/deployed-code (pr-str '(fn [state] 13))}])]
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))
       (is (= 1 (count (get-in result [:game-state "history"]))))
-      )
-    ))
+      )))
