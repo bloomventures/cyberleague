@@ -216,10 +216,22 @@
           (route/resources "/" ))
         {:store (cookie-store {:key "***REMOVED***"})}))))
 
+(defonce server (atom nil))
+
+(defn stop-server!
+  []
+  (when-let [stop-fn @server]
+    (stop-fn :timeout 100)))
+
+(defn start-server!
+  [port]
+  (stop-server!)
+  (reset! server (run-server #'app {:port port})))
+
 (defn -main  [& [port nrepl-port & args]]
   (db/init)
   (let [port (if port (Integer/parseInt port) 3000)]
-    (run-server app {:port port})
+    (start-server! port)
     (println "starting on port " port))
   (try
     (let [nrepl-port (Integer/parseInt nrepl-port)]
