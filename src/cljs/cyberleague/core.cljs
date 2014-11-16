@@ -132,14 +132,14 @@
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
-                         (dom/tr nil
-                                 (dom/th nil "Name")
-                                 (dom/th nil "Active Bots")))
+                (dom/tr nil
+                  (dom/th nil "Name")
+                  (dom/th nil "Active Bots")))
               (apply dom/tbody nil
                 (map (fn [user]
                        (dom/tr nil
-                               (dom/td nil (dom/a #js {:onClick (nav :user (user :id))} (str "@" (user :name)) ))
-                               (dom/td nil (user :bot-count)))) users)))))))))
+                         (dom/td nil (dom/a #js {:onClick (nav :user (user :id))} (str "@" (user :name)) ))
+                         (dom/td nil (user :bot-count)))) users)))))))))
 
 (defn games-card-view [{:keys [data] :as card} owner]
   (reify
@@ -152,14 +152,16 @@
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
-                         (dom/tr nil
-                                 (dom/th nil "Name")
-                                 (dom/th nil "Active Bots")))
+                (dom/tr nil
+                  (dom/th nil "Name")
+                  (dom/th nil "Active Bots")))
               (apply dom/tbody nil
                 (map (fn [game]
                        (dom/tr nil
-                               (dom/td nil (dom/a #js {:onClick (nav :game (game :id))} (str "#" (game :name)) ))
-                               (dom/td nil (game :bot-count)))) games)))))))))
+                         (dom/td nil
+                           (dom/a #js {:onClick (nav :game (game :id))}
+                             (str "#" (game :name)) ))
+                         (dom/td nil (game :bot-count)))) games)))))))))
 
 (defn game-card-view [{:keys [data] :as card} owner]
   (reify
@@ -219,12 +221,12 @@
               (apply dom/tbody nil
                 (map (fn [match]
                        (dom/tr nil
-                               (dom/td nil
-                                       (dom/a #js {:onClick (nav :match (:id match))}
-                                         (if (= (bot :id) (:winner match)) "won" "lost")
-                                         " vs "
-                                         (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
-                                           (:name other-bot)))))) (:matches bot))))))))))
+                         (dom/td nil
+                           (dom/a #js {:onClick (nav :match (:id match))}
+                             (if (= (bot :id) (:winner match)) "won" "lost")
+                             " vs "
+                             (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
+                               (:name other-bot)))))) (:matches bot))))))))))
 
 
 (defn move-view [move owner]
@@ -318,16 +320,20 @@
                         (dom/a #js {:onClick (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
                         (dom/a #js {:onClick (fn [e] (log-in))} "Log in with Github to save your bot"))
                       (when (= :saved (state :status))
-                        (dom/a #js {:className "button test" :onClick (fn [e] (test-bot (:id bot)
-                                                                                        (fn [match] (om/set-state! owner :test-match match))))} "TEST"))
+                        (dom/a #js {:className "button test"
+                                    :onClick (fn [e]
+                                               (test-bot
+                                                 (:id bot)
+                                                 (fn [match]
+                                                   (om/set-state! owner :test-match match))))}
+                          "TEST"))
                       (when (= :passing (state :status))
                         (dom/a #js {:className "button deploy" :onClick (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
                       (dom/a #js {:className "close" :onClick (close card)} "×"))
           (dom/div #js {:className "content"}
             (om/build code-view bot)
             (om/build test-view {:test-match (state :test-match)
-                                 :bot bot})
-            ))))))
+                                 :bot bot})))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
   (reify
@@ -351,18 +357,22 @@
           (dom/div #js {:className "content"}
             (dom/table nil
               (dom/thead nil
-                         (dom/tr nil
-                                 (dom/th nil "Game")
-                                 (dom/th nil "Bot")
-                                 (dom/th nil "Status")
-                                 (dom/th nil "Rating")))
+                (dom/tr nil
+                  (dom/th nil "Game")
+                  (dom/th nil "Bot")
+                  (dom/th nil "Status")
+                  (dom/th nil "Rating")))
               (apply dom/tbody nil
                 (map (fn [bot]
                        (dom/tr nil
-                               (dom/td nil (dom/a #js {:onClick (nav :game (:id (:game bot)))} (str "#" (:name (:game bot)))))
-                               (dom/td nil (dom/a #js {:onClick (nav :bot (:id bot))} (:name bot)))
-                               (dom/td nil (if (= :active (:status bot)) "●" "○"))
-                               (dom/td nil (:rating bot)))) (user :bots))))))))))
+                         (dom/td nil
+                           (dom/a #js {:onClick (nav :game (:id (:game bot)))}
+                             (str "#" (:name (:game bot)))))
+                         (dom/td nil
+                           (dom/a #js {:onClick (nav :bot (:id bot))}
+                             (:name bot)))
+                         (dom/td nil (if (= :active (:status bot)) "●" "○"))
+                         (dom/td nil (:rating bot)))) (user :bots))))))))))
 
 (defn chat-card-view [card owner]
   (reify
@@ -370,9 +380,11 @@
     (render [_]
       (dom/div #js {:className "card chat"}
         (dom/header nil "Chat"
-                    (dom/a #js {:className "close" :onClick (close card)} "×"))
+          (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
-          (dom/iframe #js {:src (str "/chat/" (or (:name (:user @app-state)) "anonymous")) :width "100%" :height "100%"}))))))
+          (dom/iframe #js {:src (str "/chat/" (or (:name (:user @app-state)) "anonymous"))
+                           :width "100%"
+                           :height "100%"}))))))
 
 
 (defn intro-card-view [card owner]
@@ -389,8 +401,7 @@
           (dom/p nil "For now, there's one game (Goofspiel) and one language (ClojureScript).")
           (dom/p nil "You need to log in with Github to create bots.")
           (dom/p nil "Enjoy!")
-          (dom/p nil "- Raf & James")
-          )))))
+          (dom/p nil "- Raf & James"))))))
 
 (defn app-view [data owner]
   (reify
@@ -398,51 +409,53 @@
     (render [_]
       (dom/div #js {:className "app"}
         (dom/header nil
-                    (dom/h1 nil "The Cyber League")
-                    (dom/h2 nil "Build AI bots to play games. Best bot wins!")
-                    (dom/nav nil
-                             (dom/a #js {:className "" :onClick (nav :games nil)} "Games")
-                             (dom/a #js {:className "" :onClick (nav :users nil)} "Users")
-                             (dom/a #js {:className "" :onClick (nav :chat nil)} "Chat")
-                             (when-let [user (data :user)]
-                               (dom/a #js {:onClick (nav :user (:id user)) :className "user"}
-                                 (dom/img #js {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")})
-                                 "My Bots"
-                                 ))
-                             (if-let [user (data :user)]
-                               (dom/a #js {:className "log-out" :onClick (fn [e] (log-out)) :title "Log Out"} "×")
-                               (dom/a #js {:className "log-in" :onClick (fn [e] (log-in))} "Log In"))))
+          (dom/h1 nil "The Cyber League")
+          (dom/h2 nil "Build AI bots to play games. Best bot wins!")
+          (dom/nav nil
+            (dom/a #js {:className "" :onClick (nav :games nil)} "Games")
+            (dom/a #js {:className "" :onClick (nav :users nil)} "Users")
+            (dom/a #js {:className "" :onClick (nav :chat nil)} "Chat")
+            (when-let [user (data :user)]
+              (dom/a #js {:onClick (nav :user (:id user)) :className "user"}
+                (dom/img #js {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")})
+                "My Bots"))
+            (if-let [user (data :user)]
+              (dom/a #js {:className "log-out" :onClick (fn [e] (log-out)) :title "Log Out"} "×")
+              (dom/a #js {:className "log-in" :onClick (fn [e] (log-in))} "Log In"))))
         (apply dom/div #js {:className "cards"}
           (map (fn [card]
-                 (om/build (condp = (:type card)
-                             :game game-card-view
-                             :games games-card-view
-                             :users users-card-view
-                             :chat chat-card-view
-                             :intro intro-card-view
-                             :bot bot-card-view
-                             :code code-card-view
-                             :user user-card-view
-                             :match match-card-view) card)) (data :cards)))))))
+                 (om/build
+                   (condp = (:type card)
+                     :game game-card-view
+                     :games games-card-view
+                     :users users-card-view
+                     :chat chat-card-view
+                     :intro intro-card-view
+                     :bot bot-card-view
+                     :code code-card-view
+                     :user user-card-view
+                     :match match-card-view) card)) (data :cards)))))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
 
-  (js/window.addEventListener "message" (fn [e]
-                                          (let [resp (js->clj (.-data e))]
-                                            (if (= (resp "state" @login-csrf-key))
-                                              (edn-xhr {:url (str "/login/" (resp "code"))
-                                                        :method :post
-                                                        :on-complete (fn [data]
-                                                                       (swap! app-state (fn [cv] (assoc cv :user data)))) })
-                                              (js/alert "csrf token error")))))
+  (js/window.addEventListener
+    "message"
+    (fn [e]
+      (let [resp (js->clj (.-data e))]
+        (if (= (resp "state" @login-csrf-key))
+          (edn-xhr {:url (str "/login/" (resp "code"))
+                    :method :post
+                    :on-complete (fn [data]
+                                   (swap! app-state assoc :user data))})
+          (js/alert "csrf token error")))))
 
   (edn-xhr {:url "/api/user"
             :method :get
             :on-complete (fn [data]
                            (if (data :id)
                              (do
-                               (swap! app-state (fn [cv] (assoc cv :user data)))
+                               (swap! app-state assoc :user data)
                                (open-card {:type :user :id (data :id)}))
                              (do (doseq [card [{:type :intro :id nil} {:type :games :id nil}]]
                                    (open-card card)))))}))
