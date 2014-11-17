@@ -339,11 +339,13 @@
 
 (defmethod display-match-results :default
   [game]
+  (println "Displaying unknown results")
   (dom/div nil
    (str "Moves: " (:moves game))))
 
 (defmethod display-match-results "goofspiel"
   [{:keys [bots moves]}]
+  (println "Displaying goofspeil results")
   (dom/table nil
     (dom/thead nil
       (apply dom/tr nil
@@ -358,6 +360,7 @@
            moves))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
+  (println "Opening match card")
   (reify
     om/IRender
     (render [_]
