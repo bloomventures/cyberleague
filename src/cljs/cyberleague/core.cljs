@@ -339,28 +339,40 @@
 
 (defmethod display-match-results :default
   [game]
-  (println "Displaying unknown results")
   (dom/div nil
    (str "Moves: " (:moves game))))
 
 (defmethod display-match-results "goofspiel"
-  [{:keys [bots moves]}]
-  (println "Displaying goofspeil results")
-  (dom/table nil
+  [{:keys [bots moves] :as match}]
+  (let [p1 (:id (first bots))
+        p2 (:id (second bots))
+        moves (map (fn [turn] (assoc turn :winner
+                                (cond
+                                  (< (get turn p1) (get turn p2)) p2
+                                  (> (get turn p1) (get turn p2)) p1
+                                  :else nil)))
+                   moves)]
+    (dom/table #js {:className "goofspiel-results"}
     (dom/thead nil
       (apply dom/tr nil
-        (dom/th nil "Trophy")
+        (dom/th nil "$")
         (map (fn [b] (dom/th nil (:name b))) bots)))
     (apply dom/tbody nil
-      (map (fn [turn]
+      (map (fn [{:keys [winner] :as turn}]
              (dom/tr nil
-               (dom/td nil (get turn "trophy"))
-               (dom/td nil (get turn (:id (first bots))))
-               (dom/td nil (get turn (:id (second bots))))))
-           moves))))
+                 (dom/td nil (get turn "trophy"))
+                 (dom/td #js {:className (if (= winner p1) "winner" "loser")} (get turn p1))
+                 (dom/td #js {:className (if (= winner p2) "winner" "loser")} (get turn p2))))
+           moves))
+    (dom/tfoot nil
+      (dom/tr nil
+        (dom/td nil "")
+        (dom/td #js {:className (if (= (:winner match) p1) "winner" "loser")}
+          (->> moves (filter #(= (:winner %) p1)) (map #(get % p1)) (reduce + 0)))
+        (dom/td #js {:className (if (= (:winner match) p2) "winner" "loser")}
+          (->> moves (filter #(= (:winner %) p2)) (map #(get % p2)) (reduce + 0))))))))
 
 (defn match-card-view [{:keys [data] :as card} owner]
-  (println "Opening match card")
   (reify
     om/IRender
     (render [_]
