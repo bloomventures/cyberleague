@@ -222,7 +222,10 @@
                        (dom/tr nil
                          (dom/td nil
                            (dom/a #js {:onClick (nav :match (:id match))}
-                             (if (= (bot :id) (:winner match)) "won" "lost")
+                             (condp = (:winner match)
+                               nil "tied"
+                               (bot :id) "won"
+                               "lost")
                              " vs "
                              (let [other-bot (first (remove (fn [b] (= (bot :id) b)) (:bots match)))]
                                (:name other-bot))))))
