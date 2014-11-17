@@ -227,7 +227,7 @@
                                (bot :id) "won"
                                "lost")
                              " vs "
-                             (let [other-bot (first (remove (fn [b] (= (bot :id) b)) (:bots match)))]
+                             (let [other-bot (first (remove (fn [b] (= (bot :id) (b :id))) (:bots match)))]
                                (:name other-bot))))))
                      (:matches bot))))))))))
 
