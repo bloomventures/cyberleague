@@ -106,7 +106,7 @@
   (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
 
   (.open js/window
-         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=http://cyberleague.clojurecup.com/oauth-message&state=" @login-csrf-key)
+         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=http://cyberleague.io/oauth-message&state=" @login-csrf-key)
          "GitHub Auth"
          "width=300,height=400"))
 
@@ -339,7 +339,8 @@
 
 (defmethod display-match-results :default
   [game]
-  (:moves game))
+  (dom/div nil
+   (str "Moves: " (:moves game))))
 
 (defmethod display-match-results "goofspiel"
   [{:keys [bots moves]}]
@@ -365,7 +366,8 @@
           (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
           (str "#" (:name (:game data)))
-          (display-match-results data))))))
+          (dom/div #js {:className "moves"}
+            (display-match-results data)))))))
 
 (defn user-card-view [{:keys [data] :as card} owner]
   (reify
