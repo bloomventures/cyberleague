@@ -16,7 +16,8 @@
                  ; cljs-related:
                  [org.clojure/clojurescript "0.0-2322"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [om "0.7.3"]]
+                 [om "0.7.3"]
+                 [prismatic/om-tools "0.3.6"]]
 
   :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
                                    :username "james@leanpixel.com"
@@ -32,7 +33,7 @@
 
   :main cyberleague.handler
 
-  :profiles {:uberjar {:aot :all}
+  :profiles {:uberjar {:aot [cyberleague.handler]}
 
              :production
              {:cljsbuild {:builds
