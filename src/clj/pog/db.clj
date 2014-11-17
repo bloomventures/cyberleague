@@ -329,7 +329,3 @@
 
 (defn get-match [id]
   (by-id id))
-
-(defn create-match [foo]
-  ; TODO
-  )
