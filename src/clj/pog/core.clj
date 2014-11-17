@@ -39,7 +39,7 @@
         (if-not (:error result)
           ; TODO: handle ties?
           (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
-                            :match/moves (pr-str (get-in result [:game-state "history"]))}
+                            :match/moves (pr-str (result :history))}
                 match-info (if-let [winner (:winner result)]
                              (assoc match-info :match/winner winner)
                              match-info)]
