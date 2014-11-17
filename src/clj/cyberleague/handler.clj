@@ -130,10 +130,13 @@
     (GET "/matches/:match-id" [match-id]
       (let [match (db/with-conn (db/get-match (to-long match-id)))]
         (edn-response {:id (:db/id match)
+                       :game (let [game (-> match :match/bots first :bot/game)]
+                               {:name (:game/name game)
+                                :id (:game/id game)})
                        :bots (map (fn [b] {:id (:db/id b)
                                            :name (:bot/name b)})
                                   (:match/bots match))
-                       :moves (:match/moves match)
+                       :moves (edn/read-string (:match/moves match))
                        :winner (:db/id (:match/winner match))})))
 
     (GET "/bots/:bot-id" [bot-id]
@@ -155,7 +158,6 @@
                                         :bots (map (fn [b] {:id (:db/id b)
                                                             :name (:bot/name b)})
                                                    (:match/bots match))
-                                        :moves (:match/moves match)
                                         :winner (:db/id (:match/winner match))})
                                      matches)})))
 

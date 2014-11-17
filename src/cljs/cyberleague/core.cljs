@@ -335,6 +335,27 @@
             (om/build test-view {:test-match (state :test-match)
                                  :bot bot})))))))
 
+(defmulti display-match-results (comp :name :game))
+
+(defmethod display-match-results :default
+  [game]
+  (:moves game))
+
+(defmethod display-match-results "goofspiel"
+  [{:keys [bots moves]}]
+  (dom/table nil
+    (dom/thead nil
+      (apply dom/tr nil
+        (dom/th nil "Trophy")
+        (map (fn [b] (dom/th nil (:name b))) bots)))
+    (apply dom/tbody nil
+      (map (fn [turn]
+             (dom/tr nil
+               (dom/td nil (get turn "trophy"))
+               (dom/td nil (get turn (:id (first bots))))
+               (dom/td nil (get turn (:id (second bots))))))
+           moves))))
+
 (defn match-card-view [{:keys [data] :as card} owner]
   (reify
     om/IRender
@@ -343,7 +364,8 @@
         (dom/header nil "MATCH"
           (dom/a #js {:className "close" :onClick (close card)} "×"))
         (dom/div #js {:className "content"}
-          (str "#" (:name (:game data))))))))
+          (str "#" (:name (:game data)))
+          (display-match-results data))))))
 
 (defn user-card-view [{:keys [data] :as card} owner]
   (reify
