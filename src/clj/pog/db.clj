@@ -228,16 +228,18 @@
                   :bot/rating-dev 350}))
 
 (defn update-bot-code
-  [bot-id code]
-  (let [bot (by-id bot-id)]
-    (-> @(d/transact *conn*
-                     (if-let [old-code (:bot/code bot)]
-                       [[:db/add (:db/id old-code) :code/code code]]
-                       (let [code-id (d/tempid :entities)]
-                         [{:code/code code :db/id code-id}
-                          [:db/add bot-id :bot/code code-id]])))
-        :db-after
-        (d/entity bot-id))))
+  ([bot-id code] (update-bot-code bot-id code "clojurescript"))
+  ([bot-id code language]
+   (let [bot (by-id bot-id)]
+     (-> @(d/transact *conn*
+            (if-let [old-code (:bot/code bot)]
+              [[:db/add (:db/id old-code) :code/code code]
+               [:db/add (:db/id old-code) :code/language language]]
+              (let [code-id (d/tempid :entities)]
+                [{:code/code code :db/id code-id :code/language language}
+                 [:db/add bot-id :bot/code code-id]])))
+         :db-after
+         (d/entity bot-id)))))
 
 (defn update-bot-rating [bot-id rating rating-dev]
   @(d/transact *conn*

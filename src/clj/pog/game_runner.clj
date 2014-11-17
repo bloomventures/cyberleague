@@ -162,7 +162,7 @@
 
 (defmulti precompile-bot (fn [bot] (get-in bot [:bot/code :code/language])))
 
-(defmethod precompile-bot :default
+(defmethod precompile-bot :default ; clojurescript
   [bot]
   (let [bot-dir (str bots-dir "/" (:db/id bot))
         filename (str bot-dir "/" (:db/id bot) "-" (:bot/code-version bot) ".js")]
