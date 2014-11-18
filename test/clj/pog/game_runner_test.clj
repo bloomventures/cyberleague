@@ -65,35 +65,80 @@
              (:move result)))
       (is (= 1 (count (get-in result [:game-state "history"])))))))
 
-#_(deftest running-a-game-ultimate-tic-tac-toe
+(deftest running-a-game-ultimate-tic-tac-toe
   (testing "can run a game"
     (let [result (runner/run-game
                    {:game/name "ultimate tic-tac-toe"}
                    [{:db/id 56789
-                     :bot/code-version 1
+                     :bot/code-version 4
                      :bot/deployed-code
-                     (pr-str '(fn [{:strs [history grid helpers] :as state}]
+                     (pr-str '(let [won-subboard (fn [board]
+                                                   (let [all-equal (fn [v] (and (apply = v) (first v)))]
+                                                     (or
+                                                       ; horizontal lines
+                                                       (all-equal (subvec board 0 3))
+                                                       (all-equal (subvec board 3 6))
+                                                       (all-equal (subvec board 6 9))
+                                                       ; vertical lines
+                                                       (all-equal (vals (select-keys board [0 3 6])))
+                                                       (all-equal (vals (select-keys board [1 4 7])))
+                                                       (all-equal (vals (select-keys board [2 5 8])))
+                                                       ; diagonals
+                                                       (all-equal (vals (select-keys board [0 4 8])))
+                                                       (all-equal (vals (select-keys board [2 4 6]))))))
+                                    board-decided? (fn [board] (or (won-subboard board) (not-any? nil? board)))]
+                                (fn [{:strs [history grid] :as state}]
                                 (if (empty? history)
                                   ; I'm first player
-                                  [2 2]
-                                  (let [[b sb] (get (last history) "move")]
-                                    (if-not ((get helpers "board-decided?") (get grid sb))
-
-                                      )))))}
+                                  (pr-str [2 2])
+                                  (let [[b sb] (get (last history) "move")
+                                        board-idx (if (board-decided? (grid sb))
+                                                    (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
+                                                    sb)
+                                        board (grid board-idx)]
+                                    (pr-str
+                                      [board-idx
+                                       (->> (range 0 9)
+                                            (filter (comp nil? (partial get board)))
+                                            rand-nth)]))))))}
                     {:db/id 98765
-                     :bot/code-version 1
+                     :bot/code-version 4
                      :bot/deployed-code
-                     (pr-str '(fn [state]
-                                (if (= 1 (state "current-trophy"))
-                                  13
-                                  (dec (state "current-trophy")))))}])]
+                     (pr-str '(let [won-subboard (fn [board]
+                                                   (let [all-equal (fn [v] (and (apply = v) (first v)))]
+                                                     (or
+                                                       ; horizontal lines
+                                                       (all-equal (subvec board 0 3))
+                                                       (all-equal (subvec board 3 6))
+                                                       (all-equal (subvec board 6 9))
+                                                       ; vertical lines
+                                                       (all-equal (vals (select-keys board [0 3 6])))
+                                                       (all-equal (vals (select-keys board [1 4 7])))
+                                                       (all-equal (vals (select-keys board [2 5 8])))
+                                                       ; diagonals
+                                                       (all-equal (vals (select-keys board [0 4 8])))
+                                                       (all-equal (vals (select-keys board [2 4 6]))))))
+                                    board-decided? (fn [board] (or (won-subboard board) (not-any? nil? board)))]
+                                (fn [{:strs [history grid] :as state}]
+                                  (if (empty? history)
+                                    ; I'm first player
+                                    (pr-str [2 2])
+                                    (let [[b sb] (get (last history) "move")
+                                          board-idx (if (board-decided? (grid sb))
+                                                      (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
+                                                      sb)
+                                          board (grid board-idx)]
+                                      (pr-str
+                                        [board-idx
+                                         (->> (range 0 9)
+                                              (filter (comp nil? (partial get board)))
+                                              rand-nth)]))))))}])]
       (is (map? result))
-      (is (not (:error result)))
-      (is (= 1234 (:winner result)))))
+      (is (not (:error result)))))
 
-  (testing "reports bad moves"
+  #_(testing "reports bad moves"
     (let [result (runner/run-game
-                   {:game/name "goofspiel"}
+                   {:game/name "ultimate tic-tac-toe"}
                    [{:db/id 1235
                      :bot/code-version 1
                      :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
@@ -105,7 +150,7 @@
       (is (= {:bot 54322 :move 15}
              (:move result)))))
 
-  (testing "report illeagl moves"
+  #_(testing "report illegal moves"
     (let [result (runner/run-game
                    {:game/name "goofspiel"}
                    [{:db/id 1236

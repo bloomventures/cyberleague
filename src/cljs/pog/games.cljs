@@ -105,9 +105,6 @@
              12345 "x"
              54321 "o"
              }
-
-   "helpers" {"won-subboard" won-subboard-fn
-              "board-decided?" board-decided?-fn}
    }
   )
 
@@ -145,9 +142,7 @@
       {"grid" (vec (repeat 9 (vec (repeat 9 nil))))
        "history" []
        "marker" {(first players) "x"
-                 (second players) "o"}
-       "helpers" {"won-subboard" won-subboard
-                  "board-decided?" board-decided?}})
+                 (second players) "o"}})
 
     (anonymize-state-for [_ player-id state]
       state)

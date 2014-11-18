@@ -71,7 +71,8 @@
                           (map (fn [botfn bot] (assoc bot :bot/function botfn)) (seq bot-fns)))
                 g (games/make-engine game)
                 nplayers (games/number-of-players g)
-                simultaneous? (games/simultaneous-turns? g)]
+                simultaneous? (games/simultaneous-turns? g)
+                parse-move (fn [m] (if (string? m) (cljs.reader/read-string m) m))]
             (assert (= nplayers (count bots))
                     (str "Wrong number of players (" (count bots) ") for " (:game/name game)))
             (try
@@ -86,8 +87,9 @@
                     (let [moves (reduce
                                   (fn [moves bot]
                                     (let [move (try
-                                                 ((:bot/function bot)
-                                                  (pr-str (games/anonymize-state-for g (:db/id bot) state)))
+                                                 (parse-move
+                                                   ((:bot/function bot)
+                                                    (pr-str (games/anonymize-state-for g (:db/id bot) state))))
                                                  (catch :default e
                                                    (throw (GameException.
                                                             {:error :exception-executing
@@ -116,8 +118,9 @@
                     ;; For one-at-a-time, just get the next player's move
                     (let [bot (first players)
                           move (try
-                                 ((:bot/function bot)
-                                  (pr-str (games/anonymize-state-for g (:db/id bot) state)))
+                                 (parse-move
+                                   ((:bot/function bot)
+                                    (pr-str (games/anonymize-state-for g (:db/id bot) state))))
                                  (catch :default e
                                    (throw (GameException.
                                             {:error :exception-executing
