@@ -425,7 +425,7 @@
     (dom/div {:class "app"}
       (dom/header nil
         (dom/h1 "The Cyber League")
-        (dom/h2 "Build AI bots to play games. Best bot wins!")
+        (dom/h2 "Code bots to play games.")
         (dom/nav nil
           (dom/a {:class "" :on-click (nav :games nil)} "Games")
           (dom/a {:class "" :on-click (nav :users nil)} "Users")
