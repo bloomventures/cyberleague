@@ -107,7 +107,7 @@
   (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
 
   (.open js/window
-         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=http://www.cyberleague.io/oauth-message&state=" @login-csrf-key)
+         (str "https://github.com/login/oauth/authorize?client_id=***REMOVED***&redirect_uri=https://www.cyberleague.io/oauth-message&state=" @login-csrf-key)
          "GitHub Auth"
          "width=300,height=400"))
 
