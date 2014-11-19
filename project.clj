@@ -13,6 +13,7 @@
                  [compojure "1.1.8"]
                  [me.raynes/fs "1.4.4"]
                  [org.clojure/tools.nrepl  "0.2.3"]
+                 [environ "1.0.0"]
                  ; cljs-related:
                  [org.clojure/clojurescript "0.0-2322"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
@@ -23,7 +24,8 @@
                                    :username "james@leanpixel.com"
                                    :password "eb6ce9b2-92f7-4164-86c3-49e60732bba9"}}
 
-  :plugins [[jamesnvc/lein-lesscss "1.3.4"]]
+  :plugins [[jamesnvc/lein-lesscss "1.3.4"]
+            [lein-environ "1.0.0"]]
 
   :source-paths ["src/clj" "src/cljs"]
   :lesscss-paths ["resources/less"]
