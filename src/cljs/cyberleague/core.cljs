@@ -57,7 +57,6 @@
               :game (str "/api/games/" (card :id))
               :games "/api/games"
               :chat :chat
-              :intro :intro
               :users "/api/users"
               :user (str "/api/users/" (card :id))
               :bot (str "/api/bots/" (card :id))
@@ -107,7 +106,7 @@
   (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
 
   (.open js/window
-         (str "https://github.com/login/oauth/authorize?client_id=c3e1d987d59e4ab7f433&redirect_uri=https://www.cyberleague.io/oauth-message&state=" @login-csrf-key)
+         (str "https://github.com/login/oauth/authorize?client_id=" js/window.github_app_id "&redirect_uri=" js/window.github_redirect_uri "&state=" @login-csrf-key)
          "GitHub Auth"
          "width=300,height=400"))
 
@@ -405,27 +404,12 @@
                      :width "100%"
                      :height "100%"})))))
 
-
-(defcomponent intro-card-view [card owner]
-  (render [_]
-    (dom/div {:class "card intro"}
-      (dom/header nil
-        "Welcome to the Cyber League!"
-        (dom/a {:class "close" :on-click (close card)} "×"))
-      (dom/div {:class "content"}
-        (dom/p "You enjoy playing games. Board games, card games, whatever... you're always up for a challenge. You try to improve your strategy every time you play. However, there just isn't enough time to play out all the possibilities.")
-        (dom/p "On this site, instead of playing games yourself, you code AI bots to play games for you.")
-        (dom/p "For now, there's one game (Goofspiel) and one language (ClojureScript).")
-        (dom/p "You need to log in with Github to create bots.")
-        (dom/p "Enjoy!")
-        (dom/p "- Raf & James")))))
-
 (defcomponent app-view [data owner]
   (render [_]
     (dom/div {:class "app"}
       (dom/header nil
         (dom/h1 "The Cyber League")
-        (dom/h2 "Build AI bots to play games. Best bot wins!")
+        (dom/h2 "Code bots to play games.")
         (dom/nav nil
           (dom/a {:class "" :on-click (nav :games nil)} "Games")
           (dom/a {:class "" :on-click (nav :users nil)} "Users")
@@ -445,7 +429,6 @@
                    :games games-card-view
                    :users users-card-view
                    :chat chat-card-view
-                   :intro intro-card-view
                    :bot bot-card-view
                    :code code-card-view
                    :user user-card-view
@@ -472,5 +455,5 @@
                 (do
                   (swap! app-state assoc :user data)
                   (open-card {:type :user :id (data :id)}))
-                (do (doseq [card [{:type :intro :id nil} {:type :games :id nil}]]
+                (do (doseq [card [{:type :games :id nil}]]
                       (open-card card)))))}))
