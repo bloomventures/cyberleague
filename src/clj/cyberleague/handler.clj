@@ -214,7 +214,7 @@
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                 :bot/code-version (rand-int 10000000)
-                                :bot/deployed-code (edn/read-string (get-in bot [:bot/code :code/code]))))
+                                :bot/deployed-code (get-in bot [:bot/code :code/code])))
                 result (game-runner/run-game (:bot/game bot)
                                              [coded-bot random-bot])]
               (edn-response result))
