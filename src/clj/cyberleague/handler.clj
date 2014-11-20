@@ -16,8 +16,17 @@
             [org.httpkit.client :refer [request]]
             [clojure.string :as string]
             [clojure.java.io :as io]
+            [environ.core :refer [env]]
             [pog.db :as db]
             [pog.game-runner :as game-runner]))
+
+(def github-redirect-uri (env :github-redirect-uri))
+(def github-app-id (env :github-app-id))
+(def github-app-secret (env :github-app-secret))
+(def datomic-uri (env :datomic-uri))
+(def cookie-store-key (env :cookie-store-key))
+(def in-prod?
+  (= "production" (System/getenv "ENVIRONMENT")))
 
 (defn edn-response [clj-body]
   {:headers {"Content-Type" "application/edn; charset=utf-8" }
@@ -30,14 +39,13 @@
   (java.lang.Long. v))
 
 
-(def in-prod?
-  (= "production" (System/getenv "ENVIRONMENT")))
-
 (defroutes app-routes
   (GET "/" []
-    (clostache/render-resource "index.html" (if in-prod?
-                                              {:production true}
-                                              {:development true})))
+    (clostache/render-resource "index.html" (merge {:github-app-id github-app-id
+                                                    :github-redirect-uri github-redirect-uri}
+                                                   (if in-prod?
+                                                     {:production true}
+                                                     {:development true}))))
 
   (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))
@@ -49,8 +57,8 @@
     (let [resp @(request {:url  "https://github.com/login/oauth/access_token"
                           :method :post
                           :headers {"Accept" "application/json"}
-                          :query-params {"client_id" "***REMOVED***"
-                                         "client_secret" "***REMOVED***"
+                          :query-params {"client_id" github-app-id
+                                         "client_secret" github-app-secret
                                          "code" code }
                           } nil)
           token (get (json/read-str (resp :body)) "access_token")
@@ -226,7 +234,7 @@
         (routes
           app-routes
           (route/resources "/" ))
-        {:store (cookie-store {:key "***REMOVED***"})}))))
+        {:store (cookie-store {:key cookie-store-key})}))))
 
 (defonce server (atom nil))
 
