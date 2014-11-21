@@ -84,8 +84,7 @@
                      :name (db/gen-bot-name)
                      :code (slurp (io/resource "goofspiel-default.txt"))
                      :user nil
-                     :game {:name "goofspiel"}
-                     }))
+                     :game {:name "goofspiel"}}))
 
     (GET "/user" _
       (edn-response session))
@@ -204,11 +203,11 @@
             (edn-response {:code (:code/code (:bot/code bot))
                            :language (:code/language (:bot/code bot))})))))
 
-    (PUT "/bots/:bot-id/code" [bot-id code]
+    (PUT "/bots/:bot-id/code" [bot-id code language]
       (if id
         (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
           (if (= id (:db/id (:bot/user bot)))
-            (do (db/with-conn (db/update-bot-code (:db/id bot) code))
+            (do (db/with-conn (db/update-bot-code (:db/id bot) code language))
                 (edn-response {:status 200}))
             {:status 500}))
         {:status 500}))
@@ -225,7 +224,7 @@
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                 :bot/code-version (rand-int 10000000)
-                               :bot/deployed-code (get-in bot [:bot/code :code/code])))
+                                :bot/deployed-code (get-in bot [:bot/code :code/code])))
                 result (game-runner/run-game (into {} (:bot/game bot))
                                              [coded-bot random-bot])]
               (edn-response result))

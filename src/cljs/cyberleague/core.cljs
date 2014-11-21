@@ -273,7 +273,7 @@
                 (do (om/set-state! owner :status :saving)
                     (edn-xhr {:url (str "/api/bots/" bot-id "/code")
                               :method :put
-                              :data {:code content}
+                              :data {:code content :language (:language @data)}
                               :on-complete (fn [result] (put! action-chan [:save-result result]))}))
 
                 :save-result
