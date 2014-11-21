@@ -150,13 +150,15 @@
                 (dom/th "Bot")
                 (dom/th "Rating")))
             (dom/tbody
-              (map-indexed (fn [rank bot]
-                     (dom/tr nil
-                       (dom/td rank)
-                       (dom/td
-                         (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
-                       (dom/td (:rating bot))))
-                   (:bots game)))))))))
+              (->> (:bots game)
+                   (sort-by :bot/rating)
+                   (map-indexed (fn [rank bot]
+                                  (dom/tr nil
+                                    (dom/td rank)
+                                    (dom/td
+                                      (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
+                                    (dom/td (:rating bot))))
+                                )))))))))
 
 (defcomponentmethod card-view :bot
   [{:keys [data] :as card} owner]
