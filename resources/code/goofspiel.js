@@ -25,7 +25,9 @@
  console.log() and error output is shown on the right.
  Fix any bugs, and when you're happy, hit 'Deploy'.  */
 
-function(state) {
+function(edn-state) {
+  var state = edn_to_json(state);
   console.log(state);
-  state["current-trophy"];
+  var trophy = state["current-trophy"];
+  return trophy;
 }
