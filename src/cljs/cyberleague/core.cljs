@@ -156,7 +156,7 @@
                        (dom/td
                          (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
                        (dom/td (:rating bot))))
-                   (:bots game)))))))))
+                   (sort-by :bot/rating (:bots game))))))))))
 
 (defcomponentmethod card-view :bot
   [{:keys [data] :as card} owner]
