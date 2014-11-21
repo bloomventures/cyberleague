@@ -272,7 +272,9 @@
               (recur))))
 
       (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
-                                                                :mode "clojure"
+                                                                :mode (case (:language bot)
+                                                                        "cljs" "clojure"
+                                                                        "js" "javascript")
                                                                 :lineNumbers true})]
         (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
@@ -296,29 +298,33 @@
           (if (:id (:user bot))
             (dom/a {:on-click (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
             (dom/a {:on-click (fn [e] (log-in))} "Log in with Github to save your bot"))
-          (when (= :saved (state :status))
-            (dom/a {:class "button test"
-                    :on-click (fn [e]
-                                (test-bot
-                                  (:id bot)
-                                  (fn [match]
-                                    (om/set-state! owner :test-match match))))}
-              "TEST"))
-          (when (= :passing (state :status))
-            (dom/a {:class "button deploy" :on-click (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
+          (when (bot :code)
+            (case (state :status)
+              :saved (dom/a {:class "button test"
+                             :on-click (fn [e]
+                                         (test-bot
+                                           (:id bot)
+                                           (fn [match]
+                                             (om/set-state! owner :test-match match))))}
+                       "TEST")
+              :passing (dom/a {:class "button deploy" :on-click (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
+              :else nil))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
           (if (bot :language)
             (om/build code-view bot)
-            (dom/div nil
-              (dom/h2 "Pick a Language")
-              (map (fn [language]
-                     (dom/a {:on-click (fn [e] (bot-set-language (:id @bot)
-                                                                 (string/lower-case language)
-                                                                 (fn [data]
-                                                                   (om/transact! bot (fn [b] (merge b data))))))}
-                       language))
-                   ["ClojureScript" "JavaScript"])))
+            (dom/div {:class "lang-pick"}
+                (dom/h2 "Pick a language:")
+                (map (fn [language]
+                       (dom/a {:on-click (fn [e] (bot-set-language (:id @bot)
+                                                                   (:extension language)
+                                                                   (fn [data]
+                                                                     (om/transact! bot (fn [b] (merge b data))))))}
+                         (:name language)))
+                     [{:name "ClojureScript"
+                       :extension "cljs"}
+                      {:name "JavaScript"
+                       :extension "js"}])))
           (om/build test-view {:test-match (state :test-match)
                                :bot bot}))))))
 
