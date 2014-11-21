@@ -203,11 +203,11 @@
             (edn-response {:code (:code/code (:bot/code bot))
                            :language (:code/language (:bot/code bot))})))))
 
-    (PUT "/bots/:bot-id/code" [bot-id code language]
+    (PUT "/bots/:bot-id/code" [bot-id code]
       (if id
         (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
           (if (= id (:db/id (:bot/user bot)))
-            (do (db/with-conn (db/update-bot-code (:db/id bot) code language))
+            (do (db/with-conn (db/update-bot-code (:db/id bot) code (:code/language (:bot/code bot))))
                 (edn-response {:status 200}))
             {:status 500}))
         {:status 500}))
