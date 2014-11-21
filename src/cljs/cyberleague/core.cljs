@@ -273,8 +273,8 @@
 
       (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
                                                                 :mode (case (:language bot)
-                                                                        "cljs" "clojure"
-                                                                        "js" "javascript")
+                                                                        "clojurescript" "clojure"
+                                                                        "javascript" "javascript")
                                                                 :lineNumbers true})]
         (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
@@ -317,14 +317,14 @@
                 (dom/h2 "Pick a language:")
                 (map (fn [language]
                        (dom/a {:on-click (fn [e] (bot-set-language (:id @bot)
-                                                                   (:extension language)
+                                                                   (:language language)
                                                                    (fn [data]
                                                                      (om/transact! bot (fn [b] (merge b data))))))}
                          (:name language)))
                      [{:name "ClojureScript"
-                       :extension "cljs"}
+                       :language "clojurescript"}
                       {:name "JavaScript"
-                       :extension "js"}])))
+                       :language "javascript"}])))
           (om/build test-view {:test-match (state :test-match)
                                :bot bot}))))))
 
