@@ -7,12 +7,11 @@
 ; Highest score after 13 cards wins.
 ;
 ; Sample Input:
-;    { "me" 12345
-;      "player-cards" {12345 #{ 1 2 3 13 }
-;                      54321 #{ 1 2 3 13 }}
+;    { "player-cards" {"me" #{ 1 2 3 13 }
+;                      "opponent" #{ 1 2 3 13 }}
 ;      "trophy-cards" #{ 1 2 3 13 }
 ;      "current-trophy" 4
-;      "history"  [ { 12345 1 54321 1 "trophy" 1 } … ] }
+;      "history"  [ { "me" 1 "opponent" 1 "trophy" 1 } … ] }
 ;
 ; Sample Output:
 ;   5
