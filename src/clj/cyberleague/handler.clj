@@ -197,7 +197,9 @@
     (PUT "/bots/:bot-id/language/:language" [bot-id language]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= id (:db/id (:bot/user bot)))
-          (let [code (slurp (io/resource (str "code/goofspiel." language)))
+          (let [code (slurp (io/resource (str "code/goofspiel." (case language
+                                                                  "javascript" "js"
+                                                                  "clojurescript" "cljs"))))
                 bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
             (edn-response {:code (:code/code (:bot/code bot))
                            :language (:code/language (:bot/code bot))})))))
