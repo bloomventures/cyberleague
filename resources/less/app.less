@@ -125,6 +125,14 @@ a {
   }
 }
 
+
+@-webkit-keyframes flash {
+  0% { background: default }
+  45% { background: @blue-dark }
+  55% { background: @blue-dark }
+  100% { background: default }
+}
+
 .card {
   background: white;
   width: 300px;
@@ -142,6 +150,7 @@ a {
     position: relative;
     color: white;
     padding: 1em;
+    -webkit-animation: flash 1s ease 0s 1 normal;
 
     span {
       margin-right: 1em;
