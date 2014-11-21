@@ -208,14 +208,15 @@
         (if (and bot (= id (:db/id (:bot/user bot))))
           ; TODO: use an appropriate random bot for different games
           (let [random-bot {:db/id 1234
-                            :bot/code-version 2
-                            :bot/deployed-code '(fn [state]
-                                                  (rand-nth (vec (get-in state ["player-cards" (state "me")]))))}
+                            :bot/code-version 4
+                            :bot/deployed-code
+                            (pr-str '(fn [state]
+                                       (rand-nth (vec (get-in state ["player-cards" "me"])))))}
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                 :bot/code-version (rand-int 10000000)
-                                :bot/deployed-code (get-in bot [:bot/code :code/code])))
-                result (game-runner/run-game (:bot/game bot)
+                               :bot/deployed-code (get-in bot [:bot/code :code/code])))
+                result (game-runner/run-game (into {} (:bot/game bot))
                                              [coded-bot random-bot])]
               (edn-response result))
           {:status 500})))
