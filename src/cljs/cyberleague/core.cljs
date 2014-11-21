@@ -76,8 +76,8 @@
 (defn new-bot [game-id]
   (edn-xhr {:url (str "/api/games/" game-id "/bot")
             :method :post
-            :on-complete (fn [data] ((nav :code (:id data)))
-                                    ((nav :game game-id)))}))
+            :on-complete (fn [data] ((nav :code (:id data))))}))
+
 (defn test-bot [bot-id cb]
   (edn-xhr {:url (str "/api/bots/" bot-id "/test")
             :method :post
@@ -155,7 +155,7 @@
         (dom/header nil
           (str "#" (:name game))
           (when (get-in @app-state [:user :id])
-            (dom/a {:class "button" :on-click (fn [e] (new-bot (:id game)))} "CREATE A BOT"))
+            (dom/a {:class "button" :on-click (fn [e] (new-bot (:id @game)))} "CREATE A BOT"))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
           (dom/div {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
@@ -303,7 +303,7 @@
               :saved (dom/a {:class "button test"
                              :on-click (fn [e]
                                          (test-bot
-                                           (:id bot)
+                                           (:id @bot)
                                            (fn [match]
                                              (om/set-state! owner :test-match match))))}
                        "TEST")
