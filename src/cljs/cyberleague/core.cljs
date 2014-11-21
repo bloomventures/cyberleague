@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om-tools.dom :as dom :include-macros true]
-            [om-tools.core :refer-macros [defcomponent]]
+            [om-tools.core :refer-macros [defcomponent defcomponentmethod]]
             [cljs.core.async :refer [put! chan <! timeout]]
             [markdown.core :as markdown]
             [clojure.string :as string]
@@ -120,7 +120,11 @@
   (fn [e]
     (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
 
-(defcomponent users-card-view [{:keys [data] :as card} owner]
+
+(defmulti card-view (fn [card owner opts] (card :type)))
+
+(defcomponentmethod card-view :users
+  [{:keys [data] :as card} owner opts]
   (render [_]
     (let [users data]
       (dom/div {:class "card users"}
@@ -138,7 +142,8 @@
                        (dom/td (dom/a {:on-click (nav :user (user :id))} (str "@" (user :name)) ))
                        (dom/td (user :bot-count)))) users))))))))
 
-(defcomponent games-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :games
+  [{:keys [data] :as card} owner]
   (render [_]
     (let [games data]
       (dom/div {:class "card games"}
@@ -158,7 +163,8 @@
                            (str "#" (game :name)) ))
                        (dom/td (game :bot-count)))) games))))))))
 
-(defcomponent game-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :game
+  [{:keys [data] :as card} owner]
   (render [_]
     (let [game data]
       (dom/div {:class "card game"}
@@ -184,7 +190,8 @@
                        (dom/td (:rating bot))))
                    (:bots game)))))))))
 
-(defcomponent bot-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :bot
+  [{:keys [data] :as card} owner]
   (did-mount [_]
     (js/bot_graph (om/get-node owner "graph") (clj->js (:history data))))
 
@@ -289,7 +296,8 @@
     (dom/div {:class "source"}
       (dom/div {:ref "editor"}))))
 
-(defcomponent code-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :code
+  [{:keys [data] :as card} owner]
   (init-state [_]
     {:status :saved ; :editing :saved :passing :failing :deployed
      :test-match nil
@@ -356,7 +364,8 @@
           (dom/td {:class (if (= (:winner match) p2) "winner" "loser")}
             (->> moves (filter #(= (:winner %) p2)) (map #(get % p2)) (reduce + 0))))))))
 
-(defcomponent match-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :match
+  [{:keys [data] :as card} owner]
   (render [_]
     (dom/div {:class "card match"}
       (dom/header "MATCH"
@@ -366,7 +375,8 @@
         (dom/div {:class "moves"}
           (display-match-results data))))))
 
-(defcomponent user-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :user
+  [{:keys [data] :as card} owner]
   (render [_]
     (let [user data]
       (dom/div {:class "card user"}
@@ -394,7 +404,8 @@
                        (dom/td (:rating bot))))
                    (user :bots)))))))))
 
-(defcomponent chat-card-view [card owner]
+(defcomponentmethod card-view :chat
+  [card owner]
   (render [_]
     (dom/div {:class "card chat"}
       (dom/header nil "Chat"
@@ -422,18 +433,7 @@
             (dom/a {:class "log-out" :on-click (fn [e] (log-out)) :title "Log Out"} "×")
             (dom/a {:class "log-in" :on-click (fn [e] (log-in))} "Log In"))))
       (dom/div {:class "cards"}
-        (map (fn [card]
-               (om/build
-                 (condp = (:type card)
-                   :game game-card-view
-                   :games games-card-view
-                   :users users-card-view
-                   :chat chat-card-view
-                   :bot bot-card-view
-                   :code code-card-view
-                   :user user-card-view
-                   :match match-card-view) card))
-             (data :cards))))))
+        (om/build-all card-view (data :cards))))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
