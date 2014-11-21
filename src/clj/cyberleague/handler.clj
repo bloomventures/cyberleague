@@ -108,7 +108,7 @@
                        :bots (map (fn [bot] {:name (:bot/name bot)
                                              :id (:db/id bot)
                                              :rating (:bot/rating bot)
-                                             :status (if (nil? (:bot/current-version bot)) :inactive :active)
+                                             :status (if (nil? (:bot/code-version bot)) :inactive :active)
                                              :game (let [game (:bot/game bot)]
                                                      {:id (:db/id game)
                                                       :name (:game/name game)})})

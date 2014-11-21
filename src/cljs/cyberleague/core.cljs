@@ -243,6 +243,20 @@
                  (dom/td nil)))]
             (om/build-all move-view (:history (data :test-match)))))))))
 
+
+(defcomponent code-editor-view [{:keys [bot action-chan]} owner]
+  (did-mount [_]
+    (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
+                                                              :mode (case (:language bot)
+                                                                      "clojurescript" "clojure"
+                                                                      "javascript" "javascript")
+                                                              :lineNumbers true})]
+      (.on cm "changes" (fn [a] (put! action-chan [:type (.getValue cm)])))))
+
+  (render [_]
+    (dom/div {:class "source"}
+      (dom/div {:ref "editor"}))))
+
 (defcomponentmethod card-view :code
   [{:keys [data] :as card} owner]
   (init-state [_]
@@ -301,14 +315,6 @@
 
               (recur))))))
 
-  (did-mount [_]
-    (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code data)
-                                                              :mode (case (:language data)
-                                                                      "clojurescript" "clojure"
-                                                                      "javascript" "javascript")
-                                                              :lineNumbers true})]
-      (.on cm "changes" (fn [a] (put! (om/get-state owner :action-chan) [:type (.getValue cm)])))))
-
   (render-state [_ state]
     (let [bot data]
       (dom/div {:class "card code"}
@@ -333,8 +339,7 @@
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
           (if (bot :language)
-            (dom/div {:class "source"}
-              (dom/div {:ref "editor"}))
+            (om/build code-editor-view {:bot bot :action-chan (state :action-chan) })
             (dom/div {:class "lang-pick"}
               (dom/h2 "Pick a language:")
               (map (fn [language]
