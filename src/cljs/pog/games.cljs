@@ -60,9 +60,13 @@
     (anonymize-state-for [_ player-id state]
       (let [other (-> (state "player-cards")
                       keys set (disj player-id) first)]
-        (update-in state ["player-cards"]
-                   rename-keys {other "opponent"
-                                player-id "me"})))
+        (-> state
+            (update-in ["player-cards"]
+                       rename-keys {other "opponent"
+                                    player-id "me"})
+            (update-in ["history"]
+                       (partial map #(rename-keys % {other "opponent"
+                                                     player-id "me"}))))))
 
     (legal-move? [_ state player move]
       (contains? (get-in state ["player-cards" player]) move))
