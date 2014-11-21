@@ -199,7 +199,7 @@
                    (:matches bot)))))))))
 
 
-(defcomponent move-view [move owner]
+(defcomponent move-view [move owner opts]
   (init-state [_]
     {:log-show false})
 
@@ -207,41 +207,47 @@
     (dom/tbody nil
       (dom/tr {:class "clickable" :on-click (fn [e] (om/update-state! owner :log-show not))}
         (dom/td (move "trophy"))
-        (dom/td (second (second move)))
-        (dom/td (second (last move)))
+        (dom/td (move (opts :bot-id)))
+        (dom/td (move 1234))
         (dom/td (if (state :log-show) "×" "▾")))
       (dom/tr {:class (str "log" " " (if (state :log-show) "show" "hide"))}
         (dom/td {:colSpan 4} "console logging TODO")))))
-
 
 (defcomponent test-view [data owner]
   (init-state [_]
     {})
   (render-state [_ state]
-    (dom/div {:class "test"}
-      (when (data :test-match)
-        (dom/p
-          (cond
-            (:error (data :test-match)) (:info (data :test-match))
-            (nil? (:winner (data :test-match))) "Tie!"
-            (= (:id (data :bot)) (:winner (data :test-match))) "You Won!"
-            :else "You Lost!")))
-      (when (data :test-match)
-        (dom/table
-          (concat
-            [(dom/thead nil
-               (dom/tr nil
-                 (dom/th "Trophy")
-                 (dom/th "You")
-                 (dom/th "Them")
-                 (dom/th "")))
-             (dom/tfoot
-               (dom/tr nil
-                 (dom/td "Score")
-                 (dom/td "TODO")
-                 (dom/td "TODO")
+    (let [bot-id (:id (data :bot))]
+      (dom/div {:class "test"}
+        (when (data :test-match)
+          (dom/p
+            (cond
+              (:error (data :test-match)) (:info (data :test-match))
+              (nil? (:winner (data :test-match))) "Tie!"
+              (= (:id (data :bot)) (:winner (data :test-match))) "You Won!"
+              :else "You Lost!")))
+        (when (data :test-match)
+          (dom/table
+            (concat
+              [(dom/thead nil
+                 (dom/tr nil
+                   (dom/th "Trophy")
+                   (dom/th "You")
+                   (dom/th "Them")
+                   (dom/th "")))
+               (dom/tfoot
+                 (dom/tr nil
+                   (dom/td "Score")
+                   (dom/td (->> (data :test-match)
+                                :history
+                                (map (fn [move] (if (> (move bot-id) (move 1234)) (move "trophy") 0)))
+                                (apply +)))
+                 (dom/td (->> (data :test-match)
+                              :history
+                              (map (fn [move] (if (< (move bot-id) (move 1234)) (move "trophy") 0)))
+                              (apply +)))
                  (dom/td nil)))]
-            (om/build-all move-view (:history (data :test-match)))))))))
+            (om/build-all move-view (:history (data :test-match)) {:opts {:bot-id (:id (data :bot))}}))))))))
 
 
 (defcomponent code-editor-view [{:keys [bot action-chan]} owner]
