@@ -489,7 +489,7 @@
                     (swap! app-state assoc :user user)
                     ((nav :user (user :id))))
                   (do (doseq [card [{:type :games :id nil}]]
-                        (put! nav-chan card)))))}))
+                        ((nav (card :type) (card :id)))))))}))
 
   (render [_]
     (dom/div {:class "app"}
