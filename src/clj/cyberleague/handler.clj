@@ -132,6 +132,7 @@
                        :description (:game/description game)
                        :bots (map (fn [bot] {:name (:bot/name bot)
                                              :rating (:bot/rating bot)
+                                             :status (if (nil? (:bot/code-version bot)) :inactive :active)
                                              :id (:db/id bot) } ) bots)})))
 
     (GET "/matches/:match-id" [match-id]
