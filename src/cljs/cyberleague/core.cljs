@@ -156,7 +156,9 @@
                                   (dom/tr nil
                                     (dom/td rank)
                                     (dom/td
-                                      (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
+                                      (dom/a {:on-click (nav :bot (:id bot))}
+                                        (if (= :active (:status bot)) "●" "○") " "
+                                        (:name bot)))
                                     (dom/td (:rating bot))))
                                 )))))))))
 
@@ -426,7 +428,6 @@
               (dom/tr nil
                 (dom/th "Game")
                 (dom/th "Bot")
-                (dom/th "Status")
                 (dom/th "Rating")))
             (dom/tbody
               (map (fn [bot]
@@ -436,8 +437,8 @@
                            (str "#" (:name (:game bot)))))
                        (dom/td
                          (dom/a {:on-click (nav :bot (:id bot))}
+                           (if (= :active (:status bot)) "●" "○") " "
                            (:name bot)))
-                       (dom/td (if (= :active (:status bot)) "●" "○"))
                        (dom/td (:rating bot))))
                    (user :bots)))))))))
 
