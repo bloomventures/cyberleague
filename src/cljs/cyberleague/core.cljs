@@ -433,7 +433,9 @@
                                     :method :get
                                     :on-complete
                                     (fn [card-data]
-                                      (om/transact! data :cards (fn [cards] (conj cards (assoc card :data card-data)))))})
+                                      (om/transact! data :cards (fn [cards] (conj cards (assoc card
+                                                                                          :data card-data
+                                                                                          :url url)))))})
                           (om/transact! data :cards (fn [cards] (conj cards (assoc card :url url))))))))
             (recur))))
 
@@ -465,7 +467,7 @@
             (dom/a {:class "log-out" :on-click (fn [e] (log-out)) :title "Log Out"} "×")
             (dom/a {:class "log-in" :on-click (fn [e] (log-in))} "Log In"))))
       (dom/div {:class "cards"}
-        (om/build-all card-view (data :cards))))))
+        (om/build-all card-view (data :cards) {:key :url})))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
