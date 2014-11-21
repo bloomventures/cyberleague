@@ -242,14 +242,19 @@ a {
   }
   &.code {
     width: 800px;
-    .status {
-      right: 50%;
-      margin-right: 1em;
-    }
-    .button.test {
-      left: 70%;
-      right: inherit;
-      margin-left: 1em;
+    header {
+      .status {
+        position: absolute;
+        top: 0;
+        left: 70%;
+        margin-left: 1em;
+        line-height: 3em;
+        .button {
+          position: static;
+          margin: 0.5em 0;
+          line-height: 1;
+        }
+      }
     }
     .content {
       padding: 0;
