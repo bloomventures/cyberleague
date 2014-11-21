@@ -154,9 +154,9 @@
                 (dom/th "Bot")
                 (dom/th "Rating")))
             (dom/tbody
-              (map (fn [bot]
+              (map-indexed (fn [rank bot]
                      (dom/tr nil
-                       (dom/td "#")
+                       (dom/td rank)
                        (dom/td
                          (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
                        (dom/td (:rating bot))))
