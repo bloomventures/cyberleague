@@ -280,9 +280,9 @@
               (save-code (bot :id) content)
               (recur))))
 
-      (let [cm (js/CodeMirror (om/get-node owner "editor") {:value (:code bot)
-                                                            :mode "clojure"
-                                                            :lineNumbers true})]
+      (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
+                                                                :mode "clojure"
+                                                                :lineNumbers true})]
         (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
 
   (render [_]
