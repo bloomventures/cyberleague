@@ -178,6 +178,7 @@
           (edn-response {:id (:db/id bot)
                          :name (:bot/name bot)
                          :code (:code/code (:bot/code bot))
+                         :language (:code/language (:bot/code bot))
                          :user (let [user (:bot/user bot)]
                                  {:id (:db/id user)
                                   :name (:user/name user)
@@ -189,10 +190,19 @@
 
     (POST "/games/:game-id/bot" [game-id]
       (if id
-        (let [bot (db/with-conn (db/create-bot id (to-long game-id)))
-              _ (db/with-conn (db/update-bot-code (:db/id bot) (slurp (io/resource "goofspiel-default.txt"))))]
+        (let [bot (db/with-conn (db/create-bot id (to-long game-id)))]
           (edn-response {:id (:db/id bot)}))
         {:status 500}))
+
+    (PUT "/bots/:bot-id/language/:language" [bot-id language]
+      (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
+        (if (= id (:db/id (:bot/user bot)))
+          (let [code (slurp (io/resource (str "code/goofspiel." (case language
+                                                                  "javascript" "js"
+                                                                  "clojurescript" "cljs"))))
+                bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
+            (edn-response {:code (:code/code (:bot/code bot))
+                           :language (:code/language (:bot/code bot))})))))
 
     (PUT "/bots/:bot-id/code" [bot-id code]
       (if id
