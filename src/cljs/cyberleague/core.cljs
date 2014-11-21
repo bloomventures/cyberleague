@@ -57,20 +57,12 @@
   (fn [e]
     (put! nav-chan [:open {:type type :id id}])))
 
-(defn save-code [id code]
-  (edn-xhr {:url (str "/api/bots/" id "/code")
-            :method :put
-            :data {:code code} }))
 
 (defn bot-set-language [bot-id language cb]
   (edn-xhr {:url (str "/api/bots/" bot-id "/language/" language)
             :method :put
             :on-complete (fn [data] (cb data))}))
 
-(defn deploy-bot [id]
-  (edn-xhr {:url (str "/api/bots/" id "/deploy")
-            :method :post
-            :on-complete (nav :bot id)}))
 
 
 (defn new-bot [game-id]
@@ -78,10 +70,6 @@
             :method :post
             :on-complete (fn [data] ((nav :code (:id data))))}))
 
-(defn test-bot [bot-id cb]
-  (edn-xhr {:url (str "/api/bots/" bot-id "/test")
-            :method :post
-            :on-complete (fn [match] (cb match)) }))
 
 
 (def login-csrf-key (atom ""))
@@ -259,35 +247,71 @@
                  (dom/td nil)))]
             (om/build-all move-view (:history (data :test-match)))))))))
 
-(defcomponent code-view [bot owner]
-  (init-state [_]
-    {:update-chan (chan)})
-
-  (did-mount [_]
-    (let [update-chan (om/get-state owner :update-chan)
-          debounced-update-chan (debounce update-chan 2000)]
-      (go (loop []
-            (let [content (<! debounced-update-chan)]
-              (save-code (bot :id) content)
-              (recur))))
-
-      (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
-                                                                :mode (case (:language bot)
-                                                                        "clojurescript" "clojure"
-                                                                        "javascript" "javascript")
-                                                                :lineNumbers true})]
-        (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
-
-  (render [_]
-    (dom/div {:class "source"}
-      (dom/div {:ref "editor"}))))
-
 (defcomponentmethod card-view :code
   [{:keys [data] :as card} owner]
   (init-state [_]
-    {:status :saved ; :editing :saved :passing :failing :deployed
+    {:status :saved ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
+     :action-chan (chan)
      :test-match nil
      })
+
+  (will-mount [_]
+              (let [action-chan (om/get-state owner :action-chan)
+                    type-chan (chan)
+                    debounced-type-chan (debounce type-chan 750)
+                    bot-id (data :id)]
+
+                (go (loop []
+                      (let [content (<! debounced-type-chan)]
+                        (put! action-chan [:stopped-typing content])
+                        (recur))))
+
+                (go (loop []
+                      (let [[action content] (<! action-chan)]
+                        (case action
+                          :type
+                          (do (om/set-state! owner :status :editing)
+                              (put! type-chan content))
+
+                          :stopped-typing
+                          (do (om/set-state! owner :status :saving)
+                              (edn-xhr {:url (str "/api/bots/" bot-id "/code")
+                                        :method :put
+                                        :data {:code content}
+                                        :on-complete (fn [result] (put! action-chan [:save-result result]))}))
+
+                          :save-result
+                          (do (om/set-state! owner :status :saved))
+
+                          :test
+                          (do (om/set-state! owner :status :testing)
+                                    (edn-xhr {:url (str "/api/bots/" bot-id "/test")
+                                              :method :post
+                                              :on-complete (fn [match] (put! action-chan [:test-result match]))}))
+
+                          :test-result
+                          (do (om/set-state! owner :status (if (content :error) :failed :passed))
+                                           (om/set-state! owner :test-match content))
+
+                          :deploy
+                          (do (om/set-state! owner :status :deploying)
+                                      (edn-xhr {:url (str "/api/bots/" bot-id "/deploy")
+                                                :method :post
+                                                :on-complete (fn [result] (put! action-chan [:deploy-result result]))}))
+
+                          :deploy-result
+                          (do (om/set-state! owner :status :deployed)
+                                             ((nav :bot bot-id))))
+
+                        (recur))))))
+
+  (did-mount [_]
+    (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code data)
+                                                              :mode (case (:language data)
+                                                                      "clojurescript" "clojure"
+                                                                      "javascript" "javascript")
+                                                              :lineNumbers true})]
+      (.on cm "changes" (fn [a] (put! (om/get-state owner :action-chan) [:type (.getValue cm)])))))
 
   (render-state [_ state]
     (let [bot data]
@@ -299,20 +323,23 @@
             (dom/a {:on-click (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
             (dom/a {:on-click (fn [e] (log-in))} "Log in with Github to save your bot"))
           (when (bot :code)
-            (case (state :status)
-              :saved (dom/a {:class "button test"
-                             :on-click (fn [e]
-                                         (test-bot
-                                           (:id @bot)
-                                           (fn [match]
-                                             (om/set-state! owner :test-match match))))}
-                       "TEST")
-              :passing (dom/a {:class "button deploy" :on-click (fn [e] (deploy-bot (:id bot)))} "DEPLOY")
-              :else nil))
+            (dom/div {:class "status"}
+              (case (state :status)
+                :editing ""
+                :saving "Saving..."
+                :saved (dom/a {:class "button test"
+                               :on-click (fn [e] (put! (state :action-chan) [:test]))} "TEST")
+                :testing "Testing..."
+                :passed (dom/a {:class "button deploy" :on-click (fn [e] (put! (state :action-chan) [:deploy]) )} "DEPLOY")
+                :failed "Bot is Broken"
+                :deploying "Deploying..."
+                :deployed "Deployed!"
+                )))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
           (if (bot :language)
-            (om/build code-view bot)
+            (dom/div {:class "source"}
+              (dom/div {:ref "editor"}))
             (dom/div {:class "lang-pick"}
                 (dom/h2 "Pick a language:")
                 (map (fn [language]
