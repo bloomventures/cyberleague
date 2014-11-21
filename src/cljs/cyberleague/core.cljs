@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om-tools.dom :as dom :include-macros true]
-            [om-tools.core :refer-macros [defcomponent]]
+            [om-tools.core :refer-macros [defcomponent defcomponentmethod]]
             [cljs.core.async :refer [put! chan <! timeout]]
             [markdown.core :as markdown]
             [clojure.string :as string]
@@ -51,54 +51,26 @@
     out))
 
 (def app-state (atom {:cards []}))
-
-(defn open-card [card]
-  (let [url (condp = (:type card)
-              :game (str "/api/games/" (card :id))
-              :games "/api/games"
-              :chat :chat
-              :users "/api/users"
-              :user (str "/api/users/" (card :id))
-              :bot (str "/api/bots/" (card :id))
-              :code (str "/api/bots/" (card :id) "/code")
-              :match (str "/api/matches/" (card :id)))]
-    (if (some #(= url (:url %)) (:cards @app-state))
-      (js/console.log "already open")
-      (if (= (type "") (type url))
-        (edn-xhr {:url url
-                  :method :get
-                  :on-complete
-                  (fn [data]
-                    (swap! app-state
-                           update-in [:cards]
-                           concat [(assoc card :data data :url url)]))})
-        (swap! app-state
-               update-in [:cards] concat [(assoc card :url url)])))))
+(def nav-chan (chan))
 
 (defn nav [type id]
   (fn [e]
-    (open-card {:type type :id id})))
+    (put! nav-chan [:open {:type type :id id}])))
 
-(defn save-code [id code]
-  (edn-xhr {:url (str "/api/bots/" id "/code")
+
+(defn bot-set-language [bot-id language cb]
+  (edn-xhr {:url (str "/api/bots/" bot-id "/language/" language)
             :method :put
-            :data {:code code} }))
+            :on-complete (fn [data] (cb data))}))
 
-(defn deploy-bot [id]
-  (edn-xhr {:url (str "/api/bots/" id "/deploy")
-            :method :post
-            :on-complete (nav :bot id)}))
 
 
 (defn new-bot [game-id]
   (edn-xhr {:url (str "/api/games/" game-id "/bot")
             :method :post
-            :on-complete (fn [data] ((nav :code (:id data)))
-                                    ((nav :game game-id)))}))
-(defn test-bot [bot-id cb]
-  (edn-xhr {:url (str "/api/bots/" bot-id "/test")
-            :method :post
-            :on-complete (fn [match] (cb match)) }))
+            :on-complete (fn [data] ((nav :code (:id data))))}))
+
+
 
 (def login-csrf-key (atom ""))
 
@@ -118,9 +90,13 @@
 
 (defn close [card]
   (fn [e]
-    (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
+    (put! nav-chan [:close card])))
 
-(defcomponent users-card-view [{:keys [data] :as card} owner]
+
+(defmulti card-view (fn [card owner opts] (card :type)))
+
+(defcomponentmethod card-view :users
+  [{:keys [data] :as card} owner opts]
   (render [_]
     (let [users data]
       (dom/div {:class "card users"}
@@ -138,7 +114,8 @@
                        (dom/td (dom/a {:on-click (nav :user (user :id))} (str "@" (user :name)) ))
                        (dom/td (user :bot-count)))) users))))))))
 
-(defcomponent games-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :games
+  [{:keys [data] :as card} owner]
   (render [_]
     (let [games data]
       (dom/div {:class "card games"}
@@ -158,14 +135,15 @@
                            (str "#" (game :name)) ))
                        (dom/td (game :bot-count)))) games))))))))
 
-(defcomponent game-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :game
+  [{:keys [data] :as card} owner]
   (render [_]
     (let [game data]
       (dom/div {:class "card game"}
         (dom/header nil
           (str "#" (:name game))
           (when (get-in @app-state [:user :id])
-            (dom/a {:class "button" :on-click (fn [e] (new-bot (:id game)))} "CREATE A BOT"))
+            (dom/a {:class "button" :on-click (fn [e] (new-bot (:id @game)))} "CREATE A BOT"))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
           (dom/div {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}})
@@ -176,15 +154,16 @@
                 (dom/th "Bot")
                 (dom/th "Rating")))
             (dom/tbody
-              (map (fn [bot]
+              (map-indexed (fn [rank bot]
                      (dom/tr nil
-                       (dom/td "#")
+                       (dom/td rank)
                        (dom/td
                          (dom/a {:on-click (nav :bot (:id bot))} (:name bot)))
                        (dom/td (:rating bot))))
                    (:bots game)))))))))
 
-(defcomponent bot-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :bot
+  [{:keys [data] :as card} owner]
   (did-mount [_]
     (js/bot_graph (om/get-node owner "graph") (clj->js (:history data))))
 
@@ -268,32 +247,71 @@
                  (dom/td nil)))]
             (om/build-all move-view (:history (data :test-match)))))))))
 
-(defcomponent code-view [bot owner]
+(defcomponentmethod card-view :code
+  [{:keys [data] :as card} owner]
   (init-state [_]
-    {:update-chan (chan)})
-
-  (did-mount [_]
-    (let [update-chan (om/get-state owner :update-chan)
-          debounced-update-chan (debounce update-chan 2000)]
-      (go (loop []
-            (let [content (<! debounced-update-chan)]
-              (save-code (bot :id) content)
-              (recur))))
-
-      (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code bot)
-                                                                :mode "clojure"
-                                                                :lineNumbers true})]
-        (.on cm "changes" (fn [a] (put! update-chan (.getValue cm)))))))
-
-  (render [_]
-    (dom/div {:class "source"}
-      (dom/div {:ref "editor"}))))
-
-(defcomponent code-card-view [{:keys [data] :as card} owner]
-  (init-state [_]
-    {:status :saved ; :editing :saved :passing :failing :deployed
+    {:status :saved ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
+     :action-chan (chan)
      :test-match nil
      })
+
+  (will-mount [_]
+              (let [action-chan (om/get-state owner :action-chan)
+                    type-chan (chan)
+                    debounced-type-chan (debounce type-chan 750)
+                    bot-id (data :id)]
+
+                (go (loop []
+                      (let [content (<! debounced-type-chan)]
+                        (put! action-chan [:stopped-typing content])
+                        (recur))))
+
+                (go (loop []
+                      (let [[action content] (<! action-chan)]
+                        (case action
+                          :type
+                          (do (om/set-state! owner :status :editing)
+                              (put! type-chan content))
+
+                          :stopped-typing
+                          (do (om/set-state! owner :status :saving)
+                              (edn-xhr {:url (str "/api/bots/" bot-id "/code")
+                                        :method :put
+                                        :data {:code content}
+                                        :on-complete (fn [result] (put! action-chan [:save-result result]))}))
+
+                          :save-result
+                          (do (om/set-state! owner :status :saved))
+
+                          :test
+                          (do (om/set-state! owner :status :testing)
+                                    (edn-xhr {:url (str "/api/bots/" bot-id "/test")
+                                              :method :post
+                                              :on-complete (fn [match] (put! action-chan [:test-result match]))}))
+
+                          :test-result
+                          (do (om/set-state! owner :status (if (content :error) :failed :passed))
+                                           (om/set-state! owner :test-match content))
+
+                          :deploy
+                          (do (om/set-state! owner :status :deploying)
+                                      (edn-xhr {:url (str "/api/bots/" bot-id "/deploy")
+                                                :method :post
+                                                :on-complete (fn [result] (put! action-chan [:deploy-result result]))}))
+
+                          :deploy-result
+                          (do (om/set-state! owner :status :deployed)
+                                             ((nav :bot bot-id))))
+
+                        (recur))))))
+
+  (did-mount [_]
+    (let [cm (js/CodeMirror (om/get-node owner "editor") #js {:value (:code data)
+                                                              :mode (case (:language data)
+                                                                      "clojurescript" "clojure"
+                                                                      "javascript" "javascript")
+                                                              :lineNumbers true})]
+      (.on cm "changes" (fn [a] (put! (om/get-state owner :action-chan) [:type (.getValue cm)])))))
 
   (render-state [_ state]
     (let [bot data]
@@ -304,21 +322,39 @@
           (if (:id (:user bot))
             (dom/a {:on-click (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
             (dom/a {:on-click (fn [e] (log-in))} "Log in with Github to save your bot"))
-          (when (= :saved (state :status))
-            (dom/a {:class "button test"
-                    :on-click (fn [e]
-                                (test-bot
-                                  (:id bot)
-                                  (fn [match]
-                                    (om/set-state! owner :test-match match))))}
-              "TEST"))
-          (when (= :passing (state :status))
-            (dom/a {:class "button deploy" :on-click (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
+          (when (bot :code)
+            (dom/div {:class "status"}
+              (case (state :status)
+                :editing ""
+                :saving "Saving..."
+                :saved (dom/a {:class "button test"
+                               :on-click (fn [e] (put! (state :action-chan) [:test]))} "TEST")
+                :testing "Testing..."
+                :passed (dom/a {:class "button deploy" :on-click (fn [e] (put! (state :action-chan) [:deploy]) )} "DEPLOY")
+                :failed "Bot is Broken"
+                :deploying "Deploying..."
+                :deployed "Deployed!"
+                )))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
-          (om/build code-view bot)
+          (if (bot :language)
+            (dom/div {:class "source"}
+              (dom/div {:ref "editor"}))
+            (dom/div {:class "lang-pick"}
+                (dom/h2 "Pick a language:")
+                (map (fn [language]
+                       (dom/a {:on-click (fn [e] (bot-set-language (:id @bot)
+                                                                   (:language language)
+                                                                   (fn [data]
+                                                                     (om/transact! bot (fn [b] (merge b data))))))}
+                         (:name language)))
+                     [{:name "ClojureScript"
+                       :language "clojurescript"}
+                      {:name "JavaScript"
+                       :language "javascript"}])))
           (om/build test-view {:test-match (state :test-match)
                                :bot bot}))))))
+
 
 (defmulti display-match-results (comp :name :game))
 
@@ -356,7 +392,8 @@
           (dom/td {:class (if (= (:winner match) p2) "winner" "loser")}
             (->> moves (filter #(= (:winner %) p2)) (map #(get % p2)) (reduce + 0))))))))
 
-(defcomponent match-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :match
+  [{:keys [data] :as card} owner]
   (render [_]
     (dom/div {:class "card match"}
       (dom/header "MATCH"
@@ -366,7 +403,9 @@
         (dom/div {:class "moves"}
           (display-match-results data))))))
 
-(defcomponent user-card-view [{:keys [data] :as card} owner]
+(defcomponentmethod card-view :user
+  [{:keys [data] :as card} owner]
+
   (render [_]
     (let [user data]
       (dom/div {:class "card user"}
@@ -394,7 +433,8 @@
                        (dom/td (:rating bot))))
                    (user :bots)))))))))
 
-(defcomponent chat-card-view [card owner]
+(defcomponentmethod card-view :chat
+  [card owner]
   (render [_]
     (dom/div {:class "card chat"}
       (dom/header nil "Chat"
@@ -405,6 +445,44 @@
                      :height "100%"})))))
 
 (defcomponent app-view [data owner]
+  (will-mount [_]
+    (go (loop []
+          (let [[action card] (<! nav-chan)]
+            (case action
+              :close (om/transact! data :cards (fn [cards] (into [] (remove (fn [c] (= c @card)) cards))))
+              :open (let [url (condp = (:type card)
+                                :game (str "/api/games/" (card :id))
+                                :games "/api/games"
+                                :chat :chat
+                                :users "/api/users"
+                                :user (str "/api/users/" (card :id))
+                                :bot (str "/api/bots/" (card :id))
+                                :code (str "/api/bots/" (card :id) "/code")
+                                :match (str "/api/matches/" (card :id)))]
+                      (if (some #(= url (:url %)) (:cards @data))
+                        (js/console.log "already open")
+                        (if (string? url)
+                          (edn-xhr {:url url
+                                    :method :get
+                                    :on-complete
+                                    (fn [card-data]
+                                      (om/transact! data :cards (fn [cards] (conj cards (assoc card
+                                                                                          :data card-data
+                                                                                          :url url)))))})
+                          (om/transact! data :cards (fn [cards] (conj cards (assoc card :url url))))))))
+            (recur))))
+
+    (edn-xhr {:url "/api/user"
+              :method :get
+              :on-complete
+              (fn [user]
+                (if (user :id)
+                  (do
+                    (swap! app-state assoc :user user)
+                    ((nav :user (user :id))))
+                  (do (doseq [card [{:type :games :id nil}]]
+                        (put! nav-chan card)))))}))
+
   (render [_]
     (dom/div {:class "app"}
       (dom/header nil
@@ -422,18 +500,7 @@
             (dom/a {:class "log-out" :on-click (fn [e] (log-out)) :title "Log Out"} "×")
             (dom/a {:class "log-in" :on-click (fn [e] (log-in))} "Log In"))))
       (dom/div {:class "cards"}
-        (map (fn [card]
-               (om/build
-                 (condp = (:type card)
-                   :game game-card-view
-                   :games games-card-view
-                   :users users-card-view
-                   :chat chat-card-view
-                   :bot bot-card-view
-                   :code code-card-view
-                   :user user-card-view
-                   :match match-card-view) card))
-             (data :cards))))))
+        (om/build-all card-view (data :cards) {:key :url})))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
@@ -446,14 +513,4 @@
                     :method :post
                     :on-complete (fn [data]
                                    (swap! app-state assoc :user data))})
-          (js/alert "csrf token error")))))
-  (edn-xhr {:url "/api/user"
-            :method :get
-            :on-complete
-            (fn [data]
-              (if (data :id)
-                (do
-                  (swap! app-state assoc :user data)
-                  (open-card {:type :user :id (data :id)}))
-                (do (doseq [card [{:type :games :id nil}]]
-                      (open-card card)))))}))
+          (js/alert "csrf token error"))))))
