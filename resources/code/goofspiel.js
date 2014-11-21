@@ -8,13 +8,12 @@
  Highest score after 13 cards wins.
 
  Sample Input:
-    { "me": 12345,
-      "player-cards": {12345: #{ 1 2 3 13 },
-                       54321: #{ 1 2 3 13 }}
+    { "player-cards": {"me": #{ 1 2 3 13 },
+                       "opponent": #{ 1 2 3 13 }}
       "trophy-cards": #{ 1 2 3 13 },
       "current-trophy": 4,
-      "history":  [ { 12345: 1,
-                      54321: 1,
+      "history":  [ { "me": 1,
+                      "opponent": 1,
                       "trophy": 1 } … ] }
 
  Sample Output:
@@ -25,8 +24,8 @@
  console.log() and error output is shown on the right.
  Fix any bugs, and when you're happy, hit 'Deploy'.  */
 
-function(edn-state) {
-  var state = edn_to_json(state);
+function(edn_state) {
+  var state = edn_to_json(edn_state);
   console.log(state);
   var trophy = state["current-trophy"];
   return trophy;
