@@ -21,12 +21,12 @@
 
  When you're ready to test your code, hit 'Test'.
  Your bot will be put up against a random opponent.
- console.log() and error output is shown on the right.
+ print() and error output is shown on the right.
  Fix any bugs, and when you're happy, hit 'Deploy'.  */
 
 function(edn_state) {
   var state = edn_to_json(edn_state);
-  console.log(state);
+  print(state);
   var trophy = state["current-trophy"];
   return trophy;
 }
