@@ -51,38 +51,21 @@
     out))
 
 (def app-state (atom {:cards []}))
-
-(defn open-card [card]
-  (let [url (condp = (:type card)
-              :game (str "/api/games/" (card :id))
-              :games "/api/games"
-              :chat :chat
-              :users "/api/users"
-              :user (str "/api/users/" (card :id))
-              :bot (str "/api/bots/" (card :id))
-              :code (str "/api/bots/" (card :id) "/code")
-              :match (str "/api/matches/" (card :id)))]
-    (if (some #(= url (:url %)) (:cards @app-state))
-      (js/console.log "already open")
-      (if (= (type "") (type url))
-        (edn-xhr {:url url
-                  :method :get
-                  :on-complete
-                  (fn [data]
-                    (swap! app-state
-                           update-in [:cards]
-                           concat [(assoc card :data data :url url)]))})
-        (swap! app-state
-               update-in [:cards] concat [(assoc card :url url)])))))
+(def nav-chan (chan))
 
 (defn nav [type id]
   (fn [e]
-    (open-card {:type type :id id})))
+    (put! nav-chan [:open {:type type :id id}])))
 
 (defn save-code [id code]
   (edn-xhr {:url (str "/api/bots/" id "/code")
             :method :put
             :data {:code code} }))
+
+(defn bot-set-language [bot-id language cb]
+  (edn-xhr {:url (str "/api/bots/" bot-id "/language/" language)
+            :method :put
+            :on-complete (fn [data] (cb data))}))
 
 (defn deploy-bot [id]
   (edn-xhr {:url (str "/api/bots/" id "/deploy")
@@ -99,6 +82,7 @@
   (edn-xhr {:url (str "/api/bots/" bot-id "/test")
             :method :post
             :on-complete (fn [match] (cb match)) }))
+
 
 (def login-csrf-key (atom ""))
 
@@ -118,7 +102,7 @@
 
 (defn close [card]
   (fn [e]
-    (swap! app-state (fn [cv] (assoc cv :cards (remove (fn [c] (= c card)) (cv :cards)))))))
+    (put! nav-chan [:close card])))
 
 
 (defmulti card-view (fn [card owner opts] (card :type)))
@@ -324,9 +308,20 @@
             (dom/a {:class "button deploy" :on-click (fn [e] (deploy-bot (:id bot)))} "DEPLOY"))
           (dom/a {:class "close" :on-click (close card)} "×"))
         (dom/div {:class "content"}
-          (om/build code-view bot)
+          (if (bot :language)
+            (om/build code-view bot)
+            (dom/div nil
+              (dom/h2 "Pick a Language")
+              (map (fn [language]
+                     (dom/a {:on-click (fn [e] (bot-set-language (:id @bot)
+                                                                 (string/lower-case language)
+                                                                 (fn [data]
+                                                                   (om/transact! bot (fn [b] (merge b data))))))}
+                       language))
+                   ["ClojureScript" "JavaScript"])))
           (om/build test-view {:test-match (state :test-match)
                                :bot bot}))))))
+
 
 (defmulti display-match-results (comp :name :game))
 
@@ -377,6 +372,7 @@
 
 (defcomponentmethod card-view :user
   [{:keys [data] :as card} owner]
+
   (render [_]
     (let [user data]
       (dom/div {:class "card user"}
@@ -416,6 +412,42 @@
                      :height "100%"})))))
 
 (defcomponent app-view [data owner]
+  (will-mount [_]
+    (go (loop []
+          (let [[action card] (<! nav-chan)]
+            (case action
+              :close (om/transact! data :cards (fn [cards] (into [] (remove (fn [c] (= c @card)) cards))))
+              :open (let [url (condp = (:type card)
+                                :game (str "/api/games/" (card :id))
+                                :games "/api/games"
+                                :chat :chat
+                                :users "/api/users"
+                                :user (str "/api/users/" (card :id))
+                                :bot (str "/api/bots/" (card :id))
+                                :code (str "/api/bots/" (card :id) "/code")
+                                :match (str "/api/matches/" (card :id)))]
+                      (if (some #(= url (:url %)) (:cards @data))
+                        (js/console.log "already open")
+                        (if (string? url)
+                          (edn-xhr {:url url
+                                    :method :get
+                                    :on-complete
+                                    (fn [card-data]
+                                      (om/transact! data :cards (fn [cards] (conj cards (assoc card :data card-data)))))})
+                          (om/transact! data :cards (fn [cards] (conj cards (assoc card :url url))))))))
+            (recur))))
+
+    (edn-xhr {:url "/api/user"
+              :method :get
+              :on-complete
+              (fn [user]
+                (if (user :id)
+                  (do
+                    (swap! app-state assoc :user user)
+                    ((nav :user (user :id))))
+                  (do (doseq [card [{:type :games :id nil}]]
+                        (put! nav-chan card)))))}))
+
   (render [_]
     (dom/div {:class "app"}
       (dom/header nil
@@ -446,14 +478,4 @@
                     :method :post
                     :on-complete (fn [data]
                                    (swap! app-state assoc :user data))})
-          (js/alert "csrf token error")))))
-  (edn-xhr {:url "/api/user"
-            :method :get
-            :on-complete
-            (fn [data]
-              (if (data :id)
-                (do
-                  (swap! app-state assoc :user data)
-                  (open-card {:type :user :id (data :id)}))
-                (do (doseq [card [{:type :games :id nil}]]
-                      (open-card card)))))}))
+          (js/alert "csrf token error"))))))
