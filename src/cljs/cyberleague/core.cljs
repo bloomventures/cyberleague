@@ -222,7 +222,7 @@
       (when (data :test-match)
         (dom/p
           (cond
-            (:error (data :test-match)) "Your bot had an error."
+            (:error (data :test-match)) (:info (data :test-match))
             (nil? (:winner (data :test-match))) "Tie!"
             (= (:id (data :bot)) (:winner (data :test-match))) "You Won!"
             :else "You Lost!")))
@@ -333,7 +333,7 @@
                                :on-click (fn [e] (put! (state :action-chan) [:test]))} "TEST")
                 :testing "Testing..."
                 :passed (dom/a {:class "button deploy" :on-click (fn [e] (put! (state :action-chan) [:deploy]) )} "DEPLOY")
-                :failed "Bot is Broken"
+                :failed "Bot error!"
                 :deploying "Deploying..."
                 :deployed "Deployed!")))
           (dom/a {:class "close" :on-click (close card)} "×"))
