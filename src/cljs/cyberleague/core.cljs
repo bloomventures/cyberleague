@@ -203,19 +203,72 @@
                    (:matches bot)))))))))
 
 
-(defcomponent move-view [move owner opts]
+(defmulti match-results (comp :name :game))
+
+(defcomponentmethod match-results :default
+  [match owner opts]
+  (render [_]
+    (println match)
+    (dom/div (str "Moves: " (:moves match)))))
+
+(defcomponent move-view [move owner {:keys [p1-id p2-id] :as opts}]
   (init-state [_]
     {:log-show false})
-
   (render-state [_ state]
     (dom/tbody nil
       (dom/tr {:class "clickable" :on-click (fn [e] (om/update-state! owner :log-show not))}
         (dom/td (move "trophy"))
-        (dom/td (move (opts :bot-id)))
-        (dom/td (move 1234))
+        (dom/td {:class (when (> (move p1-id) (move p2-id)) "winner")} (move p1-id))
+        (dom/td {:class (when (< (move p1-id) (move p2-id)) "winner")} (move p2-id))
         (dom/td (if (state :log-show) "×" "▾")))
       (dom/tr {:class (str "log" " " (if (state :log-show) "show" "hide"))}
         (dom/td {:colSpan 4} "console logging TODO")))))
+
+(defcomponentmethod match-results "goofspiel"
+  [{:keys [bots winner] :as match} owner opts]
+  (render [_]
+    (let [p1-id (:id (first bots))
+          p2-id (:id (second bots))]
+      (dom/table {:class "results goofspiel"}
+        (concat
+          [(dom/thead nil
+             (dom/tr nil
+               (dom/th "Trophy")
+               (dom/th (:name (first bots)))
+               (dom/th (:name (second bots)))
+               (dom/th "")))
+           (dom/tfoot
+             (dom/tr nil
+               (dom/td "Score")
+               (dom/td {:class (when (= p1-id winner) "winner")}
+                 (->> match
+                      :moves
+                      (map (fn [move] (if (> (move p1-id) (move p2-id)) (move "trophy") 0)))
+                      (apply +)))
+               (dom/td {:class (when (= p2-id winner) "winner")}
+                 (->> match
+                      :moves
+                      (map (fn [move] (if (< (move p1-id) (move p2-id)) (move "trophy") 0)))
+                      (apply +)))
+               (dom/td nil)))]
+          (om/build-all move-view (:moves match) {:opts {:p1-id p1-id :p2-id p2-id}}))))))
+
+(defcomponentmethod card-view :match
+  [{:keys [data] :as card} owner]
+  (render [_]
+    (dom/div {:class "card match"}
+      (dom/header "MATCH"
+        (dom/a {:on-click (nav :game (:id (:game data)))} (str "#" (:name (:game data))))
+        (dom/a {:class "close" :on-click (close card)} "×"))
+      (dom/div {:class "content"}
+
+        (dom/h1
+          (dom/a {:on-click (nav :bot (:id (first (:bots data))))} (:name (first (:bots data))))
+          " vs "
+          (dom/a {:on-click (nav :bot (:id (second (:bots data))))} (:name (second (:bots data)))))
+
+        (dom/div {:class "moves"}
+          (om/build match-results data))))))
 
 (defcomponent test-view [data owner]
   (init-state [_]
@@ -231,27 +284,7 @@
               (= (:id (data :bot)) (:winner (data :test-match))) "You Won!"
               :else "You Lost!")))
         (when (data :test-match)
-          (dom/table
-            (concat
-              [(dom/thead nil
-                 (dom/tr nil
-                   (dom/th "Trophy")
-                   (dom/th "You")
-                   (dom/th "Them")
-                   (dom/th "")))
-               (dom/tfoot
-                 (dom/tr nil
-                   (dom/td "Score")
-                   (dom/td (->> (data :test-match)
-                                :history
-                                (map (fn [move] (if (> (move bot-id) (move 1234)) (move "trophy") 0)))
-                                (apply +)))
-                 (dom/td (->> (data :test-match)
-                              :history
-                              (map (fn [move] (if (< (move bot-id) (move 1234)) (move "trophy") 0)))
-                              (apply +)))
-                 (dom/td nil)))]
-            (om/build-all move-view (:history (data :test-match)) {:opts {:bot-id (:id (data :bot))}}))))))))
+          (om/build match-results (data :test-match)))))))
 
 
 (defcomponent code-editor-view [{:keys [bot action-chan]} owner]
@@ -365,53 +398,6 @@
           (om/build test-view {:test-match (state :test-match)
                                :bot bot}))))))
 
-
-(defmulti display-match-results (comp :name :game))
-
-(defmethod display-match-results :default
-  [game]
-  (dom/div (str "Moves: " (:moves game))))
-
-(defmethod display-match-results "goofspiel"
-  [{:keys [bots moves] :as match}]
-  (let [p1 (:id (first bots))
-        p2 (:id (second bots))
-        moves (map (fn [turn] (assoc turn :winner
-                                (cond
-                                  (< (get turn p1) (get turn p2)) p2
-                                  (> (get turn p1) (get turn p2)) p1
-                                  :else nil)))
-                   moves)]
-    (dom/table {:class "goofspiel-results"}
-      (dom/thead nil
-        (dom/tr nil
-          (dom/th "$")
-          (map (fn [b] (dom/th (:name b))) bots)))
-      (dom/tbody
-        (map (fn [{:keys [winner] :as turn}]
-               (dom/tr nil
-                 (dom/td (get turn "trophy"))
-                 (dom/td {:class (if (= winner p1) "winner" "loser")} (get turn p1))
-                 (dom/td {:class (if (= winner p2) "winner" "loser")} (get turn p2))))
-             moves))
-      (dom/tfoot
-        (dom/tr nil
-          (dom/td "")
-          (dom/td {:class (if (= (:winner match) p1) "winner" "loser")}
-            (->> moves (filter #(= (:winner %) p1)) (map #(get % p1)) (reduce + 0)))
-          (dom/td {:class (if (= (:winner match) p2) "winner" "loser")}
-            (->> moves (filter #(= (:winner %) p2)) (map #(get % p2)) (reduce + 0))))))))
-
-(defcomponentmethod card-view :match
-  [{:keys [data] :as card} owner]
-  (render [_]
-    (dom/div {:class "card match"}
-      (dom/header "MATCH"
-        (dom/a {:class "close" :on-click (close card)} "×"))
-      (dom/div {:class "content"}
-        (str "#" (:name (:game data)))
-        (dom/div {:class "moves"}
-          (display-match-results data))))))
 
 (defcomponentmethod card-view :user
   [{:keys [data] :as card} owner]

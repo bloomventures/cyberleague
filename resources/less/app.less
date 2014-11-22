@@ -250,8 +250,19 @@ a {
     }
   }
   &.match {
-    .goofspiel-results {
-      td.winner { font-weight: bold; }
+    h1 {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+
+  }
+  &.match, &.code {
+    .results.goofspiel {
+      td.winner {
+        font-weight: 800;
+        color: white;
+        background: @blue;
+      }
     }
   }
   &.code {
@@ -312,12 +323,6 @@ a {
           }
           td {
             text-align: center;
-          }
-          tfoot {
-            td {
-              padding-top: 1em;
-            }
-
           }
         }
         .hide {

@@ -227,8 +227,14 @@
                                 :bot/code-version (rand-int 10000000)
                                 :bot/deployed-code (get-in bot [:bot/code :code/code])))
                 result (game-runner/run-game (into {} (:bot/game bot))
-                                             [coded-bot random-bot])]
-              (edn-response result))
+                                             [coded-bot random-bot])
+                match {:game {:name "goofspiel"}
+                       :bots [{:id (:db/id bot) :name "You"} {:id 1234 :name "Them"}]
+                       :moves (result :history)
+                       :winner (result :winner)
+                       :error (result :error)
+                       :info (result :info)}]
+              (edn-response match))
           {:status 500})))
 
     (POST "/bots/:bot-id/deploy" [bot-id]
