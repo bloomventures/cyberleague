@@ -201,25 +201,38 @@
   [{code :bot/deployed-code :as bot}]
   code)
 
+(defmacro with-timeout
+  [ms body else]
+  `(let [f# (future ~body)]
+     (try
+       (.get f# ~ms java.util.concurrent.TimeUnit/MILLISECONDS)
+       (catch java.util.concurrent.TimeoutException ex#
+         (future-cancel f#)
+         ~else))))
+
 (defn run-game
   [game bots]
   (when-not (fs/exists? game-runner-js)
     (precompile-game-runner))
   (doseq [bot bots]
     (precompile-bot bot))
-  (edn/read-string
-    (eval-js
-      (clojure.string/join
-        "\n"
-        (concat
-          [(slurp game-runner-js)]
-          [(str "pog.precompiled.run_game("
-                (pr-str (pr-str game))
-                ","
-                (pr-str (pr-str bots))
-                ","
-                "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
-                ");")]))
-      (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
-              {}
-              bots))))
+  (with-timeout 20000
+    (edn/read-string
+      (eval-js
+        (clojure.string/join
+          "\n"
+          (concat
+            [(slurp game-runner-js)]
+            [(str "pog.precompiled.run_game("
+                  (pr-str (pr-str game))
+                  ","
+                  (pr-str (pr-str bots))
+                  ","
+                  "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
+                  ");")]))
+        (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
+                {}
+                bots)))
+    (do (println "Timeout")
+        {:error :timeout-executing
+         :info "Took too long tocomplete"})))
