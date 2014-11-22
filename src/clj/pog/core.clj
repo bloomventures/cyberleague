@@ -64,5 +64,5 @@
                                                               (get-in result [:move :move])))
                                    :match/winner (:db/id winner)})
                 (d/transact db/*conn*
-                  [[:db/add (:db/id cheater) :bot/rating (- 10 (:bot-ranking cheater))]
+                  [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- 10 (get cheater :bot-ranking 0)))]
                    [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))))
