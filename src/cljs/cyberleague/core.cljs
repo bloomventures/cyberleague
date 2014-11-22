@@ -151,7 +151,8 @@
                 (dom/th "Rating")))
             (dom/tbody
               (->> (:bots game)
-                   (sort-by :bot/rating)
+                   (sort-by :rating)
+                   reverse
                    (map-indexed (fn [rank bot]
                                   (dom/tr nil
                                     (dom/td rank)
