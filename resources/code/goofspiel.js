@@ -8,9 +8,9 @@
  Highest score after 13 cards wins.
 
  Sample Input:
-    { "player-cards": {"me": #{ 1 2 3 13 },
-                       "opponent": #{ 1 2 3 13 }}
-      "trophy-cards": #{ 1 2 3 13 },
+    { "player-cards": {"me": [ 1, 2, 3, 13 ],
+                       "opponent": [ 1, 2, 3, 13 ]}
+      "trophy-cards": [ 1 2 3 ],
       "current-trophy": 4,
       "history":  [ { "me": 1,
                       "opponent": 1,
@@ -21,12 +21,11 @@
 
  When you're ready to test your code, hit 'Test'.
  Your bot will be put up against a random opponent.
- print() and error output is shown on the right.
  Fix any bugs, and when you're happy, hit 'Deploy'.  */
 
 function(edn_state) {
   var state = edn_to_json(edn_state);
-  print(state);
+
   var trophy = state["current-trophy"];
   return trophy;
 }
