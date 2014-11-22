@@ -235,4 +235,4 @@
                 bots)))
     (do (println "Timeout")
         {:error :timeout-executing
-         :info "Took too long tocomplete"})))
+         :info "Took too long to complete"})))
