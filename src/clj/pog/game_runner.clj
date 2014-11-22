@@ -205,7 +205,7 @@
   [ms body else]
   `(let [f# (future ~body)]
      (try
-       (.get f# ~ms java.util.concurrent.TimeUnit/MILLISECONDS)
+       (.get f# ~ms java.util.concurrent.TimeUnit/SECONDS)
        (catch java.util.concurrent.TimeoutException ex#
          (future-cancel f#)
          ~else))))
@@ -216,7 +216,7 @@
     (precompile-game-runner))
   (doseq [bot bots]
     (precompile-bot bot))
-  (with-timeout 20000
+  (with-timeout 60
     (edn/read-string
       (eval-js
         (clojure.string/join
