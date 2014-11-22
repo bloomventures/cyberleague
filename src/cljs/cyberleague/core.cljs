@@ -159,8 +159,7 @@
                                       (dom/a {:on-click (nav :bot (:id bot))}
                                         (if (= :active (:status bot)) "●" "○") " "
                                         (:name bot)))
-                                    (dom/td (:rating bot))))
-                                )))))))))
+                                    (dom/td (:rating bot)))))))))))))
 
 (defcomponentmethod card-view :bot
   [{:keys [data] :as card} owner]
