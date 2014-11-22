@@ -62,7 +62,7 @@
                                    :match/error true
                                    :match/moves (pr-str (conj (get-in result [:game-state "history"])
                                                               (get-in result [:move :move])))
-                                   :match/winner winner})
+                                   :match/winner (:db/id winner)})
                 (d/transact db/*conn*
                   [[:db/add (:db/id cheater) :bot/rating (- 10 (:bot-ranking cheater))]
                    [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))))
