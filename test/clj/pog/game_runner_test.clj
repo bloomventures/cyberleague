@@ -63,7 +63,19 @@
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))
-      (is (= 1 (count (get-in result [:game-state "history"])))))))
+      (is (= 1 (count (get-in result [:game-state "history"]))))))
+
+  (testing "times out games that don't terminate"
+    (let [result (runner/run-game
+                   {:game/name "goofspiel"}
+                   [{:db/id 1237
+                     :bot/code-version 1
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
+                    {:db/id 54324
+                     :bot/code-version 1
+                     :bot/deployed-code (pr-str '(fn [state] (loop [] (recur))))}])]
+      (is (= :timeout-executing (:error result))))))
+
 
 (deftest running-a-game-ultimate-tic-tac-toe
   (testing "can run a game"
