@@ -33,15 +33,21 @@
          bindings (.getBindings engine ScriptContext/GLOBAL_SCOPE)
          inner-bindings (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
                           (doto (.getBindings eng ScriptContext/GLOBAL_SCOPE)
-                            (.put "edn_to_json" (.eval eng (edn->js)))))]
+                            (.put "edn_to_json" (.eval eng (edn->js)))))
+         writers (atom {})]
      (doseq [[binding-name script] extra-bindings]
        (try
-         (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
+         (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")
+               writer (java.io.StringWriter. )]
+           (swap! writers assoc binding-name writer)
+           (.. eng getContext (setWriter writer))
            (.put bindings binding-name (.eval eng script inner-bindings)))
          (catch ScriptException ex
            (println "Failed to add binding for " binding-name (.getMessage ex)))))
      (try
-       (.eval engine js bindings)
+       (let [result (.eval engine js bindings)
+             output (reduce-kv #(assoc %1 %2 (str %3)) {} @writers)]
+         [result output])
        (catch ScriptException ex
          (println "Script exception at" (.getLineNumber ex) ":" (.getMessage ex)))))))
 
@@ -202,10 +208,11 @@
   code)
 
 (defmacro with-timeout
-  [ms body else]
+  "Evaluate the body, returning else if body fails to complete in s seconds"
+  [s body else]
   `(let [f# (future ~body)]
      (try
-       (.get f# ~ms java.util.concurrent.TimeUnit/SECONDS)
+       (.get f# ~s java.util.concurrent.TimeUnit/SECONDS)
        (catch java.util.concurrent.TimeoutException ex#
          (future-cancel f#)
          ~else))))
@@ -217,22 +224,22 @@
   (doseq [bot bots]
     (precompile-bot bot))
   (with-timeout 60
-    (edn/read-string
-      (eval-js
-        (clojure.string/join
-          "\n"
-          (concat
-            [(slurp game-runner-js)]
-            [(str "pog.precompiled.run_game("
-                  (pr-str (pr-str game))
-                  ","
-                  (pr-str (pr-str bots))
-                  ","
-                  "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
-                  ");")]))
-        (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
-                {}
-                bots)))
+    (let [[result output] (eval-js
+                            (clojure.string/join
+                              "\n"
+                              (concat
+                                [(slurp game-runner-js)]
+                                [(str "pog.precompiled.run_game("
+                                      (pr-str (pr-str game))
+                                      ","
+                                      (pr-str (pr-str bots))
+                                      ","
+                                      "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
+                                      ");")]))
+                            (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
+                                    {}
+                                    bots))]
+      (assoc (edn/read-string result) :output output))
     (do (println "Timeout")
         {:error :timeout-executing
          :info "Took too long to complete"})))
