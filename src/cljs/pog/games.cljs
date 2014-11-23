@@ -172,9 +172,11 @@
             (assoc-in (cons "grid" loc) (get-in state ["marker" player]))
             (update-in ["history"] conj {"player" player "move" loc}))))
 
-    (game-over? [_ state]
-      (let [won-subboards (mapv #(won-subboard (get-in state ["grid" %])) (range 9))]
-        (won-subboard won-subboards)))
+    (game-over? [this state]
+      (or (every? board-decided? (state "grid"))
+          (not (nil? (winner this state)))))
 
-    (winner [this state]
-      (get (map-invert (state "marker")) (game-over? this state)))))
+    (winner [_ state]
+      (->> (mapv #(won-subboard (get-in state ["grid" %])) (range 9))
+           won-subboard
+           (get (map-invert (state "marker")))))))
