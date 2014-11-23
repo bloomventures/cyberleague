@@ -1,5 +1,6 @@
 (ns pog.game-runner-test
   (:require [clojure.test :refer :all]
+            [clojure.string :as string]
             [pog.game-runner :as runner]))
 
 
@@ -8,8 +9,10 @@
     (let [result (runner/run-game
                    {:game/name "goofspiel"}
                    [{:db/id 1234
-                     :bot/code-version 30
-                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}
+                     :bot/code-version 31
+                     :bot/deployed-code (pr-str '(fn [state]
+                                                   (println (state "current-trophy"))
+                                                   (state "current-trophy")))}
                     {:db/id 54321
                      :bot/code-version 16
                      :bot/deployed-code
@@ -19,7 +22,10 @@
                                   (dec (state "current-trophy")))))}])]
       (is (map? result))
       (is (not (:error result)))
-      (is (= 1234 (:winner result)))))
+      (is (= 1234 (:winner result)))
+      (testing "and capture output"
+        (is (map? (:output result)))
+        (is (not (string/blank? (get-in result [:output "bot_code_1234_run"])))))))
 
   (testing "can run a game with a javascript bot"
     (let [result (runner/run-game
@@ -137,7 +143,9 @@
                                     (pr-str [2 2])
                                     (let [[b sb] (get (last history) "move")
                                           board-idx (if (board-decided? (grid sb))
-                                                      (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
+                                                      (do (println "board decided")
+                                                          (println (->> (range 0 9) (map grid)))
+                                                        (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth))
                                                       sb)
                                           board (grid board-idx)]
                                       (pr-str
@@ -146,6 +154,7 @@
                                               (filter (comp nil? (partial get board)))
                                               rand-nth)]))))))}])]
       (is (map? result))
+      ;(println result)
       (is (not (:error result)))))
 
   #_(testing "reports bad moves"
