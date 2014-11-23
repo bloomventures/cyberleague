@@ -309,16 +309,23 @@
   (->> (d/q '[:find ?inst ?attr ?val
               :in $ ?e
               :where
-              [?e ?a ?val ?tx]
+              [?e ?a ?val ?tx true]
               [?a :db/ident ?attr]
               [?tx :db/txInstant ?inst]]
-            (d/history (d/db *conn*))
-            bot-id
-            )
+            (d/history (d/db db/*conn*))
+            bot-id)
        (group-by first)
        (reduce-kv (fn [memo k v]
-                    (let [rating (last (first (filter #(and (= :bot/rating (second %))) v)))
-                          rating-dev (last (first (filter #(and (= :bot/rating-dev (second %))) v)))]
+                    (let [rating (last (first (filter #(= :bot/rating (second %)) v)))
+                          rating-dev (last (first (filter #(= :bot/rating-dev (second %)) v)))
+                          [rating rating-dev]
+                          (cond
+                            (and (nil? rating) (nil? rating-dev)) [nil nil]
+                            (nil? rating-dev) [rating
+                                               (:bot/rating-dev (d/entity (d/as-of (d/db db/*conn*) k) bot-id))]
+                            (nil? rating) [(:bot/rating (d/entity (d/as-of (d/db db/*conn*) k) bot-id))
+                                           rating-dev]
+                            :else [rating rating-dev])]
                       (if (and rating rating-dev)
                         (conj memo {:inst k :rating rating :rating-dev rating-dev})
                         memo))) [])
