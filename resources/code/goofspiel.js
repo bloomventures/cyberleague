@@ -10,14 +10,17 @@
  Sample Input:
     { "player-cards": {"me": [ 1, 2, 3, 13 ],
                        "opponent": [ 1, 2, 3, 13 ]}
-      "trophy-cards": [ 1 2 3 ],
+      "trophy-cards": [ 1, 2, 3 ],
       "current-trophy": 4,
-      "history":  [ { "me": 1,
-                      "opponent": 1,
-                      "trophy": 1 } … ] }
+      "history":  [ { "me": 4,
+                      "opponent": 5,
+                      "trophy": 5 },
+                    { "me": 7,
+                      "opponent": 8,
+                      "trophy": 9 }, … ] }
 
  Sample Output:
-   5
+   3
 
  When you're ready to test your code, hit 'Test'.
  Your bot will be put up against a random opponent.
