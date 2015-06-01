@@ -253,6 +253,47 @@
                (dom/td nil)))]
           (om/build-all move-view (:moves match) {:opts {:p1-id p1-id :p2-id p2-id}}))))))
 
+(defcomponentmethod match-results "ultimate tic-tac-toe"
+  [match owner opts]
+  (init-state [_]
+    {:current-move (count (match :moves))})
+  (render-state [_ {:keys [current-move]}]
+    (dom/div nil
+      (let [moves (match :moves)
+            displayed-moves (take current-move moves)
+            p1 (get (first moves) "player")
+            p2 (get (second moves) "player")
+            [p1-moves p2-moves] (->> displayed-moves
+                                     (map #(get % "move"))
+                                     (partition 2 2 nil)
+                                     ((juxt (partial map first) (partial map second)))
+                                     (map set))]
+        (dom/table {:class "results tic-tac-toe"}
+          (dom/thead)
+          (dom/tbody nil
+            (for [row (partition 3 (range 9))]
+              (dom/tr nil
+                (map (fn [board-idx]
+                       (dom/td nil
+                         (dom/table {:class "subboard"}
+                           (dom/thead)
+                           (dom/tbody nil
+                             (for [sub-row (partition 3 (range 9))]
+                               (dom/tr nil
+                                 (map (fn [subboard-idx]
+                                        (let [winner (condp contains? [board-idx subboard-idx]
+                                                       p1-moves :p1
+                                                       p2-moves :p2
+                                                       :no)]
+                                          (dom/td {:class (name winner)}
+                                            (case winner
+                                              :p1 "X"
+                                              :p2 "O"
+                                              :no " "))))
+                                      sub-row))
+                               )))))
+                     row)))))))))
+
 (defcomponentmethod card-view :match
   [{:keys [data] :as card} owner]
   (render [_]
