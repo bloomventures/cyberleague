@@ -258,8 +258,7 @@
   (init-state [_]
     {:current-move (count (match :moves))})
   (render-state [_ {:keys [current-move]}]
-    (dom/div nil
-      (let [moves (match :moves)
+    (let [moves (match :moves)
             displayed-moves (take current-move moves)
             p1 (get (first moves) "player")
             p2 (get (second moves) "player")
@@ -268,6 +267,7 @@
                                      (partition 2 2 nil)
                                      ((juxt (partial map first) (partial map second)))
                                      (map set))]
+      (dom/div nil
         (dom/table {:class "results tic-tac-toe"}
           (dom/thead)
           (dom/tbody nil
@@ -289,10 +289,19 @@
                                             (case winner
                                               :p1 "X"
                                               :p2 "O"
-                                              :no " "))))
+                                              :no "."))))
                                       sub-row))
                                )))))
-                     row)))))))))
+                     row)))))
+        (dom/div nil
+          "Turn"
+          (dom/input {:type "range"
+                      :min 0
+                      :max (count moves)
+                      :step 1
+                      :value current-move
+                      :on-change (fn [e] (om/set-state! owner :current-move (.. e -target -value)))}
+            ()))))))
 
 (defcomponentmethod card-view :match
   [{:keys [data] :as card} owner]
