@@ -197,7 +197,9 @@
     (PUT "/bots/:bot-id/language/:language" [bot-id language]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= id (:db/id (:bot/user bot)))
-          (let [code (slurp (io/resource (str "code/goofspiel." (case language
+          ; TODO: need to get different samples for different games
+          (let [game (get-in bot [:bot/game :game/name])
+                code (slurp (io/resource (str "code/" game "." (case language
                                                                   "javascript" "js"
                                                                   "clojurescript" "cljs"))))
                 bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
