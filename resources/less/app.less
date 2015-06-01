@@ -267,6 +267,38 @@ a {
         display: none;
       }
     }
+    .results.tic-tac-toe {
+      td {
+        border: 2px solid black;
+        padding: 1em;
+      }
+      tr:first-child {
+        td {
+          border-top: none;
+        }
+      }
+      tr:last-child {
+        td {
+          border-bottom: none;
+        }
+      }
+      tr {
+        td:first-child {
+          border-left: none;
+        }
+        td:last-child {
+          border-right: none;
+        }
+      }
+      .subboard {
+        td {
+          border: 1px solid gray;
+          padding: 0.1em;
+          &.p1 { color: red; }
+          &.p2 { color: blue; }
+        }
+      }
+    }
   }
   &.code {
     width: 800px;
