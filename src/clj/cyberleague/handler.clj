@@ -218,18 +218,19 @@
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (and bot (= id (:db/id (:bot/user bot))))
           ; TODO: use an appropriate random bot for different games
-          (let [random-bot {:db/id 1234
-                            :bot/code-version 4
-                            :bot/deployed-code
-                            (pr-str '(fn [state]
-                                       (rand-nth (vec (get-in state ["player-cards" "me"])))))}
+          (let [game-name (get-in bot [:bot/game :game/name])
+                random-bot {:db/id (case game-name
+                                     "goofspiel" 1234
+                                     "ultimate tic-tac-toe" 1235)
+                            :bot/code-version 5
+                            :bot/deployed-code (slurp (io/resource (str "testbots/" game-name ".cljs")))}
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                 :bot/code-version (rand-int 10000000)
                                 :bot/deployed-code (get-in bot [:bot/code :code/code])))
                 result (game-runner/run-game (into {} (:bot/game bot))
                                              [coded-bot random-bot])
-                match {:game {:name "goofspiel"}
+                match {:game {:name game-name}
                        :bots [{:id (:db/id bot) :name "You"} {:id 1234 :name "Them"}]
                        :moves (result :history)
                        :winner (result :winner)
