@@ -312,7 +312,7 @@
               [?e ?a ?val ?tx true]
               [?a :db/ident ?attr]
               [?tx :db/txInstant ?inst]]
-            (d/history (d/db db/*conn*))
+            (d/history (d/db *conn*))
             bot-id)
        (group-by first)
        (reduce-kv (fn [memo k v]
@@ -322,8 +322,8 @@
                           (cond
                             (and (nil? rating) (nil? rating-dev)) [nil nil]
                             (nil? rating-dev) [rating
-                                               (:bot/rating-dev (d/entity (d/as-of (d/db db/*conn*) k) bot-id))]
-                            (nil? rating) [(:bot/rating (d/entity (d/as-of (d/db db/*conn*) k) bot-id))
+                                               (:bot/rating-dev (d/entity (d/as-of (d/db *conn*) k) bot-id))]
+                            (nil? rating) [(:bot/rating (d/entity (d/as-of (d/db *conn*) k) bot-id))
                                            rating-dev]
                             :else [rating rating-dev])]
                       (if (and rating rating-dev)
