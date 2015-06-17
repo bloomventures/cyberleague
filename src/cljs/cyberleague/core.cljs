@@ -294,7 +294,8 @@
                                )))))
                      row)))))
         (dom/div nil
-          "Turn"
+          (str "Turn " current-move "/" (count moves))
+          (dom/br)
           (dom/input {:type "range"
                       :min 0
                       :max (count moves)
