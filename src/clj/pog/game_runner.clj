@@ -225,7 +225,7 @@
     (precompile-bot bot))
   (with-timeout 60
     (let [[result output] (eval-js
-                            (clojure.string/join
+                            (string/join
                               "\n"
                               (concat
                                 [(slurp game-runner-js)]
@@ -234,7 +234,7 @@
                                       ","
                                       (pr-str (pr-str bots))
                                       ","
-                                      "[" (clojure.string/join "," (map js-bot-fn bots)) "]"
+                                      "[" (string/join "," (map js-bot-fn bots)) "]"
                                       ");")]))
                             (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
                                     {}
