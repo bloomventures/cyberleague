@@ -30,6 +30,7 @@
                           (sort-by :bot/rating-dev #(compare %2 %1))
                           (take 5)
                           rand-nth)
+              _ (print "Starting " (:db/id player-1) " vs " (:db/id player-2) "...")
             result (game-runner/run-game
                      (into {} game)
                      (db/with-conn
