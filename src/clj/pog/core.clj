@@ -19,7 +19,7 @@
   (while true
     (doseq [[game all-bots] (db/with-conn (db/active-bots))]
       ; TODO:
-      (when (= "ultimate tic-tac-toe" (game :game/name))
+      (when (= "ultimate tic-tac-toe" (:game/name game))
         (let [player-1 (rand-nth all-bots)
             player-2 (->> all-bots
                           (remove (partial = player-1))
