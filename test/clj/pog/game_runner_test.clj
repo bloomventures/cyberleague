@@ -82,6 +82,23 @@
                      :bot/deployed-code (pr-str '(fn [state] (loop [] (recur))))}])]
       (is (= :timeout-executing (:error result))))))
 
+(deftest using-underscore-in-javascript
+  (testing "Can write a bot using underscore"
+    (let [result (runner/run-game
+                   {:game/name "goofspiel"}
+                   [{:db/id 9878
+                     :bot/code-version 1
+                     :bot/deployed-code (str "function (state) { "
+                                             "var trophy = edn_to_json(state)[\"current-trophy\"];"
+                                             "return _.identity(trophy); };")
+                     :bot/code {:code/language "javascript"}}
+                    {:db/id 1236
+                     :bot/code-version 30
+                     :bot/deployed-code (pr-str '(fn [state] (state "current-trophy")))}])]
+      (is (map? result))
+      (is (not (:error result)))
+      (is (nil? (:winner result))))))
+
 
 (deftest running-a-game-ultimate-tic-tac-toe
   (testing "can run a game"

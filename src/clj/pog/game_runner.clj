@@ -26,6 +26,11 @@
            :pretty-print false})))
     (str (slurp output-file) "pog.edn_to_js.edn_to_json_fn();")))
 
+(defn underscore
+  []
+  (slurp "resources/underscore.js")
+  )
+
 (defn eval-js
   ([js] (eval-js js {}))
   ([js extra-bindings]
@@ -33,7 +38,8 @@
          bindings (.getBindings engine ScriptContext/GLOBAL_SCOPE)
          inner-bindings (let [eng (.getEngineByName (ScriptEngineManager.) "nashorn")]
                           (doto (.getBindings eng ScriptContext/GLOBAL_SCOPE)
-                            (.put "edn_to_json" (.eval eng (edn->js)))))
+                            (.put "edn_to_json" (.eval eng (edn->js)))
+                            (.put "_" (.eval eng (underscore)))))
          writers (atom {})]
      (doseq [[binding-name script] extra-bindings]
        (try
