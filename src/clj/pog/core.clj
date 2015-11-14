@@ -18,7 +18,9 @@
   (println "Running games")
   (while true
     (doseq [[game all-bots] (db/with-conn (db/active-bots))]
-      (let [player-1 (rand-nth all-bots)
+      ; TODO:
+      (when (= "ultimate tic-tac-toe" (game :game/name))
+        (let [player-1 (rand-nth all-bots)
             player-2 (->> all-bots
                           (remove (partial = player-1))
                           (sort-by (fn [bot] (Math/abs
@@ -65,4 +67,4 @@
                                    :match/winner (:db/id winner)})
                 (d/transact db/*conn*
                   [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- 10 (cheater :bot/rating)))]
-                   [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))))
+                   [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]]))))))))))
