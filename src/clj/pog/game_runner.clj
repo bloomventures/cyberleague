@@ -245,6 +245,7 @@
                             (reduce (fn [a bot] (assoc a (js-bot-fn bot) (code-for bot)))
                                     {}
                                     bots))]
+      (println "Result" result)
       (assoc (edn/read-string result) :output output))
     (do (println "Timeout")
         {:error :timeout-executing
