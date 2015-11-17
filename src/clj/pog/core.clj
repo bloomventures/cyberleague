@@ -56,7 +56,7 @@
               (db/with-conn
                 (d/transact db/*conn*
                   [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
-            (let [[winner cheater] (if (= (get-in result [:move :bot] (:db/id player-1)))
+            (let [[winner cheater] (if (= (get-in result [:move :bot]) (:db/id player-1))
                                      [player-2 player-1]
                                      [player-1 player-2])]
               (println "Bad move from " cheater)
