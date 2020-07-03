@@ -4,7 +4,7 @@
 
 (use-fixtures :each
               (fn [t]
-                (binding [db/*uri* "datomic:mem://testing"]
+                (binding [db/*uri* "datomic:mem://cyberleague-testing"]
                   (db/init)
                   (db/with-conn (t))
                   (datomic.api/delete-database db/*uri*))))
