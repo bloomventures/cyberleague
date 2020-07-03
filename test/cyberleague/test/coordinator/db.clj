@@ -1,6 +1,6 @@
-(ns pog.db-test
+(ns cyberleague.test.coordinator.db
   (:require [clojure.test :refer :all]
-            [pog.db :as db]))
+            [cyberleague.coordinator.db :as db]))
 
 (use-fixtures :each
               (fn [t]

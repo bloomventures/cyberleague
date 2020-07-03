@@ -1,4 +1,4 @@
-(ns pog.games
+(ns cyberleague.games.games
   (:require [clojure.set :refer [map-invert rename-keys]]))
 
 (defprotocol IGameEngine

@@ -1,5 +1,5 @@
-(ns pog.ranking
-  (:require [pog.db :as db]
+(ns cyberleague.coordinator.ranking
+  (:require [cyberleague.coordinator.db :as db]
             [clojure.math.numeric-tower :refer [expt]]
             [datomic.api :as d]))
 

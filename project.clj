@@ -1,4 +1,4 @@
-(defproject pog "1.0.0"
+(defproject cyberleague-coordinator "1.0.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -15,7 +15,7 @@
                                    :username "james@leanpixel.com"
                                    :password "eb6ce9b2-92f7-4164-86c3-49e60732bba9"}}
   :uberjar-name "player-of-games.jar"
-  :main pog.core
+  :main cyberleague.coordinator.core
 
   :source-paths ["src/clj" "src/cljs"]
 
