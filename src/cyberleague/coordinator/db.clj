@@ -290,7 +290,6 @@
           (d/entity code-id)
           :code/code))))
 
-
 (defn get-code [id]
   (by-id id))
 

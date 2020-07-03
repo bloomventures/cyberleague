@@ -70,10 +70,15 @@
 
 (def login-csrf-key (atom ""))
 
-(defn log-in []
-  (swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
+(defn log-in! []
+  (edn-xhr {:url "/login"
+            :method :post
+            :on-complete (fn [data]
+                           (swap! app-state assoc :user data))})
 
-  (.open js/window
+  #_(swap! login-csrf-key (fn [cv] (string/join "" (take 20 (repeatedly #(rand-int 9))))))
+
+  #_(.open js/window
          (str "https://github.com/login/oauth/authorize?client_id=" js/window.github_app_id "&redirect_uri=" js/window.github_redirect_uri "&state=" @login-csrf-key)
          "GitHub Auth"
          "width=300,height=400"))
@@ -417,7 +422,7 @@
           (dom/a {:on-click (nav :game (:id (:game bot)))} (str "#" (:name (:game bot))))
           (if (:id (:user bot))
             (dom/a {:on-click (nav :user (:id (:user bot)))} (str "@" (:name (:user bot))))
-            (dom/a {:on-click (fn [e] (log-in))} "Log in with Github to save your bot"))
+            (dom/a {:on-click (fn [e] (log-in!))} "Log in with Github to save your bot"))
           (when (bot :code)
             (dom/div {:class "status"}
               (case (state :status)
@@ -544,13 +549,13 @@
               "My Bots"))
           (if-let [user (data :user)]
             (dom/a {:class "log-out" :on-click (fn [e] (log-out)) :title "Log Out"} "×")
-            (dom/a {:class "log-in" :on-click (fn [e] (log-in))} "Log In"))))
+            (dom/a {:class "log-in" :on-click (fn [e] (log-in!))} "Log In"))))
       (dom/div {:class "cards"}
         (om/build-all card-view (data :cards) {:key :url})))))
 
 (defn ^:export init []
   (om/root app-view app-state {:target (. js/document (getElementById "app"))})
-  (js/window.addEventListener
+  #_(js/window.addEventListener
     "message"
     (fn [e]
       (let [resp (js->clj (.-data e))]

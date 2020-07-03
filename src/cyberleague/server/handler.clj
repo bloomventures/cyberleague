@@ -72,6 +72,14 @@
 
       (assoc (edn-response out-user) :session out-user)))
 
+  (POST "/login" _
+    (let [user (db/with-conn (db/get-or-create-user 38405 "jamesnvc"))
+          out-user {:id (:db/id user)
+                    :name (:user/name user)
+                    :gh-id (:user/gh-id user)}]
+      (assoc
+        (edn-response out-user)
+        :session out-user)))
 
   (POST "/logout" _
     (assoc (edn-response {:status 200}) :session nil))
