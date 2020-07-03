@@ -20,20 +20,20 @@
   :plugins [[jamesnvc/lein-lesscss "1.3.4"]
             [lein-environ "1.0.0"]]
 
-  :source-paths ["src/clj" "src/cljs" "src/cyberleague"]
+  :source-paths ["src"]
   :lesscss-paths ["resources/less"]
   :lesscss-output-path "resources/public/css"
 
   :uberjar-name "cyberleague-standalone.jar"
 
-  :main cyberleague.handler
+  :main cyberleague.server.handler
 
-  :profiles {:uberjar {:aot [cyberleague.handler]}
+  :profiles {:uberjar {:aot [cyberleague.server.handler]}
 
              :production
              {:cljsbuild {:builds
                           [{:id "cyberleague"
-                            :source-paths ["src/cljs"]
+                            :source-paths ["src/cyberleague/client"]
                             :compiler {:pretty-print false
                                        :output-to "resources/public/js/out/cyberleague.min.js"
                                        :preamble ["react/react.min.js"]
@@ -46,9 +46,9 @@
                    :plugins [[lein-cljsbuild "1.0.3"]
                              [quickie "0.2.5"]
                              [com.cemerick/clojurescript.test "0.3.1"]]
-                   :test-paths ["test/clj" "test"]
+                   :test-paths ["test"]
                    :cljsbuild {:builds [{:id "cyberleague"
-                                         :source-paths ["src/cljs"]
+                                         :source-paths ["src/cyberleague/client"]
                                          :compiler {:output-to "resources/public/js/out/cyberleague.js"
                                                     :output-dir "resources/public/js/out"
                                                     :optimizations :none

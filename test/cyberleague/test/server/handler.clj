@@ -1,8 +1,8 @@
-(ns cyberleague.handler-test
+(ns cyberleague.test.server.handler
   (:require [clojure.test :refer :all]
-            [pog.db :as db]
+            [cyberleague.coordinator.db :as db]
             [clojure.tools.reader.edn :as edn]
-            [cyberleague.handler :refer [app] :as handler]))
+            [cyberleague.server.handler :refer [app] :as handler]))
 
 (use-fixtures :each
               (fn [t]

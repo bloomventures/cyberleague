@@ -1,4 +1,4 @@
-(ns cyberleague.handler
+(ns cyberleague.server.handler
   (:gen-class)
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
@@ -16,8 +16,8 @@
             [clojure.string :as string]
             [clojure.java.io :as io]
             [environ.core :refer [env]]
-            [pog.db :as db]
-            [pog.game-runner :as game-runner]))
+            [cyberleague.coordinator.db :as db]
+            [cyberleague.coordinator.game-runner :as game-runner]))
 
 (def github-redirect-uri (env :github-redirect-uri))
 (def github-app-id (env :github-app-id))
