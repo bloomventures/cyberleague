@@ -9,7 +9,7 @@
             [ring.middleware.edn :refer [wrap-edn-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.cookie :refer [cookie-store]]
-            [org.httpkit.server :refer [run-server]]
+            [org.httpkit.server :as httpkit]
             [clojure.data.json :as json]
             [clojure.edn :as edn]
             [org.httpkit.client :refer [request]]
@@ -177,8 +177,6 @@
                                      matches)})))
 
 
-
-
     (GET "/bots/:bot-id/code" [bot-id]
       (let [bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= id (:db/id (:bot/user bot)))
@@ -272,7 +270,7 @@
 (defn start-server!
   [port]
   (stop-server!)
-  (reset! server (run-server #'app {:port port})))
+  (reset! server (httpkit/run-server #'app {:port port})))
 
 (defn -main  [& [port & args]]
   (db/init)
