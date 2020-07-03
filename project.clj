@@ -40,7 +40,7 @@
                                        :externs ["react/externs/react.js"]
                                        :optimizations :advanced}}]}}
 
-             :dev {:repl-options {:init-ns cyberleague.server.handler}
+             :dev {:repl-options {:init-ns cyberleague.core}
                    :dependencies [[ring/ring-devel "1.3.0"]]
                    :plugins [[lein-cljsbuild "1.0.3"]
                              [quickie "0.2.5"]

@@ -36,27 +36,31 @@ Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with
     (let [bot (db/with-conn (db/create-bot (:db/id user-james) (:db/id game-goofspiel)))
           _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                       (let [trophy (state "current-trophy")]
-                                                                        (get [2 3 4 5 6 7 8 9 10 11 12 13 1] (dec trophy)))))))]
+                                                                        (get [2 3 4 5 6 7 8 9 10 11 12 13 1] (dec trophy)))))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
       bot))
 
   (def bot-goofspiel-2
     (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-goofspiel)))
           _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                       (let [trophy (state "current-trophy")]
-                                                                        (get [1 2 3 4 5 6 7 8 9 10 11 12 13] (dec trophy)))))))]
+                                                                        (get [1 2 3 4 5 6 7 8 9 10 11 12 13] (dec trophy)))))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
       bot))
 
   (def bot-goofspiel-3
     (let [bot (db/with-conn (db/create-bot (:db/id user-james) (:db/id game-goofspiel)))
           _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
                                                                       (let [trophy (state "current-trophy")]
-                                                                        trophy)))))]
+                                                                        trophy)))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
       bot))
 
   (def bot-goofspiel-4
     (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-goofspiel)))
           _ (db/with-conn (db/update-bot-code (:db/id bot) (pr-str '(fn [state]
-                                                                      (rand-nth (vec (get-in state ["player-cards" "me"])))))))]
+                                                                      (rand-nth (vec (get-in state ["player-cards" "me"])))))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
       bot))
 
   (def game-ultimate-tic-tac-toe
