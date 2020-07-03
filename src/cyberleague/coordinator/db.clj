@@ -3,7 +3,9 @@
 
 (def ^:dynamic *uri*
   "URI for the datomic database"
-  "datomic:sql://cyberleague?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic")
+  "datomic:mem://cyberleague-dev"
+  #_"datomic:free://localhost:4334/cldev"
+  #_"datomic:sql://cyberleague?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic"))
 
 (def ^:dynamic *conn* nil)
 
