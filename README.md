@@ -18,6 +18,7 @@ lein lesscss auto
 for app:
 ```
 lein repl
+```
 
 then:
 ```
