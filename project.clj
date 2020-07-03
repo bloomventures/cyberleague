@@ -12,7 +12,6 @@
                  [markdown-clj "0.9.54"]
                  [compojure "1.1.8"]
                  [me.raynes/fs "1.4.4"]
-                 [org.clojure/tools.nrepl  "0.2.3"]
                  [environ "1.0.0"]
                  ; cljs-related:
                  [org.clojure/clojurescript "0.0-2322"]
