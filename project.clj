@@ -2,7 +2,7 @@
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [javax.servlet/servlet-api "2.5"]
                  [pog "1.0.0"]
                  [http-kit  "2.1.16"]
@@ -14,7 +14,7 @@
                  [me.raynes/fs "1.4.4"]
                  [environ "1.0.0"]
                  ; cljs-related:
-                 [org.clojure/clojurescript "0.0-2322"]
+                 [org.clojure/clojurescript "1.7.145"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [om "0.7.3"]
                  [prismatic/om-tools "0.3.6"]]
