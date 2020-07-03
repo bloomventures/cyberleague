@@ -1,7 +1,7 @@
 (ns cyberleague.server.seed
   (:require [cyberleague.coordinator.db :as db]))
 
-(defn seed []
+(defn seed! []
 
   (db/init)
 
@@ -71,4 +71,4 @@ Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with
 
 (defn -main
   [& args]
-  (seed))
+  (seed!))
