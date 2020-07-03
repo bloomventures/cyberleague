@@ -1,4 +1,4 @@
-(ns pog.game-runner
+(ns cyberleague.coordinator.game-runner
   (:require [me.raynes.fs :as fs]
             [cljs.closure :as cljsc]
             [clojure.string :as string]
@@ -15,7 +15,7 @@
           (fs/delete-dir output-dir))
         (fs/mkdirs output-dir)
         (cljsc/build
-          '[(ns pog.edn-to-js
+          '[(ns cyberleague.coordinator.edn-to-js
               (:require cljs.reader))
             (defn ^:export edn-to-json-fn []
               (comp clj->js cljs.reader/read-string))]
@@ -24,7 +24,7 @@
            :output-dir output-dir
            :output-to output-file
            :pretty-print false})))
-    (str (slurp output-file) "pog.edn_to_js.edn_to_json_fn();")))
+    (str (slurp output-file) "cyberleague.coordinator.edn_to_js.edn_to_json_fn();")))
 
 (defn underscore
   []
@@ -66,9 +66,9 @@
       (fs/delete-dir output-dir))
     (fs/mkdirs output-dir)
     (cljsc/build
-      '[(ns pog.precompiled
+      '[(ns cyberleague.coordinator.precompiled
           (:require cljs.reader
-                    [pog.games :as games]))
+                    [cyberleague.games.games :as games]))
 
         (set-print-fn! js/print)
 
@@ -235,7 +235,7 @@
                               "\n"
                               (concat
                                 [(slurp game-runner-js)]
-                                [(str "pog.precompiled.run_game("
+                                [(str "cyberleague.coordinator.precompiled.run_game("
                                       (pr-str (pr-str game))
                                       ","
                                       (pr-str (pr-str bots))

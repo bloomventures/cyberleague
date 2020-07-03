@@ -1,7 +1,7 @@
-(ns pog.game-runner-test
+(ns cyberleague.test.coordinator.game-runner
   (:require [clojure.test :refer :all]
             [clojure.string :as string]
-            [pog.game-runner :as runner]))
+            [cyberleague.coordinator.game-runner :as runner]))
 
 
 (deftest running-a-game-goofspiel

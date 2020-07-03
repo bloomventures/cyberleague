@@ -1,4 +1,4 @@
-(ns pog.db
+(ns cyberleague.coordinator.db
   (:require [datomic.api :as d]))
 
 (def ^:dynamic *uri*
