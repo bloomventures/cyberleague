@@ -19,10 +19,6 @@
                  [om "0.7.3"]
                  [prismatic/om-tools "0.3.6"]]
 
-  :repositories {"my.datomic.com" {:url "https://my.datomic.com/repo"
-                                   :username "james@leanpixel.com"
-                                   :password "eb6ce9b2-92f7-4164-86c3-49e60732bba9"}}
-
   :plugins [[jamesnvc/lein-lesscss "1.3.4"]
             [lein-environ "1.0.0"]]
 
