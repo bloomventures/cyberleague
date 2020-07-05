@@ -51,12 +51,12 @@
            :history (state "history")}
           (if (games/simultaneous-turns? game-engine)
             ;; For simulatenous turns, get all the moves
-            (let [moves (reduce
-                         (fn [moves bot]
-                           (assoc moves (:db/id bot) (run-move bot state game-engine)))
-                         {}
-                         (take nplayers players))]
-              (recur (games/next-state game-engine state moves) players))
+            (let [moves (->> (take nplayers players)
+                             (map (fn [bot]
+                                    [(:db/id bot) (run-move bot state game-engine)]))
+                             (into {}))]
+              (recur (games/next-state game-engine state moves)
+                     players))
             ;; For one-at-a-time, just get the next player's move
             (let [bot (first players)
                   move (run-move bot state game-engine)]
