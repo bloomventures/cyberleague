@@ -484,17 +484,6 @@
                        (dom/td (:rating bot))))
                    (user :bots)))))))))
 
-(defcomponentmethod card-view :chat
-  [card owner]
-  (render [_]
-    (dom/div {:class "card chat"}
-      (dom/header nil "Chat"
-        (dom/a {:class "close" :on-click (close card)} "×"))
-      (dom/div {:class "content"}
-        (dom/iframe {:src (str "/chat/" (or (:name (:user @app-state)) "anonymous"))
-                     :width "100%"
-                     :height "100%"})))))
-
 (defcomponent app-view [data owner]
   (will-mount [_]
     (go (loop []
@@ -504,7 +493,6 @@
               :open (let [url (condp = (:type card)
                                 :game (str "/api/games/" (card :id))
                                 :games "/api/games"
-                                :chat :chat
                                 :users "/api/users"
                                 :user (str "/api/users/" (card :id))
                                 :bot (str "/api/bots/" (card :id))
@@ -542,7 +530,6 @@
         (dom/nav nil
           (dom/a {:class "" :on-click (nav :games nil)} "Games")
           (dom/a {:class "" :on-click (nav :users nil)} "Users")
-          (dom/a {:class "" :on-click (nav :chat nil)} "Chat")
           (when-let [user (data :user)]
             (dom/a {:on-click (nav :user (:id user)) :class "user"}
               (dom/img {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")})
