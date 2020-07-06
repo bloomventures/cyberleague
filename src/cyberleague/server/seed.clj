@@ -1,5 +1,6 @@
 (ns cyberleague.server.seed
-  (:require [cyberleague.coordinator.db :as db]))
+  (:require
+   [cyberleague.coordinator.db :as db]))
 
 (defn seed! []
 

@@ -1,10 +1,12 @@
 (ns cyberleague.coordinator.game-runner-old
-  (:require [me.raynes.fs :as fs]
-            [cljs.closure :as cljsc]
-            [clojure.string :as string]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io])
-  (:import [javax.script ScriptEngineManager ScriptContext ScriptException]))
+  (:require
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [cljs.closure :as cljsc]
+   [me.raynes.fs :as fs])
+  (:import
+   (javax.script ScriptContext ScriptEngineManager ScriptException)))
 
 (defn edn->js
   []

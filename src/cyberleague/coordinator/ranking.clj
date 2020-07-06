@@ -1,7 +1,8 @@
 (ns cyberleague.coordinator.ranking
-  (:require [cyberleague.coordinator.db :as db]
-            [clojure.math.numeric-tower :refer [expt]]
-            [datomic.api :as d]))
+  (:require
+   [clojure.math.numeric-tower :refer [expt]]
+   [datomic.api :as d]
+   [cyberleague.coordinator.db :as db]))
 
 (def PI Math/PI)
 

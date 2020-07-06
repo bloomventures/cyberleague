@@ -1,8 +1,8 @@
 (ns cyberleague.core
   (:require
-    [cyberleague.server.handler :as handler]
-    [cyberleague.server.seed :as seed]
-    [cyberleague.coordinator.core :as coordinator]))
+   [cyberleague.coordinator.core :as coordinator]
+   [cyberleague.server.handler :as handler]
+   [cyberleague.server.seed :as seed]))
 
 #_(seed/seed!)
 #_(handler/start-server! 5251)
