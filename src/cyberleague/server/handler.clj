@@ -49,9 +49,6 @@
   (GET "/oauth-message" _
     (response/resource-response "oauth-message.html"))
 
-  (GET "/chat/:user-name" [user-name]
-    (response/resource-response "hipchat-redirect.html"))
-
   (POST "/login/:code" [code]
     (let [resp @(request {:url  "https://github.com/login/oauth/access_token"
                           :method :post
