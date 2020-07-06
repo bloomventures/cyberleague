@@ -1,5 +1,6 @@
 (ns cyberleague.coordinator.db
-  (:require [datomic.api :as d]))
+  (:require
+   [datomic.api :as d]))
 
 (def ^:dynamic *uri*
   "URI for the datomic database"

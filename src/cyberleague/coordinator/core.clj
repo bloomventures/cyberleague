@@ -1,9 +1,10 @@
 (ns cyberleague.coordinator.core
   (:gen-class)
-  (:require [cyberleague.coordinator.db :as db]
-            [datomic.api :as d]
-            [cyberleague.coordinator.ranking :as ranking]
-            [cyberleague.coordinator.game-runner :as game-runner]))
+  (:require
+   [datomic.api :as d]
+   [cyberleague.coordinator.db :as db]
+   [cyberleague.coordinator.game-runner :as game-runner]
+   [cyberleague.coordinator.ranking :as ranking]))
 
 (defonce run? (atom false))
 
@@ -81,4 +82,3 @@
 
 (defn stop! []
   (reset! run? false))
-

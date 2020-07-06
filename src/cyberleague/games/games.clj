@@ -1,5 +1,6 @@
 (ns cyberleague.games.games
-  (:require [clojure.set :refer [map-invert rename-keys]]))
+  (:require
+   [clojure.set :refer [map-invert rename-keys]]))
 
 (defprotocol IGameEngine
   (simultaneous-turns? [_] "Do the players of this game reveal moves simultaneous?")
