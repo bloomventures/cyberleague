@@ -1,8 +1,8 @@
 (ns cyberleague.test.coordinator.game-runner
-  (:require [clojure.test :refer :all]
-            [clojure.string :as string]
-            [cyberleague.coordinator.game-runner :as runner]))
-
+  (:require
+   [clojure.string :as string]
+   [clojure.test :refer :all]
+   [cyberleague.coordinator.game-runner :as runner]))
 
 (deftest running-a-game-goofspiel
   (testing "can run a game"
