@@ -1,13 +1,9 @@
 ## Running server
 
-for tests:
+for the app:
 ```
-lein quickie
-```
-
-for cljs:
-```
-lein cljsbuild auto
+lein repl
+(start!)
 ```
 
 for css:
@@ -15,14 +11,3 @@ for css:
 lein lesscss auto
 ```
 
-for app:
-```
-lein repl
-```
-
-then:
-```
-(require 'cyberleague.server.seed)
-(cyberleague.server.seed/seed!)
-(start-server! 8080)
-```

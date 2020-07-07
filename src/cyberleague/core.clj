@@ -1,10 +1,30 @@
 (ns cyberleague.core
+  (:gen-class)
   (:require
+   [bloom.omni.core :as omni]
    [cyberleague.coordinator.core :as coordinator]
-   [cyberleague.server.handler :as handler]
+   [cyberleague.server.routes :refer [routes]]
    [cyberleague.server.seed :as seed]))
 
-#_(seed/seed!)
-#_(handler/start-server! 5251)
-#_(coordinator/start!)
-#_(coordinator/stop!)
+(def config
+  {:omni/title "Cyberleague"
+   :omni/cljs {:main "cyberleague.client.core"}
+   :omni/js-scripts [{:src "/graph.js"}]
+   :omni/auth {:cookie {:name "cyberleague"}}
+   :omni/api-routes #'routes})
+
+(defn start! []
+  (seed/seed!)
+  (omni/start! omni/system config)
+  #_(coordinator/start!))
+
+(defn stop! []
+  (omni/stop!)
+  #_(coordinator/stop!))
+
+(defn restart! []
+  (stop!)
+  (start!))
+
+(defn -main []
+  (start!))
