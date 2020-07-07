@@ -1,7 +1,7 @@
 (ns cyberleague.server.routes
   (:require
-   [clojure.java.io :as io]
    [clojure.edn :as edn]
+   [clojure.java.io :as io]
    [cyberleague.coordinator.db :as db]
    [cyberleague.coordinator.game-runner :as game-runner]))
 
