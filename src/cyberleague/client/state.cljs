@@ -24,12 +24,36 @@
                 "Accept" "application/edn"
                 "Authorization" (str "Basic " (js/btoa (string/join ":" auth)))})))
 
+;; state
+
 (defonce state
-  (r/atom {:cards []
+  (r/atom {:cards '()
            :user nil}))
 
 (def cards (r/cursor state [:cards]))
 (def user (r/cursor state [:user]))
+
+;; other
+
+(declare fetch-card-data!)
+
+(defn on-tick! []
+  (doseq [card @cards]
+    (fetch-card-data!
+      card
+      (fn [data]
+        (swap! state update :cards (fn [cards]
+                                     (map (fn [*card]
+                                            (if (= (*card :url)
+                                                   (card :url))
+                                              (assoc *card :data data)
+                                              *card))
+                                          cards)))))))
+
+(defonce update-interval
+  (js/setInterval (fn [] (on-tick!)) 1000))
+
+;; side effect functions
 
 (defn log-out! []
   (edn-xhr {:url "/api/logout"
@@ -40,35 +64,45 @@
 (defn log-in! []
   (edn-xhr {:url "/api/login"
             :method :post
-            :on-complete (fn [data]
-                           (swap! state assoc :user data))}))
+            :on-complete (fn [user]
+                           (swap! state assoc :user user))}))
 
 (defn close-card! [card]
   (swap! state update :cards
          (fn [cards] (into [] (remove (fn [c] (= c card)) cards)))))
 
+(defn card->url
+  [{:keys [id type] :as card}]
+  (case type
+    :game (str "/api/games/" id)
+    :games "/api/games"
+    :users "/api/users"
+    :user (str "/api/users/" id)
+    :bot (str "/api/bots/" id)
+    :code (str "/api/bots/" id "/code")
+    :match (str "/api/matches/" id)))
+
+(defn- fetch-card-data!
+  [{:keys [id type] :as card} callback]
+  (edn-xhr {:url (card->url card)
+            :method :get
+            :on-complete callback}))
+
+(defn- card-open-already? [card]
+  (let [url (card->url card)]
+    (some (fn [card] (= url (:url card)))
+          @cards)))
+
 (defn- open-card! [card]
-  (let [url (case (:type card)
-              :game (str "/api/games/" (card :id))
-              :games "/api/games"
-              :users "/api/users"
-              :user (str "/api/users/" (card :id))
-              :bot (str "/api/bots/" (card :id))
-              :code (str "/api/bots/" (card :id) "/code")
-              :match (str "/api/matches/" (card :id)))]
-    (if (some (fn [card] (= url (:url card)))
-              @cards)
-      (do
-        ;; nothing
-        )
-      (edn-xhr {:url url
-                :method :get
-                :on-complete
-                (fn [data]
-                  (swap! state update :cards conj
-                         (assoc card
-                           :data data
-                           :url url)))}))))
+  (if (card-open-already? card)
+    (do
+      ;; nothing
+      )
+    (fetch-card-data! card (fn [data]
+                             (swap! state update :cards conj
+                                    (assoc card
+                                      :data data
+                                      :url (card->url card)))))))
 
 (defn nav!
   [card-type id]

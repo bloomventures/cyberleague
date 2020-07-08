@@ -1,5 +1,8 @@
 
 var bot_graph = function(el, data){
+  if(el.children[0]) {
+    el.children[0].remove();
+  }
 
   var margin = {top: 20, right: 0, bottom: 30, left: 50},
       width = 300 - margin.left - margin.right,
