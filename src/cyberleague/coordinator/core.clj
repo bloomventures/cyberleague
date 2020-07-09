@@ -13,20 +13,20 @@
         player-2 (->> all-bots
                       (remove (partial = player-1))
                       (sort-by (fn [bot] (Math/abs
-                                           (- (:bot/rating bot)
-                                              (:bot/rating player-1)))))
+                                          (- (:bot/rating bot)
+                                             (:bot/rating player-1)))))
                       (take 10)
                       (sort-by :bot/rating-dev #(compare %2 %1))
                       (take 5)
                       rand-nth)
         ;_ (print "Starting " (:db/id player-1) " vs " (:db/id player-2) "...")
         result (game-runner/run-game
-                 (into {} game)
-                 (db/with-conn
-                   [(-> (into {} player-1) (assoc :db/id (:db/id player-1)
-                                             :bot/deployed-code (db/deployed-code (:db/id player-1))))
-                    (-> (into {} player-2) (assoc :db/id (:db/id player-2)
-                                             :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
+                (into {} game)
+                (db/with-conn
+                  [(-> (into {} player-1) (assoc :db/id (:db/id player-1)
+                                                 :bot/deployed-code (db/deployed-code (:db/id player-1))))
+                   (-> (into {} player-2) (assoc :db/id (:db/id player-2)
+                                                 :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
     (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
     (if-not (:error result)
       ; TODO: handle ties?
@@ -44,7 +44,7 @@
           (println "Exception executing, will disable:" (:db/id errd-bot) (:info result))
           (db/with-conn
             (d/transact db/*conn*
-              [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
+                        [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
         (let [[winner cheater] (if (= (get-in result [:move :bot]) (:db/id player-1))
                                  [player-2 player-1]
                                  [player-1 player-2])]
@@ -56,9 +56,8 @@
                                                           (get-in result [:move :move])))
                                :match/winner (:db/id winner)})
             (d/transact db/*conn*
-              [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
-               [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))
-
+                        [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
+                         [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))
 
 #_(let [[game bots] (first (db/with-conn (db/active-bots)))]
     (->> bots
