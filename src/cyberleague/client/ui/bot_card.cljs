@@ -28,7 +28,11 @@
       [:table.matches
        [:thead]
        [:tbody
-        (for [match (:matches bot)]
+        (for [match (->> (:matches bot)
+                         ;; ids are monotically increasing with time
+                         ;; so can use them to order
+                         (sort-by :id)
+                         (reverse))]
           ^{:key (:id match)}
           [:tr
            [:td
