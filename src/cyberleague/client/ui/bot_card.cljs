@@ -33,9 +33,13 @@
           [:tr
            [:td
             [:a {:on-click (fn [_] (state/nav! :match (:id match)))}
-             (case (:winner match)
-               nil "tied"
-               (bot :id) "won"
+             ;; case doesn't work here
+             (cond
+               (= (:winner match) (:id bot))
+               "won"
+               (nil? (:winner match))
+               "tied"
+               :else
                "lost")
              " vs "
              (let [other-bot (->> (:bots match)
