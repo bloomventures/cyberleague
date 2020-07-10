@@ -48,5 +48,5 @@
                         :match match-card-view
                         :bot bot-card-view
                         :code code-card-view)]
-        ^{:key (str (:type card) (:url card))}
+        ^{:key (:url card)}
         [card-view card]))]])
