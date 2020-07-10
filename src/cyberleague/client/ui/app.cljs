@@ -1,6 +1,7 @@
 (ns cyberleague.client.ui.app
   (:require
     [cyberleague.client.state :as state]
+    [cyberleague.client.ui.styles :as styles]
     [cyberleague.client.ui.users-card :refer [users-card-view]]
     [cyberleague.client.ui.code-card :refer [code-card-view]]
     [cyberleague.client.ui.match-card :refer [match-card-view]]
@@ -11,6 +12,7 @@
 
 (defn app-view []
   [:div.app
+   [:style styles/css]
    ;; LINKS ARE TEMPORARY
    [:link {:rel "stylesheet"
            :href "//fonts.googleapis.com/css?family=Inconsolata"}]
