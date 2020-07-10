@@ -83,26 +83,30 @@
     :match (str "/api/matches/" id)))
 
 (defn- fetch-card-data!
-  [{:keys [id type] :as card} callback]
-  (edn-xhr {:url (card->url card)
+  [{:keys [id type] :as opts} callback]
+  (edn-xhr {:url (card->url opts)
             :method :get
             :on-complete callback}))
 
-(defn- card-open-already? [card]
-  (let [url (card->url card)]
-    (some (fn [card] (= url (:url card)))
-          @cards)))
-
-(defn- open-card! [card]
-  (if (card-open-already? card)
-    (do
-      ;; nothing
-      )
-    (fetch-card-data! card (fn [data]
-                             (swap! state update :cards conj
-                                    (assoc card
-                                      :data data
-                                      :url (card->url card)))))))
+(defn- open-card!
+  [{:keys [type id] :as opts}]
+  (let [existing-card (->> @cards
+                           (filter (fn [card]
+                                     (= (card->url opts)
+                                        (card :url))))
+                           first)]
+    (if existing-card
+      (swap! state update :cards
+             (fn [cards]
+               (-> cards
+                   (->> (remove #{existing-card}))
+                   (conj existing-card))))
+      (fetch-card-data! opts (fn [data]
+                               (swap! state update :cards conj
+                                      {:id id
+                                       :type type
+                                       :data data
+                                       :url (card->url opts)}))))))
 
 (defn nav!
   [card-type id]
