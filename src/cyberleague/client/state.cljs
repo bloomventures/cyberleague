@@ -37,7 +37,10 @@
 
 (declare fetch-card-data!)
 
-(defn on-tick! []
+(def card-refresh-rate 1000) ; set to nil to disable
+
+(defn refresh-all-cards!
+  []
   (doseq [card @cards]
     (fetch-card-data!
       card
@@ -51,7 +54,8 @@
                                           cards)))))))
 
 (defonce update-interval
-  (js/setInterval (fn [] (on-tick!)) 1000))
+  (when card-refresh-rate
+    (js/setInterval (fn [] (refresh-all-cards!)) card-refresh-rate)))
 
 ;; side effect functions
 
