@@ -1,5 +1,6 @@
 (ns cyberleague.server.seed
   (:require
+   [clojure.java.io :as io]
    [cyberleague.coordinator.db :as db]))
 
 (defn seed! []
@@ -18,7 +19,7 @@ Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with
 
 3 suits are taken from the game, one is yours to play with, another is your opponent's, and the third is the trophy deck (what you fight over). Each round, one of the trophy cards is revealed, then you and your opponent simultaneously bid one of your cards. The player with the higher bid scores the value of the trophy card. If there's a tie, no one scores. The spent trophy and bid cards are removed, and the next round is played. Once all cards have been played, the scores are tallied: the winner is the player with the most points (the sum of the value of the trophy cards they scored)."
              :rules
-"For our purposes, the game is played with the integers 1 through 12.
+             "For our purposes, the game is played with the integers 1 through 12.
 
           ## Function Input:
 
@@ -64,15 +65,24 @@ Also known as the Game of Perfect Strategy (GoPS), Goofspiel is a card game with
           _ (db/with-conn (db/deploy-bot (:db/id bot)))]
       bot))
 
-  (def game-ultimate-tic-tac-toe
-    {:name "Ultimate Tic-Tac-Toe"
-     :description "You mastered Tic-Tac-Toe in minutes, but let's see how long it will take you to master it's bigger brother.
-                  In Ultimate Tic-Tac-Toe, you play 9 games of Tic-Tac-Toe nested a meta Tic-Tac-Toe game." })
+  (def game-uttt
+    (let [g {:name "ultimate tic-tac-toe"
+             :description "You mastered Tic-Tac-Toe in minutes, but let's see how long it will take you to master it's bigger brother.
+                          In Ultimate Tic-Tac-Toe, you play 9 games of Tic-Tac-Toe nested a meta Tic-Tac-Toe game."}]
+      (db/with-conn (db/create-game (g :name) (g :description)))))
 
+  (def bot-uttt-1
+    (let [bot (db/with-conn (db/create-bot (:db/id user-james) (:db/id game-uttt)))
+          _ (db/with-conn (db/update-bot-code (:db/id bot)
+                                              (slurp (io/resource "code/ultimate tic-tac-toe.cljs"))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
+      bot))
 
-  (db/with-conn
-    (doseq [bot [bot-goofspiel bot-goofspiel-2 bot-goofspiel-3 bot-goofspiel-4]]
-      (db/deploy-bot (:db/id bot)))))
+  (def bot-uttt-2
+    (let [bot (db/with-conn (db/create-bot (:db/id user-raf) (:db/id game-uttt)))
+          _ (db/with-conn (db/update-bot-code (:db/id bot) (slurp (io/resource "code/ultimate tic-tac-toe 2.cljs"))))
+          _ (db/with-conn (db/deploy-bot (:db/id bot)))]
+      bot)))
 
 (defn -main
   [& args]
