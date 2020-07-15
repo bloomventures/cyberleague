@@ -1,4 +1,4 @@
-(ns cyberleague.coordinator.db
+(ns cyberleague.db.core
   (:require
    [datomic.api :as d]))
 

@@ -2,7 +2,7 @@
   (:gen-class)
   (:require
    [datomic.api :as d]
-   [cyberleague.coordinator.db :as db]
+   [cyberleague.db.core :as db]
    [cyberleague.coordinator.game-runner :as game-runner]
    [cyberleague.coordinator.ranking :as ranking]))
 
