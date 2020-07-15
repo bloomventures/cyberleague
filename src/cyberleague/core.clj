@@ -4,7 +4,7 @@
    [bloom.omni.core :as omni]
    [cyberleague.coordinator.core :as coordinator]
    [cyberleague.server.routes :refer [routes]]
-   [cyberleague.server.seed :as seed]))
+   [cyberleague.db.seed :as seed]))
 
 (def config
   {:omni/title "Cyberleague"

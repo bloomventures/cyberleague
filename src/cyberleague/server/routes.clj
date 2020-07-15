@@ -2,7 +2,7 @@
   (:require
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [cyberleague.coordinator.db :as db]
+   [cyberleague.db.core :as db]
    [cyberleague.coordinator.game-runner :as game-runner]))
 
 (defn to-long [v]
