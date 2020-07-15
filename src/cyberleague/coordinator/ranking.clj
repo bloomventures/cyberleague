@@ -2,7 +2,7 @@
   (:require
    [clojure.math.numeric-tower :refer [expt]]
    [datomic.api :as d]
-   [cyberleague.coordinator.db :as db]))
+   [cyberleague.db.core :as db]))
 
 (def PI Math/PI)
 

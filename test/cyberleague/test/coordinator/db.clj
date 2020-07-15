@@ -1,7 +1,7 @@
 (ns cyberleague.test.coordinator.db
   (:require
    [clojure.test :refer :all]
-   [cyberleague.coordinator.db :as db]))
+   [cyberleague.db.core :as db]))
 
 (use-fixtures :each
               (fn [t]
