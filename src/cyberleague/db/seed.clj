@@ -1,7 +1,7 @@
-(ns cyberleague.server.seed
+(ns cyberleague.db.seed
   (:require
    [clojure.java.io :as io]
-   [cyberleague.coordinator.db :as db]))
+   [cyberleague.db.core :as db]))
 
 (defn seed! []
 
