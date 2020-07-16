@@ -2,44 +2,131 @@
   (:require
     [reagent.core :as r]))
 
+(def chains
+  [[0 3 6]
+   [1 4 7]
+   [2 5 8]
+   [0 1 2]
+   [3 4 5]
+   [6 7 8]
+   [0 4 8]
+   [2 4 6]])
+
+(defn winning-indexes [board]
+  (->> chains
+       (mapv (fn [chain]
+               (mapv
+                 (fn [index]
+                   [index
+                    (get board index)]) chain)))
+       (filter (fn [chain]
+                 (let [chain (map second chain)]
+                   (and
+                     (some? (first chain))
+                     (apply = chain)))))
+       first ;; or we want to show all?
+       (map first)
+       set))
+
+(defn get-winner [board]
+  (->> chains
+       (mapv (fn [chain]
+               (mapv
+                 (fn [index]
+                   (get board index)) chain)))
+       (filter (fn [chain]
+                 (and
+                   (some? (first chain))
+                   (apply = chain))))
+       first
+       first))
+
+(defn ->border-styles [index color]
+  (merge
+    (when (#{3 4 5} index)
+      {:border-top (str "1px solid " color)
+       :border-bottom (str "1px solid " color)})
+    (when (#{1 4 7} index)
+      {:border-right (str "1px solid " color)
+       :border-left (str "1px solid " color)})))
+
 (defn match-results-view
   [match]
   (let [current-move (r/atom (count (match :moves)))]
     (fn [match]
       (let [moves (match :moves)
             displayed-moves (take @current-move moves)
-            p1 (get (first moves) "player")
-            p2 (get (second moves) "player")
+            p1-color "rgb(0,0,255)"
+            p2-color "rgb(255,0,0)"
+            p1-color-bg "rgba(0,0,255,0.1)"
+            p2-color-bg "rgba(255,0,0,0.1)"
             [p1-moves p2-moves] (->> displayed-moves
                                      (map #(get % "move"))
                                      (partition 2 2 nil)
                                      ((juxt (partial map first) (partial map second)))
-                                     (map set))]
+                                     (map set))
+            mini-board (fn [board-idx]
+                         (->> (range 9)
+                              (mapv (fn [index]
+                                      (cond
+                                        (contains? p1-moves [board-idx index])
+                                        :p1
+                                        (contains? p2-moves [board-idx index])
+                                        :p2
+                                        :else
+                                        nil)))))]
         [:div
          [:table.results.tic-tac-toe
-          [:tbody
-           (into [:<>]
-                 (for [row (partition 3 (range 9))]
-                         [:tr
-                          (into [:<>]
-                                (for [board-idx row]
-                                  [:td
-                                   [:table.subboard
-                                    [:tbody
-                                     (into [:<>]
-                                           (for [sub-row (partition 3 (range 9))]
-                                             [:tr
-                                              (into [:<>]
-                                                    (for [subboard-idx sub-row]
-                                                      (let [winner (condp contains? [board-idx subboard-idx]
-                                                                     p1-moves :p1
-                                                                     p2-moves :p2
-                                                                     :no)]
-                                                        [:td {:class (name winner)}
-                                                         (case winner
-                                                           :p1 "X"
-                                                           :p2 "O"
-                                                           :no ".")])))]))]]]))]))]]
+          (let [meta-board (->> (range 9)
+                                (mapv (fn [index]
+                                       (get-winner (mini-board index)))))
+                winning-cells (winning-indexes meta-board)
+                winner (get-winner meta-board)]
+            [:tbody
+             (into [:<>]
+                   (for [row (partition 3 (range 9))]
+                     [:tr
+                      (into [:<>]
+                            (for [board-idx row]
+                              [:td {:style (merge {:background
+                                                   (if (contains? winning-cells board-idx)
+                                                     (case winner
+                                                       :p1 p1-color-bg
+                                                       :p2 p2-color-bg)
+                                                     "transparent")}
+                                                  (->border-styles board-idx "black"))}
+                               [:table.subboard
+                                (let [board (mini-board board-idx)
+                                      winning-cells (winning-indexes board)
+                                      winner (get-winner board)]
+                                  [:tbody
+                                   (into [:<>]
+                                         (for [sub-row (partition 3 (range 9))]
+                                           [:tr
+                                            (into [:<>]
+                                                  (for [subboard-idx sub-row]
+                                                    (let [play (condp contains? [board-idx subboard-idx]
+                                                                 p1-moves :p1
+                                                                 p2-moves :p2
+                                                                 nil)
+                                                          winning-cell? (contains? winning-cells subboard-idx)]
+                                                      [:td {:style (merge {:width "1em"
+                                                                           :height "1em"
+                                                                           :text-align "center"
+                                                                           :color (case play
+                                                                                    :p1 p1-color
+                                                                                    :p2 p2-color
+                                                                                    "transparent")
+                                                                           :background (if winning-cell?
+                                                                                         (case winner
+                                                                                           :p1 p1-color-bg
+                                                                                           :p2 p2-color-bg)
+                                                                                         "transparent")}
+                                                                          (->border-styles subboard-idx "#aaa"))}
+                                                       (case play
+                                                         :p1 "×"
+                                                         :p2 "○"
+                                                         nil "\u00a0")])))]))])]]))]))])]
          [:div
           (str "Turn " @current-move "/" (count moves))
           [:br]
