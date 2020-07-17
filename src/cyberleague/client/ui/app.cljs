@@ -12,16 +12,18 @@
 
 (defn app-view []
   [:div.app
-   [:style styles/css]
    ;; LINKS ARE TEMPORARY
+
+   [:link {:rel "stylesheet"
+           :href "css/reset.css"}]
    [:link {:rel "stylesheet"
            :href "//fonts.googleapis.com/css?family=Inconsolata"}]
    [:link {:rel "stylesheet"
            :href "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"}]
    [:link {:rel "stylesheet"
-           :href "css/app.css"}]
-   [:link {:rel "stylesheet"
            :href "//cdnjs.cloudflare.com/ajax/libs/codemirror/5.54.0/codemirror.min.css"}]
+
+   [:style styles/css]
 
    ;; OK
    [:header
