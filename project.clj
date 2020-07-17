@@ -16,11 +16,6 @@
                  ;; coordinator
                  [org.clojure/math.numeric-tower "0.0.4"]]
 
-  :plugins [[jamesnvc/lein-lesscss "1.3.4"]]
-
-  :lesscss-paths ["resources/less"]
-  :lesscss-output-path "resources/public/css"
-
   :main cyberleague.core
 
   :profiles {:uberjar {:aot :all}
