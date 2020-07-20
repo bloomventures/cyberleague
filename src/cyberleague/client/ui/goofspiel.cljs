@@ -6,7 +6,7 @@
   (let [show-log? (r/atom false)]
     (fn [move {:keys [p1-id p2-id]}]
       [:tbody
-       [:tr.clickable {:on-click (fn [_] (swap! show-log? not))}
+       [:tr {:on-click (fn [_] (swap! show-log? not))}
         [:td (move "trophy")]
         [:td {:class (when (> (move p1-id) (move p2-id)) "winner")} (move p1-id)]
         [:td {:class (when (< (move p1-id) (move p2-id)) "winner")} (move p2-id)]
