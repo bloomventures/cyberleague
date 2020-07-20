@@ -21,5 +21,4 @@
                            (on-change (.getValue editor))))))
        :reagent-render
        (fn [_]
-         [:div.source
-          [:div {:ref (fn [el] (reset! element el))}]])})))
+         [:div.source {:ref (fn [el] (reset! element el))}])})))
