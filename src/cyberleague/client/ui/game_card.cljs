@@ -8,7 +8,9 @@
   (let [game data]
     [:div.card.game
      [:header
-      (str "#" (:name game))
+      [:span.game-name
+       (str "#" (:name game))]
+      [:div.gap]
       (when @state/user
         [:a.button {:on-click (fn [_] (state/new-bot! (:id game)))} "CREATE A BOT"])
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
