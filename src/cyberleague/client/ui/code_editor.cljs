@@ -16,7 +16,9 @@
                                                     "clojurescript" "clojure"
                                                     "javascript" "javascript")
                                             :matchBrackets true
-                                            :lineNumbers true})
+                                            ;; disable for now, b/c it breaks on
+                                            ;; reagent re-render
+                                            #_#_:lineNumbers true})
            (.on "change" (fn [editor]
                            (on-change (.getValue editor))))))
        :reagent-render
