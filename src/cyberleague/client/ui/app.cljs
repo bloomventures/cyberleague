@@ -38,7 +38,8 @@
         "My Bots"])
      (if-let [user @state/user]
        [:a.log-out {:on-click (fn [_] (state/log-out!))
-                    :title "Log Out"}]
+                    :title "Log Out"}
+        "×"]
        [:a.log-in {:on-click (fn [_] (state/log-in!))}])]]
    [:div.cards
     (for [card @state/cards]
