@@ -118,25 +118,16 @@
      {:background "#c5cae9"}]]
 
    [:#app
-    {:position "absolute"
-     :top 0
-     :right 0
-     :bottom 0
-     :left 0
-     :overflow-y "scroll"}
 
     [:>.app
-     {:width "100%"
-      :height "100%"}
+     {:height "100%"
+      :display "flex"
+      :flex-direction "column"}
 
      [:>header
-      {:position "fixed"
-       :top 0
-       :height "2em"
-       :width "100%"
-       :box-sizing "border-box"
-       :padding "20px"
-       :z-index 1000}
+      {:padding "20px"
+       :display "flex"
+       :justify-content "space-between"}
 
       [:>h1
        :>h2
@@ -149,12 +140,10 @@
        {:font-weight "bold"
         :margin-right "1em"}]
 
+      [:>h2
+       {:flex-grow 1}]
+
       [:>nav
-       {:position "absolute"
-        :right "20px"
-        :top "20px"
-        :overflow "hidden"
-        :height "2em"}
 
        [:>a
         {:margin-right "1em"}
@@ -201,30 +190,29 @@
          {:text-decoration "none"}]]]]
 
      [:>.cards
-      {:position "relative"
-       :height "100%"
-       :white-space "nowrap"
-       :padding "60px 10px 20px 10px"
-       :box-sizing "border-box"}
+      {:padding "0 10px 20px 10px"
+       :flex-grow 1
+       :display "flex"
+       :overflow-y "hidden"}
 
       [:>.card
        {:background "white"
-        :width "300px"
-        :height "100%"
         :margin "0 10px"
-        :display "inline-block"
-        :overflow "hidden"
-        :box-sizing "border-box"
+        :flex-shrink 0
         :box-shadow "0 1px 1.5px 0 rgba(0,0,0,0.12)"
-        :position "relative"
-        :white-space "normal"}
+        :display "flex"
+        :flex-direction "column"}
 
        [:>header
         {:background blue
-         :position "relative"
          :color "white"
          :padding "1em"
-         :animation [[flash "1s" "ease" "0s" "1" "normal"]]}
+         :animation [[flash "1s" "ease" "0s" "1" "normal"]]
+         :display "flex"
+         :justify-content "space-between"}
+
+        [:>.gap
+         {:flex-grow 2}]
 
         [:>span
          {:margin-right "1em"}]
@@ -238,22 +226,14 @@
           {:color "white"}]
 
          [:&.close
-          {:position "absolute"
-           :top 0
-           :right 0
-           :text-decoration "none"
-           :height "3em"
-           :width "3em"
+          {:text-decoration "none"
            :text-align "center"
-           :line-height "3em"
-           :margin 0}]
+           :padding "0.5em"
+           :margin "-0.5em"}]
 
          [:&.button
-          {:position "absolute"
-           :right "3em"
-           :top 0
-           :text-decoration "none"
-           :margin "0.75em 0"
+          {:text-decoration "none"
+           :margin "-0.25em 1em"
            :padding "0.25em 0.35em"
            :color blue
            :font-weight "bold"
@@ -265,12 +245,9 @@
 
        [:>.content
         {:padding "1em"
-         :position "absolute"
-         :top "3em"
-         :bottom 0
-         :left 0
-         :right 0
-         :overflow "scroll"
+         :flex-grow 1
+         :overflow-y "auto"
+         :overflow-x "hidden"
          :box-sizing "border-box"
          :line-height 1.15}
 
@@ -297,6 +274,11 @@
         {:width 400}]
 
        [:&.bot
+
+        [:>header
+         [:>.bot-name
+          :>.game-name
+          {:white-space "nowrap"}]]
 
         [:>.content
 
@@ -336,36 +318,28 @@
           (>results)]]]
 
        [:&.code
-        {:width 800}
+        {:min-width "800px"}
 
         [:>header
 
          [:>.status
-          {:position "absolute"
-           :top 0
-           :left "70%"
-           :margin-left "1em"
-           :line-height "3em"}
+          {:margin-left "1em"}
 
           [:>.button
-           {:position "static"
-            :margin "0.5em 0"
-            :line-height 1}]]]
+           {:line-height 1
+            :margin "-0.5em 1em"}]]]
 
         [:>.content
-         {:padding 0}
+         {:padding 0
+          :display "flex"}
 
          [:>.lang-pick
           :>.source
           :>.test
-          {:display "inline-block"
-           :vertical-align "top"
-           :height "100%"
-           :box-sizing "border-box"}]
+          {:box-sizing "border-box"}]
 
          [:>.source
-          {:width "70%"
-           :height "100%"}
+          {:width "70%"}
 
           [:>.CodeMirror
            {:font-family "Inconsolata"

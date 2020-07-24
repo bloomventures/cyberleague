@@ -44,6 +44,7 @@
         (if (:id (:user @bot))
           [:a {:on-click (fn [_] (state/nav! :user (:id (:user @bot))))} (str "@" (:name (:user @bot)))]
           [:a {:on-click (fn [_] (state/log-in!))} "Log in with Github to save your bot"])
+        [:div.gap]
         (when (:code @bot)
           [:div.status
            (case @status
