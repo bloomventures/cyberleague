@@ -88,14 +88,15 @@
     :font-size "14px"}
 
    [:&:before
-    {:content ""
+    {:content "\"\""
      :display "block"
      :position "absolute"
      :top 0
      :left 0
      :height "180px"
      :width "100%"
-     :background "#e0e0e0"}]
+     :background "#e0e0e0"
+     :z-index -1}]
 
    [:a
     {:cursor "pointer"
