@@ -13,18 +13,17 @@
                          (all-equal (vals (select-keys board [0 4 8])))
                          (all-equal (vals (select-keys board [2 4 6]))))))
       board-decided? (fn [board] (or (won-subboard board) (not-any? nil? board)))]
-  (fn [{:strs [history grid] :as state}]
+  (fn [{:keys [history grid] :as state}]
     (if (empty? history)
       ; I'm first player
-      (pr-str [2 2])
+      [2 2]
       ; otherwise, we need to play in the correct sub-board
-      (let [[b sb] (get (last history) "move")
+      (let [[b sb] (get (last history) :move)
             board-idx (if (board-decided? (grid sb))
                         (->> (range 0 9) (remove (comp board-decided? grid)) first)
                         sb)
             board (grid board-idx)]
-        (pr-str
-          [board-idx
-           (->> (range 0 9)
-                (filter (comp nil? (partial get board)))
-                first)])))))
+        [board-idx
+         (->> (range 0 9)
+              (filter (comp nil? (partial get board)))
+              first)]))))

@@ -163,7 +163,7 @@
           (let [game (get-in bot [:bot/game :game/name])
                 code (slurp (io/resource (str "code/" game "." (case language
                                                                  "javascript" "js"
-                                                                 "clojurescript" "cljs"))))
+                                                                 "clojure" "cljs"))))
                 bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
             {:body {:code (:code/code (:bot/code bot))
                     :language (:code/language (:bot/code bot))}}))))]
@@ -193,11 +193,12 @@
                                      "goofspiel" 1234
                                      "ultimate tic-tac-toe" 1235)
                             :bot/code-version 5
-                            :bot/deployed-code (slurp (io/resource (str "testbots/" game-name ".cljs")))}
+                            :bot/code {:code/code (slurp (io/resource (str "testbots/" game-name ".cljs")))
+                                       :code/language "clojure"}}
                 coded-bot (-> (into {} bot)
                               (assoc :db/id (:db/id bot)
                                      :bot/code-version (rand-int 10000000)
-                                     :bot/deployed-code (get-in bot [:bot/code :code/code])))
+                                     :bot/code (:bot/code bot)))
                 result (game-runner/run-game (into {} (:bot/game bot))
                                              [coded-bot random-bot])
                 match {:game {:name game-name}

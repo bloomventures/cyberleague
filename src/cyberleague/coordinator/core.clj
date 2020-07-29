@@ -24,9 +24,9 @@
                 (into {} game)
                 (db/with-conn
                   [(-> (into {} player-1) (assoc :db/id (:db/id player-1)
-                                                 :bot/deployed-code (db/deployed-code (:db/id player-1))))
+                                                 :bot/code (db/deployed-code (:db/id player-1))))
                    (-> (into {} player-2) (assoc :db/id (:db/id player-2)
-                                                 :bot/deployed-code (db/deployed-code (:db/id player-2))))]))]
+                                                 :bot/code (db/deployed-code (:db/id player-2))))]))]
     (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
     (if-not (:error result)
       ; TODO: handle ties?
@@ -64,7 +64,7 @@
          (take 2)
          (map (fn [bot]
                 {:db/id (:db/id bot)
-                 :bot/deployed-code (db/with-conn (db/deployed-code (:db/id bot)))}))
+                 :bot/code (db/with-conn (db/deployed-code (:db/id bot)))}))
          (game-runner/run-game game)))
 
 (defn run-games! []

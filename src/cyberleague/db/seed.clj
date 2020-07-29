@@ -30,25 +30,25 @@
    {:bot/user-name "jamesnvc"
     :bot/game-name "goofspiel"
     :bot/code (pr-str '(fn [state]
-                         (let [trophy (state "current-trophy")]
+                         (let [trophy (state :current-trophy)]
                            (get [2 3 4 5 6 7 8 9 10 11 12 13 1] (dec trophy)))))}
 
    {:bot/user-name "rafd"
     :bot/game-name "goofspiel"
     :bot/code (pr-str '(fn [state]
-                         (let [trophy (state "current-trophy")]
+                         (let [trophy (state :current-trophy)]
                            (get [1 2 3 4 5 6 7 8 9 10 11 12 13] (dec trophy)))))}
 
    {:bot/user-name "jamesnvc"
     :bot/game-name "goofspiel"
     :bot/code (pr-str '(fn [state]
-                         (let [trophy (state "current-trophy")]
+                         (let [trophy (state :current-trophy)]
                            trophy)))}
 
    {:bot/user-name "rafd"
     :bot/game-name "goofspiel"
     :bot/code (pr-str '(fn [state]
-                         (rand-nth (vec (get-in state ["player-cards" "me"])))))}
+                         (rand-nth (vec (get-in state [:player-cards :me])))))}
 
    {:game/name "ultimate tic-tac-toe"
     :game/description (str "You mastered Tic-Tac-Toe in minutes, but let's see how long it will take you to master it's bigger brother.\n"

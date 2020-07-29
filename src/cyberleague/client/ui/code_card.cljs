@@ -68,8 +68,8 @@
           [:div.lang-pick
            [:h2 "Pick a language:"]
            (into [:<>]
-                 (->> [{:name "ClojureScript"
-                        :language "clojurescript"}
+                 (->> [{:name "Clojure"
+                        :language "clojure"}
                        #_{:name "JavaScript"
                           :language "javascript"}]
                       (map (fn [language]
