@@ -13,7 +13,7 @@
        (fn []
          (doto (js/CodeMirror @element #js {:value value
                                             :mode (case language
-                                                    "clojurescript" "clojure"
+                                                    "clojure" "clojure"
                                                     "javascript" "javascript")
                                             :matchBrackets true
                                             ;; disable for now, b/c it breaks on

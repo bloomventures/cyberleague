@@ -15,14 +15,14 @@
       board-decided? (fn [board] (or (won-subboard board) (not-any? nil? board)))]
   (fn [{:strs [history grid] :as state}]
     (if (empty? history)
-      (pr-str [2 2])
+      [2 2]
       (let [[b sb] (get (last history) "move")
             board-idx (if (board-decided? (grid sb))
                         (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
                         sb)
             board (grid board-idx)]
-        (pr-str
-          [board-idx
-           (->> (range 0 9)
-                (filter (comp nil? (partial get board)))
-                rand-nth)])))))
+        [board-idx
+         (->> (range 0 9)
+              (filter (comp nil? (partial get board)))
+              rand-nth)]))))
+

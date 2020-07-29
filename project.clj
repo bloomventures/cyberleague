@@ -14,7 +14,9 @@
                  [cljsjs/d3 "3.5.5-2"]
 
                  ;; coordinator
-                 [org.clojure/math.numeric-tower "0.0.4"]]
+                 [org.clojure/math.numeric-tower "0.0.4"]
+                 [org.clojure/data.json "1.0.0"]
+                 [borkdude/sci "0.1.1-alpha.6"]]
 
   :main cyberleague.core
 

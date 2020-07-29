@@ -1,14 +1,17 @@
 (ns cyberleague.coordinator.game-runner
   (:require
+   [clojure.data.json :as json]
+   [cyberleague.coordinator.evaluators.api :as evaluator.api]
+   [cyberleague.coordinator.evaluators.clojure]
    [cyberleague.games.games :as games]))
 
-(defn eval-move [bot state]
-  ;; currently, just implemented for cljs
-  (let [bot-function (eval (read-string (:bot/deployed-code bot)))
-        parse-move (fn [m] (if (string? m) (read-string m) m))]
-    (->> state
-         bot-function
-         parse-move)))
+(defn eval-move
+  [bot state]
+  (-> state
+      json/write-str
+      (evaluator.api/native-code-runner (get-in bot [:bot/code :code/language])
+                                        (get-in bot [:bot/code :code/code]))
+      (json/read-str :key-fn keyword)))
 
 (defn run-move [bot state game-engine]
   (let [move (try

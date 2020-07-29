@@ -231,7 +231,7 @@
                   :bot/rating-dev 350}))
 
 (defn update-bot-code
-  ([bot-id code] (update-bot-code bot-id code "clojurescript"))
+  ([bot-id code] (update-bot-code bot-id code "clojure"))
   ([bot-id code language]
    (let [bot (by-id bot-id)]
      (-> @(d/transact *conn*
@@ -288,8 +288,7 @@
         code-id (get-in bot [:bot/code :db/id])]
     (when-let [vers (:bot/code-version bot)]
       (-> (d/as-of (d/db *conn*) vers)
-          (d/entity code-id)
-          :code/code))))
+          (d/entity code-id)))))
 
 (defn get-code [id]
   (by-id id))
