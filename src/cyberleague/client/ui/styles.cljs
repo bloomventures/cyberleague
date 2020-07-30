@@ -1,83 +1,22 @@
 (ns cyberleague.client.ui.styles
   (:require
-    [garden.core :as garden])
+    [garden.core :as garden]
+    [cyberleague.games.goofspiel.ui :as goofspiel.ui]
+    [cyberleague.games.ultimate-tic-tac-toe.ui :as ultimate-tic-tac-toe.ui]
+    [cyberleague.client.ui.colors :as colors])
   (:require-macros
     [garden.def :refer [defkeyframes]]))
 
-(def blue "#3f51b5")
-(def blue-dark "#1a237e")
-
-(defn >results []
-  [:>.results
-
-   [:&.goofspiel
-
-    [:table
-     {:width "100%"}
-
-     [:th
-      {:text-align "center"}]
-
-     [:td
-      {:text-align "center"}]]
-
-    [:tr
-     {:cursor "pointer"}]
-
-    [:td.winner
-     {:font-weight 800
-      :color "white"
-      :background blue}]
-
-    [:.hide
-     {:display "none"}]
-
-    [:.log
-     {:background "#ccc"
-      :font-family "Inconsolata, monospace"
-      :text-align "left"}]]
-
-   [:&.tic-tac-toe
-
-    [:td
-     {:border "2px solid black"
-      :padding "1em"}]
-
-    [:tr:first-child
-
-     [:td
-      {:border-top "none"}]]
-
-    [:tr:last-child
-
-     [:td
-      {:border-bottom "none"}]]
-
-    [:tr
-
-     [:td:first-child
-      {:border-left "none"}]
-
-     [:td:last-child
-      {:border-right "none"}]]
-
-    [:.subboard
-
-     [:td
-      {:border "1px solid grey"
-       :padding "0.1em"}
-
-      [:&.p1
-       {:color "red"}]
-
-      [:&.p2
-       {:color blue}]]]]])
-
 (defkeyframes flash
   ["0%" {:background "default"}]
-  ["45%" {:background blue-dark}]
-  ["55%" {:background blue-dark}]
+  ["45%" {:background colors/blue-dark}]
+  ["55%" {:background colors/blue-dark}]
   ["100%" {:background "default"}])
+
+(defn >results []
+  [
+   (goofspiel.ui/>results-styles)
+   (ultimate-tic-tac-toe.ui/>results-styles)])
 
 (def styles
   [:body
@@ -100,11 +39,11 @@
 
    [:a
     {:cursor "pointer"
-     :color blue
+     :color colors/blue
      :text-decoration "none"}
 
     [:&:hover
-     {:color blue-dark}]]
+     {:color colors/blue-dark}]]
 
    [:.button
     {:display "inline-block"
@@ -152,7 +91,7 @@
         [:&.user
          {:display "inline-block"
           :position "relative"
-          :background blue
+          :background colors/blue
           :color "rgba(255,255,255,0.65)"
           :border-radius 5
           :padding-right "0.6em"
@@ -174,7 +113,7 @@
          {:display "inline-block"
           :padding "0.5em 0.75em"
           :border-radius "5px"
-          :background blue
+          :background colors/blue
           :color "rgba(255,255,255,0.65)"
           :text-decoration "none"
           :vertical-align "middle"}
@@ -205,7 +144,7 @@
         :flex-direction "column"}
 
        [:>header
-        {:background blue
+        {:background colors/blue
          :color "white"
          :padding "1em"
          :animation [[flash "1s" "ease" "0s" "1" "normal"]]
@@ -236,12 +175,12 @@
           {:text-decoration "none"
            :margin "-0.25em 1em"
            :padding "0.25em 0.35em"
-           :color blue
+           :color colors/blue
            :font-weight "bold"
            :background "rgba(255,255,255,0.65)"}
 
           [:&:hover
-           {:color blue
+           {:color colors/blue
             :background "white"}]]]]
 
        [:>.content
@@ -301,7 +240,7 @@
              :font-size "10px"}]
 
            [:.line
-            {:stroke blue
+            {:stroke colors/blue
              :fill "none"}]
 
            [:.area
