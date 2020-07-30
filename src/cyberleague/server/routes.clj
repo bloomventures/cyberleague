@@ -181,9 +181,8 @@
         (if (and bot (= user-id (:db/id (:bot/user bot))))
           ; TODO: use an appropriate random bot for different games
           (let [game-name (get-in bot [:bot/game :game/name])
-                random-bot {:db/id (case game-name
-                                     "goofspiel" 1234
-                                     "ultimate tic-tac-toe" 1235)
+                random-bot-id 1234
+                random-bot {:db/id random-bot-id
                             :bot/code-version 5
                             :bot/code {:code/code (slurp (io/resource (str "testbots/" game-name ".cljs")))
                                        :code/language "clojure"}}
@@ -194,7 +193,10 @@
                 result (game-runner/run-game (into {} (:bot/game bot))
                                              [coded-bot random-bot])
                 match {:game {:name game-name}
-                       :bots [{:id (:db/id bot) :name "You"} {:id 1234 :name "Them"}]
+                       :bots [{:id (:db/id bot)
+                               :name "You"}
+                              {:id random-bot-id
+                               :name "Them"}]
                        :moves (result :history)
                        :winner (result :winner)
                        :error (result :error)
