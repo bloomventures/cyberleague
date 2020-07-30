@@ -1,6 +1,7 @@
 (ns cyberleague.games.ultimate-tic-tac-toe.ui
   (:require
-    [reagent.core :as r]))
+    [reagent.core :as r]
+    [cyberleague.client.ui.colors :as colors]))
 
 (def chains
   [[0 3 6]
@@ -76,7 +77,7 @@
                                         :else
                                         nil)))))]
         [:div
-         [:table.results.tic-tac-toe
+         [:table.results.ultimate-tic-tac-toe
           (let [meta-board (->> (range 9)
                                 (mapv (fn [index]
                                        (get-winner (mini-board index)))))
@@ -137,3 +138,41 @@
                    :value @current-move
                    :on-change (fn [e]
                                 (reset! current-move (js/parseInt (.. e -target -value) 10)))}]]]))))
+
+
+(defn >results-styles []
+  [:>.results.ultimate-tic-tac-toe
+
+   [:td
+    {:border "2px solid black"
+     :padding "1em"}]
+
+   [:tr:first-child
+
+    [:td
+     {:border-top "none"}]]
+
+   [:tr:last-child
+
+    [:td
+     {:border-bottom "none"}]]
+
+   [:tr
+
+    [:td:first-child
+     {:border-left "none"}]
+
+    [:td:last-child
+     {:border-right "none"}]]
+
+   [:.subboard
+
+    [:td
+     {:border "1px solid grey"
+      :padding "0.1em"}
+
+     [:&.p1
+      {:color "red"}]
+
+     [:&.p2
+      {:color colors/blue}]]]])
