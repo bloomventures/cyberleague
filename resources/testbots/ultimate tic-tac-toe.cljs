@@ -17,11 +17,11 @@
     (if (empty? history)
       [2 2]
       (let [[b sb] (get (last history) "move")
-            board-idx (if (board-decided? (grid sb))
+            board-index (if (board-decided? (grid sb))
                         (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
                         sb)
-            board (grid board-idx)]
-        [board-idx
+            board (grid board-index)]
+        [board-index
          (->> (range 0 9)
               (filter (comp nil? (partial get board)))
               rand-nth)]))))
