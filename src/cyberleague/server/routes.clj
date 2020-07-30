@@ -26,14 +26,6 @@
     (fn [request]
       {:body (request :session)})]
 
-   [[:get "/api/bots/default/code"]
-    (fn [_]
-      {:body {:id "new"
-              :name (db/gen-bot-name)
-              :code (slurp (io/resource "goofspiel-default.txt"))
-              :user nil
-              :game {:name "goofspiel"}}})]
-
    [[:get "/api/users"]
     (fn [_]
       (let [users (db/with-conn (db/get-users))]
