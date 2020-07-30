@@ -65,13 +65,13 @@
                                      (partition 2 2 nil)
                                      ((juxt (partial map first) (partial map second)))
                                      (map set))
-            mini-board (fn [board-idx]
+            mini-board (fn [board-index]
                          (->> (range 9)
                               (mapv (fn [index]
                                       (cond
-                                        (contains? p1-moves [board-idx index])
+                                        (contains? p1-moves [board-index index])
                                         :p1
-                                        (contains? p2-moves [board-idx index])
+                                        (contains? p2-moves [board-index index])
                                         :p2
                                         :else
                                         nil)))))]
@@ -87,16 +87,16 @@
                    (for [row (partition 3 (range 9))]
                      [:tr
                       (into [:<>]
-                            (for [board-idx row]
+                            (for [board-index row]
                               [:td {:style (merge {:background
-                                                   (if (contains? winning-cells board-idx)
+                                                   (if (contains? winning-cells board-index)
                                                      (case winner
                                                        :p1 p1-color-bg
                                                        :p2 p2-color-bg)
                                                      "transparent")}
-                                                  (->border-styles board-idx "black"))}
+                                                  (->border-styles board-index "black"))}
                                [:table.subboard
-                                (let [board (mini-board board-idx)
+                                (let [board (mini-board board-index)
                                       winning-cells (winning-indexes board)
                                       winner (get-winner board)]
                                   [:tbody
@@ -104,12 +104,12 @@
                                          (for [sub-row (partition 3 (range 9))]
                                            [:tr
                                             (into [:<>]
-                                                  (for [subboard-idx sub-row]
-                                                    (let [play (condp contains? [board-idx subboard-idx]
+                                                  (for [subboard-index sub-row]
+                                                    (let [play (condp contains? [board-index subboard-index]
                                                                  p1-moves :p1
                                                                  p2-moves :p2
                                                                  nil)
-                                                          winning-cell? (contains? winning-cells subboard-idx)]
+                                                          winning-cell? (contains? winning-cells subboard-index)]
                                                       [:td {:style (merge {:width "1em"
                                                                            :height "1em"
                                                                            :text-align "center"
@@ -122,7 +122,7 @@
                                                                                            :p1 p1-color-bg
                                                                                            :p2 p2-color-bg)
                                                                                          "transparent")}
-                                                                          (->border-styles subboard-idx "#aaa"))}
+                                                                          (->border-styles subboard-index "#aaa"))}
                                                        (case play
                                                          :p1 "×"
                                                          :p2 "○"
