@@ -1,4 +1,4 @@
-(ns cyberleague.client.ui.ultimate-tic-tac-toe
+(ns cyberleague.games.ultimate-tic-tac-toe.ui
   (:require
     [reagent.core :as r]))
 

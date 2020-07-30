@@ -1,4 +1,4 @@
-(ns cyberleague.client.ui.goofspiel
+(ns cyberleague.games.goofspiel.ui
   (:require
     [reagent.core :as r]))
 
