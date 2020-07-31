@@ -2,8 +2,7 @@
   (:require
    [datomic.api :as d]
    [cyberleague.db.core :as db]
-   [cyberleague.games.goofspiel.seed :as goofspiel.seed]
-   [cyberleague.games.ultimate-tic-tac-toe.seed :as ultimate-tic-tac-toe.seed]))
+   [cyberleague.game-registrar :as registrar]))
 
 (def entities
   (concat
@@ -12,8 +11,14 @@
 
     {:user/id 89664
      :user/name "rafd"}]
-   goofspiel.seed/entities
-   ultimate-tic-tac-toe.seed/entities))
+
+   (->> @registrar/games
+        vals
+        (map :game.config/seed-game))
+
+   (->> @registrar/games
+        vals
+        (mapcat :game.config/seed-bots))))
 
 (defn seed! []
 
