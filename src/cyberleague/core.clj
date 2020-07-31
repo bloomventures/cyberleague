@@ -2,6 +2,7 @@
   (:gen-class)
   (:require
    [bloom.omni.core :as omni]
+   [cyberleague.games.games] ;; so games get registered
    [cyberleague.coordinator.core :as coordinator]
    [cyberleague.server.routes :refer [routes]]
    [cyberleague.db.seed :as seed]))

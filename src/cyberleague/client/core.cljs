@@ -2,6 +2,7 @@
   cyberleague.client.core
   (:require
     [reagent.dom :as rdom]
+    [cyberleague.games.games] ;; so games get registered
     [cyberleague.client.state :as state]
     [cyberleague.client.ui.app :refer [app-view]]))
 
