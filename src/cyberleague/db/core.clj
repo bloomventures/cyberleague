@@ -288,7 +288,8 @@
         code-id (get-in bot [:bot/code :db/id])]
     (when-let [vers (:bot/code-version bot)]
       (-> (d/as-of (d/db *conn*) vers)
-          (d/entity code-id)))))
+          (d/entity code-id)
+          (select-keys [:code/code :code/language])))))
 
 (defn get-code [id]
   (by-id id))
