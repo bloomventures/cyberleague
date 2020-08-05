@@ -73,7 +73,7 @@
 
 (defn close-card! [card]
   (swap! state update :cards
-         (fn [cards] (into [] (remove (fn [c] (= (:id c) (:id card))) cards)))))
+         (fn [cards] (into [] (remove (fn [c] (= (:url c) (:url card))) cards)))))
 
 (defn card->url
   [{:keys [id type] :as card}]
