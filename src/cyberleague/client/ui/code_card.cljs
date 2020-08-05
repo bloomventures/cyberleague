@@ -51,9 +51,16 @@
              :editing ""
              :saving "Saving..."
              :saved [:a.button.test
-                     {:on-click (fn [_] (test!))} "TEST"]
+                     {:on-click (fn [_] (test!))}
+                     "TEST"]
              :testing "Testing..."
-             :passed [:a.button.deploy {:on-click (fn [_] (deploy!))} "DEPLOY"]
+             :passed [:<>
+                      [:a.button.test
+                       {:on-click (fn [_] (test!))}
+                       "RE-TEST"]
+                      [:a.button.deploy
+                       {:on-click (fn [_] (deploy!))}
+                       "DEPLOY"]]
              :failed "Bot error!"
              :deploying "Deploying..."
              :deployed "Deployed!")])
