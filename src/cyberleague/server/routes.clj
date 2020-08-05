@@ -3,7 +3,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [cyberleague.db.core :as db]
-   [cyberleague.coordinator.game-runner :as game-runner]))
+   [cyberleague.coordinator.test-bot :as coordinator]))
 
 (defn to-long [v]
   (java.lang.Long. v))
@@ -179,29 +179,7 @@
             bot-id (get-in request [:params :bot-id])
             bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (and bot (= user-id (:db/id (:bot/user bot))))
-          ; TODO: use an appropriate random bot for different games
-          (let [game-name (get-in bot [:bot/game :game/name])
-                random-bot-id 1234
-                random-bot {:db/id random-bot-id
-                            :bot/code-version 5
-                            :bot/code {:code/code (slurp (io/resource (str "testbots/" game-name ".cljs")))
-                                       :code/language "clojure"}}
-                coded-bot (-> (into {} bot)
-                              (assoc :db/id (:db/id bot)
-                                     :bot/code-version (rand-int 10000000)
-                                     :bot/code (:bot/code bot)))
-                result (game-runner/run-game (into {} (:bot/game bot))
-                                             [coded-bot random-bot])
-                match {:game {:name game-name}
-                       :bots [{:id (:db/id bot)
-                               :name "You"}
-                              {:id random-bot-id
-                               :name "Them"}]
-                       :moves (result :history)
-                       :winner (result :winner)
-                       :error (result :error)
-                       :info (result :info)}]
-            {:body match})
+          {:body (coordinator/test-bot user-id bot-id bot)}
           {:status 500})))]
 
    [[:post "/api/bots/:bot-id/deploy"]
