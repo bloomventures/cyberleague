@@ -3,7 +3,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [cyberleague.db.core :as db]
-   [cyberleague.coordinator.game-runner :as game-runner]))
+   [cyberleague.coordinator.test-bot :as coordinator]))
 
 (defn to-long [v]
   (java.lang.Long. v))
@@ -179,7 +179,7 @@
             bot-id (get-in request [:params :bot-id])
             bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (and bot (= user-id (:db/id (:bot/user bot))))
-          (test-bot/test-bot user-id bot-id bot)
+          {:body (coordinator/test-bot user-id bot-id bot)}
           {:status 500})))]
 
    [[:post "/api/bots/:bot-id/deploy"]

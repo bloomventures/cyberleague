@@ -1,7 +1,6 @@
 (ns cyberleague.coordinator.test-bot
   (:require
     [clojure.java.io :as io]
-    [cyberleague.db.core :as db]
     [cyberleague.coordinator.game-runner :as game-runner]))
 
 (defn test-bot
@@ -18,14 +17,14 @@
                              :bot/code-version (rand-int 10000000)
                              :bot/code (:bot/code bot)))
         result (game-runner/run-game (into {} (:bot/game bot))
-                                     [coded-bot random-bot])
-        match {:game {:name game-name}
-               :bots [{:id (:db/id bot)
-                       :name "You"}
-                      {:id random-bot-id
-                       :name "Them"}]
-               :moves (result :history)
-               :winner (result :winner)
-               :error (result :error)
-               :info (result :info)}]
-    {:body match}))
+                                     [coded-bot random-bot])]
+    {:game {:name game-name}
+     :bots [{:id (:db/id bot)
+             :name "You"}
+            {:id random-bot-id
+             :name "Them"}]
+     :moves (result :history)
+     :winner (result :winner)
+     :error (result :error)
+     :info (result :info)}))
+
