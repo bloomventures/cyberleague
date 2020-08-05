@@ -13,10 +13,10 @@
                          (all-equal (vals (select-keys board [0 4 8])))
                          (all-equal (vals (select-keys board [2 4 6]))))))
       board-decided? (fn [board] (or (won-subboard board) (not-any? nil? board)))]
-  (fn [{:strs [history grid] :as state}]
+  (fn [{:keys [history grid] :as state}]
     (if (empty? history)
       [2 2]
-      (let [[b sb] (get (last history) "move")
+      (let [[b sb] (get (last history) :move)
             board-index (if (board-decided? (grid sb))
                         (->> (range 0 9) (remove (comp board-decided? grid)) rand-nth)
                         sb)
