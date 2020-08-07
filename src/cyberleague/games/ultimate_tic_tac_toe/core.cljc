@@ -8,5 +8,6 @@
 (cyberleague.game-registrar/register-game!
  {:game.config/name "ultimate tic-tac-toe"
   :game.config/match-results-view ui/match-results-view
+  :game.config/match-results-styles ui/>results-styles
   :game.config/seed-game seed/game
   :game.config/seed-bots seed/bots})

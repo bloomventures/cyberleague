@@ -1,8 +1,7 @@
 (ns cyberleague.client.ui.styles
   (:require
     [garden.core :as garden]
-    [cyberleague.games.goofspiel.ui :as goofspiel.ui]
-    [cyberleague.games.ultimate-tic-tac-toe.ui :as ultimate-tic-tac-toe.ui]
+    [cyberleague.game-registrar :as registrar]
     [cyberleague.client.ui.colors :as colors])
   (:require-macros
     [garden.def :refer [defkeyframes]]))
@@ -14,9 +13,10 @@
   ["100%" {:background "default"}])
 
 (defn >results []
-  [
-   (goofspiel.ui/>results-styles)
-   (ultimate-tic-tac-toe.ui/>results-styles)])
+  (->> @registrar/games
+       vals
+       (mapv (fn [game]
+               ((:game.config/match-results-styles game))))))
 
 (def styles
   [:body

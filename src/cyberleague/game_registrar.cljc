@@ -8,6 +8,7 @@
    [:game.config/match-results-view fn?
     ;; TODO fn that takes a match
     ]
+   [:game.config/match-results-styles fn?]
    [:game.config/seed-game
     [:map
      [:game.config/name string?]

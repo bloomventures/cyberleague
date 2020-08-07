@@ -8,5 +8,6 @@
 (cyberleague.game-registrar/register-game!
  {:game.config/name "goofspiel"
   :game.config/match-results-view ui/match-results-view
+  :game.config/match-results-styles ui/>results-styles
   :game.config/seed-bots seed/bots
   :game.config/seed-game seed/game})
