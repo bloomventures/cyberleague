@@ -11,6 +11,7 @@
    [:game.config/match-results-styles fn?]
    [:game.config/starter-code
     [:map-of string?  string?]]
+   [:game.config/test-bot string?]
    [:game.config/seed-game
     [:map
      [:game.config/name string?]

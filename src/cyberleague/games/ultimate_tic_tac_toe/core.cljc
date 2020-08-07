@@ -3,6 +3,7 @@
    [cyberleague.game-registrar]
    [cyberleague.games.ultimate-tic-tac-toe.engine] ;; so it gets registered
    [cyberleague.games.ultimate-tic-tac-toe.ui :as ui]
+   [cyberleague.games.ultimate-tic-tac-toe.bots :as bots]
    [cyberleague.games.ultimate-tic-tac-toe.starter-code :as starter-code]
    [cyberleague.games.ultimate-tic-tac-toe.seed :as seed]))
 
@@ -11,5 +12,6 @@
   :game.config/match-results-view ui/match-results-view
   :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code
+  :game.config/test-bot (pr-str bots/random-valid-bot)
   :game.config/seed-game seed/game
   :game.config/seed-bots seed/bots})

@@ -1,7 +1,8 @@
 (ns cyberleague.coordinator.test-bot
   (:require
-    [clojure.java.io :as io]
-    [cyberleague.coordinator.game-runner :as game-runner]))
+   [clojure.java.io :as io]
+   [cyberleague.game-registrar :as registrar]
+   [cyberleague.coordinator.game-runner :as game-runner]))
 
 (defn test-bot
   [user-id bot-id bot]
@@ -10,7 +11,7 @@
         random-bot-id 1234
         random-bot {:db/id random-bot-id
                     :bot/code-version 5
-                    :bot/code {:code/code (slurp (io/resource (str "testbots/" game-name ".cljs")))
+                    :bot/code {:code/code (get-in @registrar/games [game-name :game.config/test-bot])
                                :code/language "clojure"}}
         coded-bot (-> (into {} bot)
                       (assoc :db/id (:db/id bot)
@@ -27,4 +28,3 @@
      :winner (result :winner)
      :error (result :error)
      :info (result :info)}))
-
