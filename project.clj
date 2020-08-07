@@ -3,8 +3,10 @@
                  [com.datomic/datomic-free "0.9.5697"
                   :exclusions
                   [com.google.guava/guava]]
-                 [io.bloomventures/commons "0.7.1"]
-                 [io.bloomventures/omni "0.24.4"]
+                 [io.bloomventures/commons "0.9.0"
+                  :exclusions
+                  [metosin/muuntaja]]
+                 [io.bloomventures/omni "0.26.2"]
 
                  ;; client
                  [markdown-clj "1.10.4"]

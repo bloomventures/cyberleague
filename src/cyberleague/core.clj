@@ -1,6 +1,7 @@
 (ns cyberleague.core
   (:gen-class)
   (:require
+   [bloom.commons.config :as config]
    [bloom.omni.core :as omni]
    [cyberleague.games.games] ;; so games get registered
    [cyberleague.coordinator.core :as coordinator]
@@ -8,7 +9,14 @@
    [cyberleague.db.seed :as seed]))
 
 (def config
-  {:omni/title "Cyberleague"
+  (config/read
+   "config.edn"
+   [:map
+    [:http-port integer?]]))
+
+(def omni-config
+  {:omni/http-port (config :http-port)
+   :omni/title "Cyberleague"
    :omni/cljs {:main "cyberleague.client.core"}
    :omni/js-scripts [{:src "/graph.js"}]
    :omni/auth {:cookie {:name "cyberleague"}}
@@ -16,7 +24,7 @@
 
 (defn start! []
   (seed/seed!)
-  (omni/start! omni/system config)
+  (omni/start! omni/system omni-config)
   #_(coordinator/start!))
 
 (defn stop! []
