@@ -14,7 +14,9 @@
      users
       ;; games
      (for [[_ game-config] @registrar/games]
-       (game-config :game.config/seed-game))
+       {:game/name (:game.config/name game-config)
+        :game/description (:game.config/description game-config)
+        :game/rules (:game.config/rules game-config)})
       ;; bots
      (mapcat (fn [game-config]
                (map
