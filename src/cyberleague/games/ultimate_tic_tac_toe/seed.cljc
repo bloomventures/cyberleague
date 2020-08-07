@@ -1,7 +1,6 @@
 (ns cyberleague.games.ultimate-tic-tac-toe.seed
-  #?(:clj
-     (:require
-      [clojure.java.io :as io])))
+  (:require
+   [cyberleague.games.ultimate-tic-tac-toe.bots :as bots]))
 
 (def game
   {:game/name "ultimate tic-tac-toe"
@@ -12,10 +11,8 @@
 (def bots
   [{:bot/user-name "jamesnvc"
     :bot/game-name "ultimate tic-tac-toe"
-    :bot/code #?(:cljs ""
-                 :clj (slurp (io/resource "code/ultimate tic-tac-toe.cljs")))}
+    :bot/code (pr-str bots/random-valid-bot)}
 
    {:bot/user-name "rafd"
     :bot/game-name "ultimate tic-tac-toe"
-    :bot/code #?(:cljs ""
-                 :clj (slurp (io/resource "code/ultimate tic-tac-toe 2.cljs")))}])
+    :bot/code (pr-str bots/first-valid-bot)}])

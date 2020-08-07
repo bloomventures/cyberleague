@@ -9,6 +9,8 @@
     ;; TODO fn that takes a match
     ]
    [:game.config/match-results-styles fn?]
+   [:game.config/starter-code
+    [:map-of string?  string?]]
    [:game.config/seed-game
     [:map
      [:game.config/name string?]

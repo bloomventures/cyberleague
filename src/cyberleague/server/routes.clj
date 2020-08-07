@@ -3,6 +3,7 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [cyberleague.db.core :as db]
+   [cyberleague.game-registrar :as registrar]
    [cyberleague.coordinator.test-bot :as coordinator]))
 
 (defn to-long [v]
@@ -153,9 +154,7 @@
             bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= user-id (:db/id (:bot/user bot)))
           (let [game (get-in bot [:bot/game :game/name])
-                code (slurp (io/resource (str "code/" game "." (case language
-                                                                 "javascript" "js"
-                                                                 "clojure" "cljs"))))
+                code (get-in @registrar/games [game :game.config/starter-code language])
                 bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
             {:body {:code (:code/code (:bot/code bot))
                     :language (:code/language (:bot/code bot))}}))))]
