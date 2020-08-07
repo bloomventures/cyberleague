@@ -14,4 +14,5 @@
   :game.config/starter-code starter-code/starter-code
   :game.config/test-bot (pr-str bots/random-valid-bot)
   :game.config/seed-game seed/game
-  :game.config/seed-bots seed/bots})
+  :game.config/seed-bots [(pr-str bots/random-valid-bot)
+                          (pr-str bots/first-valid-bot)]})

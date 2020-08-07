@@ -4,27 +4,33 @@
    [cyberleague.db.core :as db]
    [cyberleague.game-registrar :as registrar]))
 
-(def entities
-  (concat
-   [{:user/id 38405
-     :user/name "jamesnvc"}
-
-    {:user/id 89664
-     :user/name "rafd"}]
-
-   (->> @registrar/games
-        vals
-        (map :game.config/seed-game))
-
-   (->> @registrar/games
-        vals
-        (mapcat :game.config/seed-bots))))
+(defn make-entities []
+  (let [users [{:user/id 38405
+                :user/name "jamesnvc"}
+               {:user/id 89664
+                :user/name "rafd"}]]
+    (concat
+      ;; users
+     users
+      ;; games
+     (for [[_ game-config] @registrar/games]
+       (game-config :game.config/seed-game))
+      ;; bots
+     (mapcat (fn [game-config]
+               (map
+                (fn [bot-code user]
+                  {:bot/user-name (user :user/name)
+                   :bot/game-name (game-config :game.config/name)
+                   :bot/code bot-code})
+                (:game.config/seed-bots game-config)
+                (cycle users)))
+             (vals @registrar/games)))))
 
 (defn seed! []
 
   (db/init)
 
-  (doseq [entity entities]
+  (doseq [entity (make-entities)]
     (cond
       (entity :user/id)
       (db/with-conn (db/create-user (entity :user/id) (entity :user/name)))

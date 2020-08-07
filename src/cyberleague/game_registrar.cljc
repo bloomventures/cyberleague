@@ -21,11 +21,7 @@
      [:game/description string?]
      [:game/rules string?]]]
    [:game.config/seed-bots
-    [:vector
-     [:map
-      [:bot/user-name string?]
-      [:bot/game-name string?]
-      [:bot/code string?]]]]])
+    [:vector string?]]])
 
 (defn register-game! [game]
   (if (malli/validate (malli.util/closed-schema schema) game)

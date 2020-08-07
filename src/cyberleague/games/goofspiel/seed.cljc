@@ -18,16 +18,3 @@
                     "## Expected Output:\n"
                     "\n"
                     "a        ; a is the integer corresponding to your bid, it must be an integer that is still in your deck")})
-
-(def bots
-  [{:bot/user-name "jamesnvc"
-    :bot/game-name "goofspiel"
-    :bot/code (pr-str bots/random-bot)}
-
-   {:bot/user-name "jamesnvc"
-    :bot/game-name "goofspiel"
-    :bot/code (pr-str bots/current-trophy-bot)}
-
-   {:bot/user-name "rafd"
-    :bot/game-name "goofspiel"
-    :bot/code (pr-str bots/other-bot)}])
