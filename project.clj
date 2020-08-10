@@ -25,6 +25,10 @@
 
   :main cyberleague.core
 
+  :source-paths ["src"]
+
+  :test-paths ["test"]
+
   :profiles {:uberjar {:aot :all}
 
              :dev {:repl-options {:init-ns cyberleague.core}}})
