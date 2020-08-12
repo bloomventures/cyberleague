@@ -6,6 +6,15 @@
    [cyberleague.games.goofspiel.ui :as ui]
    [cyberleague.games.goofspiel.starter-code :as starter-code]))
 
+(def UserId
+  integer?)
+
+(def Card
+  [:and
+   integer?
+   [:>= 1]
+   [:<= 13]])
+
 (cyberleague.game-registrar/register-game!
  {:game.config/name "goofspiel"
   :game.config/description
@@ -24,6 +33,34 @@
        "## Expected Output:\n"
        "\n"
        "a        ; a is the integer corresponding to your bid, it must be an integer that is still in your deck")
+  :game.config/public-state-example {:your-cards #{1 2 3 6 7 8 9 10 11 12 13}
+                                     :their-cards #{1 2 4 5 6 8 9 10 11 12 13}
+                                     :trophy-cards #{2 3 4 5 6 7 9 11 12 13}
+                                     :current-trophy 1
+                                     :history [{:you 4 :them 3 :trophy 8}
+                                               {:you 5 :them 7 :trophy 10}]}
+  :game.config/internal-state-spec [:map
+                                    [:player-cards
+                                     [:map-of UserId [:set Card]]]
+                                    [:trophy-cards [:set Card]]
+                                    [:current-trophy Card]
+                                    [:history
+                                     [:vector
+                                      [:map-of
+                                       [:or UserId [:enum :trophy]]
+                                       Card]]]]
+  :game.config/public-state-spec [:map
+                                  [:your-cards [:set Card]]
+                                  [:their-cards [:set Card]]
+                                  [:trophy-cards [:set Card]]
+                                  [:current-trophy Card]
+                                  [:history
+                                   [:vector
+                                    [:map
+                                     [:you Card]
+                                     [:them Card]
+                                     [:trophy Card]]]]]
+  :game.config/move-spec Card
   :game.config/match-results-view ui/match-results-view
   :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code

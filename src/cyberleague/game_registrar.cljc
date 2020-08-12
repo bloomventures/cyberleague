@@ -7,6 +7,9 @@
 
 (def games (atom {}))
 
+(def MalliSchema
+  some?)
+
 (def schema
   [:map
    [:game.config/name string?]
@@ -18,7 +21,10 @@
     [:map-of string?  string?]]
    [:game.config/test-bot string?]
    [:game.config/seed-bots
-    [:vector string?]]])
+    [:vector string?]]
+   [:game.config/public-state-spec MalliSchema]
+   [:game.config/internal-state-spec MalliSchema]
+   [:game.config/move-spec MalliSchema]])
 
 (defn register-game! [game]
   (if (malli/validate (malli.util/closed-schema schema) game)
