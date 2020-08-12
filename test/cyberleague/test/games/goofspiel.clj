@@ -36,7 +36,7 @@
                     :bot/code {:code/code (pr-str '(fn [state] 15))
                                :code/language "clojure"}}])]
       (is (= :invalid-move (:error result)))
-      (is (= 0 (count (get-in result [:game-state "history"]))))
+      (is (= 0 (count (get-in result [:game-state :history]))))
       (is (= {:bot 54322 :move 15}
              (:move result)))))
 
@@ -52,7 +52,7 @@
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))
-      (is (= 1 (count (get-in result [:game-state "history"]))))))
+      (is (= 1 (count (get-in result [:game-state :history]))))))
 
   #_(testing "times out games that don't terminate"
       (let [result (runner/run-game
