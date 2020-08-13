@@ -22,6 +22,7 @@
    [:game.config/test-bot string?]
    [:game.config/seed-bots
     [:vector string?]]
+   [:game.config/public-state-example some?]
    [:game.config/public-state-spec MalliSchema]
    [:game.config/internal-state-spec MalliSchema]
    [:game.config/move-spec MalliSchema]])

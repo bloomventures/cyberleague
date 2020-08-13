@@ -34,7 +34,7 @@
                                             (vector (repeat 9 nil))]
                                      :history [{:player 1234 :move [0 0]}
                                                {:player 4567 :move [0 1]}]}
-  :game.config/move-example [0 1]
+ ;; :game.config/move-example [0 1]
   :game.config/internal-state-spec {:grid [["x" "o" nil nil nil nil nil nil nil]
                                            (vector (repeat 9 nil))
                                            (vector (repeat 9 nil))
