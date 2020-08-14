@@ -17,33 +17,34 @@
            [:td {:colSpan 4} "console logging TODO"]]]))))
 
 (defn match-results-view
-  [{:keys [bots winner] :as match}]
-  (let [p1-id (:id (first bots))
-        p2-id (:id (second bots))]
+  [{:match/keys [bots winner] :as match}]
+  (let [p1-id (:bot/id (first bots))
+        p2-id (:bot/id (second bots))]
+    (println match)
     [:div.results.goofspiel
      [:table
       [:thead
        [:tr nil
         [:th "Trophy"]
-        [:th (:name (first bots))]
-        [:th (:name (second bots))]
+        [:th (:bot/name (first bots))]
+        [:th (:bot/name (second bots))]
         [:th]]]
       [:tfoot
        [:tr
         [:td "Score"]
         [:td {:class (when (= p1-id winner) "winner")}
          (->> match
-              :moves
+              :match/moves
               (map (fn [move] (if (> (move p1-id) (move p2-id)) (move "trophy") 0)))
               (apply +))]
         [:td {:class (when (= p2-id winner) "winner")}
          (->> match
-              :moves
+              :match/moves
               (map (fn [move] (if (< (move p1-id) (move p2-id)) (move "trophy") 0)))
               (apply +))]
         [:td]]]
       (into [:<>]
-            (for [move (:moves match)]
+            (for [move (:match/moves match)]
               [move-view move {:p1-id p1-id :p2-id p2-id}]))]]))
 
 (defn >results-styles []

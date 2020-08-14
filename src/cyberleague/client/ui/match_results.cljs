@@ -4,6 +4,6 @@
 
 (defn match-results-view [match]
   (let [view (get-in @registrar/games
-               [(get-in match [:game :name])
+               [(get-in match [:match/game :game/name])
                 :game.config/match-results-view])]
     [view match]))

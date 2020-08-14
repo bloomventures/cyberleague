@@ -51,7 +51,7 @@
         (if (game-engine.protocol/game-over? game-engine state)
           {:error false
            :winner (game-engine.protocol/winner game-engine state)
-           :history (state "history")}
+           :history (state :history)}
           (if (game-engine.protocol/simultaneous-turns? game-engine)
             ;; For simulatenous turns, get all the moves
             (let [moves (->> (take nplayers players)

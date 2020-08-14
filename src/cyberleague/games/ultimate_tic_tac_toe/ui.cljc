@@ -54,16 +54,16 @@
 (defn match-results-view
   [match]
   #?(:cljs
-     (let [current-move (r/atom (count (match :moves)))]
+     (let [current-move (r/atom (count (match :match/moves)))]
        (fn [match]
-         (let [moves (match :moves)
+         (let [moves (match :match/moves)
                displayed-moves (take @current-move moves)
                p1-color "rgb(0,0,255)"
                p2-color "rgb(255,0,0)"
                p1-color-bg "rgba(0,0,255,0.1)"
                p2-color-bg "rgba(255,0,0,0.1)"
                [p1-moves p2-moves] (->> displayed-moves
-                                        (map #(get % "move"))
+                                        (map #(get % :move))
                                         (partition 2 2 nil)
                                         ((juxt (partial map first) (partial map second)))
                                         (map set))

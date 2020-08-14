@@ -3,7 +3,7 @@
     [cyberleague.client.state :as state]))
 
 (defn games-card-view
-  [{:keys [data] :as card}]
+  [{:card/keys [data] :as card}]
   (let [games data]
     [:div.card.games
      [:header "GAMES"
@@ -16,9 +16,9 @@
          [:th "Active Bots"]]]
        [:tbody
         (for [game games]
-          ^{:key (:id game)}
+          ^{:key (:game/id game)}
           [:tr
            [:td
-            [:a {:on-click (fn [_] (state/nav! :game (:id game)))}
-             (str "#" (:name game))]]
-           [:td (:bot-count game)]])]]]]))
+            [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id game)))}
+             (str "#" (:game/name game))]]
+           [:td (:game/bot-count game)]])]]]]))

@@ -52,7 +52,7 @@
           (db/with-conn
             (db/create-entity {:match/bots [(:db/id player-1) (:db/id player-2)]
                                :match/error true
-                               :match/moves (pr-str (conj (get-in result [:game-state "history"])
+                               :match/moves (pr-str (conj (get-in result [:game-state :history])
                                                           (get-in result [:move :move])))
                                :match/winner (:db/id winner)})
             (d/transact db/*conn*

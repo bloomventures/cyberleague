@@ -4,16 +4,18 @@
     [cyberleague.client.ui.match-results :refer [match-results-view]]))
 
 (defn match-card-view
-  [{:keys [data] :as card}]
-  [:div.card.match
-   [:header "MATCH"
-    [:a {:on-click (fn [_] (state/nav! :game (:id (:game data))))} (str "#" (:name (:game data)))]
-    [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-   [:div.content
-    [:h1
-     [:a {:on-click (fn [_] (state/nav! :bot (:id (first (:bots data)))))} (:name (first (:bots data)))]
-     " vs "
-     [:a {:on-click (fn [_] (state/nav! :bot (:id (second (:bots data)))))} (:name (second (:bots data)))]]
+  [{:card/keys [data] :as card}]
+  (let [match data]
+    [:div.card.match
+     [:header "MATCH"
+      [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:match/game match))))} (str "#" (:game/name (:match/game match)))]
+      [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
+     [:div.content
+      (let [[bot1 bot2] (:match/bots match)]
+        [:h1
+         [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} (:bot/name bot1)]
+         " vs "
+         [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} (:bot/name bot2)]])
 
-    [:div.moves
-     [match-results-view data]]]])
+      [:div.moves
+       [match-results-view match]]]]))

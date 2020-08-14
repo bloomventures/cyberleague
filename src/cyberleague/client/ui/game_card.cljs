@@ -4,18 +4,18 @@
     [markdown.core :as markdown]))
 
 (defn game-card-view
-  [{:keys [data] :as card}]
+  [{:card/keys [data] :as card}]
   (let [game data]
     [:div.card.game
      [:header
       [:span.game-name
-       (str "#" (:name game))]
+       (str "#" (:game/name game))]
       [:div.gap]
       (when @state/user
-        [:a.button {:on-click (fn [_] (state/new-bot! (:id game)))} "CREATE A BOT"])
+        [:a.button {:on-click (fn [_] (state/new-bot! (:game/id game)))} "CREATE A BOT"])
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
      [:div.content
-      [:div {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:description game))}}]
+      [:div {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:game/description game))}}]
       [:table
        [:thead
         [:tr
@@ -23,19 +23,19 @@
          [:th "Bot"]
          [:th "Rating"]]]
        [:tbody
-        (->> (:bots game)
-             (sort-by :rating)
+        (->> (:game/bots game)
+             (sort-by :bot/rating)
              reverse
              (map-indexed (fn [rank bot]
-                            ^{:key (:id bot)}
+                            ^{:key (:bot/id bot)}
                             [:tr
                              [:td rank]
                              [:td
                               [:a {:on-click (fn [_]
-                                               (state/nav! :bot (:id bot)))}
-                               (if (= :active (:status bot))
+                                               (state/nav! :card.type/bot (:bot/id bot)))}
+                               (if (= :active (:bot/status bot))
                                  "●"
                                  "○")
                                " "
-                               (:name bot)]]
-                             [:td (:rating bot)]])))]]]]))
+                               (:bot/name bot)]]
+                             [:td (:bot/rating bot)]])))]]]]))

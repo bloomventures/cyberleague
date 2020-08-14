@@ -10,44 +10,44 @@
              (js/window.bot_graph el (clj->js history))))}])
 
 (defn bot-card-view
-  [{:keys [data] :as card}]
+  [{:card/keys [data] :as card}]
   (let [bot data]
     [:div.card.bot
      [:header
-      [:span.bot-name (:name bot)]
-      [:a.user-name {:on-click (fn [_] (state/nav! :user (:id (:user bot))))}
-       (str "@" (:name (:user bot)))]
-      [:a.game-name {:on-click (fn [_] (state/nav! :game (:id (:game bot))))}
-       (str "#" (:name (:game bot)))]
+      [:span.bot-name (:bot/name bot)]
+      [:a.user-name {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
+       (str "@" (:user/name (:bot/user bot)))]
+      [:a.game-name {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+       (str "#" (:game/name (:bot/game bot)))]
       [:div.gap]
-      (when (= (:id @state/user) (:id (:user bot)))
-        [:a.button {:on-click (fn [_] (state/nav! :code (:id bot)))} "CODE"])
+      (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
+        [:a.button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
 
      [:div.content
-      [graph-view (:history data)]
+      [graph-view (:bot/history bot)]
       [:table.matches
        [:thead]
        [:tbody
-        (for [match (->> (:matches bot)
+        (for [match (->> (:bot/matches bot)
                          ;; ids are monotically increasing with time
                          ;; so can use them to order
-                         (sort-by :id)
+                         (sort-by :match/id)
                          (reverse))]
-          ^{:key (:id match)}
+          ^{:key (:match/id match)}
           [:tr
            [:td
-            [:a {:on-click (fn [_] (state/nav! :match (:id match)))}
+            [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
              ;; case doesn't work here
              (cond
-               (= (:winner match) (:id bot))
+               (= (:match/winner match) (:bot/id bot))
                "won"
-               (nil? (:winner match))
+               (nil? (:match/winner match))
                "tied"
                :else
                "lost")
              " vs "
-             (let [other-bot (->> (:bots match)
-                                  (remove (fn [b] (= (:id bot) (:id b))))
+             (let [other-bot (->> (:match/bots match)
+                                  (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
                                   first)]
-               (:name other-bot))]]])]]]]))
+               (:bot/name other-bot))]]])]]]]))

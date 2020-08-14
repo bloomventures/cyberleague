@@ -13,9 +13,9 @@
   [[[:post "/api/login"]
     (fn [_]
       (let [user (db/with-conn (db/get-or-create-user 38405 "jamesnvc"))
-            out-user {:id (:db/id user)
-                      :name (:user/name user)
-                      :gh-id (:user/gh-id user)}]
+            out-user {:user/id (:db/id user)
+                      :user/name (:user/name user)
+                      :user/gh-id (:user/gh-id user)}]
         {:body out-user
          :session out-user}))]
 
@@ -33,67 +33,68 @@
         {:body (->> users
                     (map
                      (fn [user]
-                       {:id (:db/id user)
-                        :name (:user/name user)
-                        :gh-id (:user/gh-id user)
+                       {:user/id (:db/id user)
+                        :user/name (:user/name user)
+                        :user/gh-id (:user/gh-id user)
                          ;; TODO likely a better way to fetch counts in datomic
-                        :bot-count (count (db/with-conn (db/get-user-bots (:db/id user))))})))}))]
+                        :user/bot-count (count (db/with-conn (db/get-user-bots (:db/id user))))})))}))]
 
    [[:get "/api/users/:other-user-id"]
     (fn [request]
       (let [other-user-id (get-in request [:params :other-user-id])
             user (db/with-conn (db/get-user (to-long other-user-id)))
             bots (db/with-conn (db/get-user-bots (to-long other-user-id)))]
-        {:body {:id (:db/id user)
-                :name (:user/name user)
-                :bots (->> bots
-                           (map (fn [bot]
-                                  {:name (:bot/name bot)
-                                   :id (:db/id bot)
-                                   :rating (:bot/rating bot)
-                                   :status (if (nil? (:bot/code-version bot)) :inactive :active)
-                                   :game (let [game (:bot/game bot)]
-                                           {:id (:db/id game)
-                                            :name (:game/name game)})})))}}))]
+        {:body {:user/id (:db/id user)
+                :user/name (:user/name user)
+                :user/bots (->> bots
+                                (map (fn [bot]
+                                       {:bot/name (:bot/name bot)
+                                        :bot/id (:db/id bot)
+                                        :bot/rating (:bot/rating bot)
+                                        :bot/status (if (nil? (:bot/code-version bot)) :inactive :active)
+                                        :bot/game (let [game (:bot/game bot)]
+                                                    {:game/id (:db/id game)
+                                                     :game/name (:game/name game)})})))}}))]
 
    [[:get "/api/games"]
     (fn [_]
       {:body (->> (db/with-conn (db/get-games))
                   (map
                    (fn [game]
-                     {:id (:db/id game)
-                      :name (:game/name game)
+                     {:game/id (:db/id game)
+                      :game/name (:game/name game)
                        ;; TODO likely a better way to fetch counts in datomic
-                      :bot-count (count (db/with-conn (db/get-game-bots (:db/id game))))})))})]
+                      :game/bot-count (count (db/with-conn (db/get-game-bots (:db/id game))))})))})]
 
    [[:get "/api/games/:game-id"]
     (fn [request]
       (let [game-id (get-in request [:params :game-id])
             game (db/with-conn (db/get-game (to-long game-id)))
             bots (db/with-conn (db/get-game-bots (to-long game-id)))]
-        {:body {:id (:db/id game)
-                :name (:game/name game)
-                :description (:game/description game)
-                :bots (->> bots
-                           (map (fn [bot]
-                                  {:name (:bot/name bot)
-                                   :rating (:bot/rating bot)
-                                   :status (if (nil? (:bot/code-version bot)) :inactive :active)
-                                   :id (:db/id bot)})))}}))]
+        {:body {:game/id (:db/id game)
+                :game/name (:game/name game)
+                :game/description (:game/description game)
+                :game/bots (->> bots
+                                (map (fn [bot]
+                                       {:bot/name (:bot/name bot)
+                                        :bot/rating (:bot/rating bot)
+                                        :bot/status (if (nil? (:bot/code-version bot)) :inactive :active)
+                                        :bot/id (:db/id bot)})))}}))]
 
    [[:get "/api/matches/:match-id"]
     (fn [request]
       (let [match-id (get-in request [:params :match-id])
             match (db/with-conn (db/get-match (to-long match-id)))]
-        {:body {:id (:db/id match)
-                :game (let [game (-> match :match/bots first :bot/game)]
-                        {:name (:game/name game)
-                         :id (:game/id game)})
-                :bots (map (fn [b] {:id (:db/id b)
-                                    :name (:bot/name b)})
-                           (:match/bots match))
-                :moves (edn/read-string (:match/moves match))
-                :winner (:db/id (:match/winner match))}}))]
+        {:body {:match/id (:db/id match)
+                :match/game (let [game (-> match :match/bots first :bot/game)]
+                              {:game/name (:game/name game)
+                               :game/id (:game/id game)})
+                :match/bots (map (fn [b]
+                                   {:bot/id (:db/id b)
+                                    :bot/name (:bot/name b)})
+                                 (:match/bots match))
+                :match/moves (edn/read-string (:match/moves match))
+                :match/winner (:db/id (:match/winner match))}}))]
 
    [[:get "/api/bots/:bot-id"]
     (fn [request]
@@ -101,23 +102,24 @@
             bot (db/with-conn (db/get-bot (to-long bot-id)))
             matches (db/with-conn (db/get-bot-matches (:db/id bot)))
             history (db/with-conn (db/get-bot-history (:db/id bot)))]
-        {:body {:id (:db/id bot)
-                :name (:bot/name bot)
-                :game (let [game (:bot/game bot)]
-                        {:id (:db/id game)
-                         :name (:game/name game)})
-                :user (let [user (:bot/user bot)]
-                        {:id (:db/id user)
-                         :name (:user/name user)
-                         :gh-id (:user/gh-id user)})
-                :history history
-                :matches (map (fn [match]
-                                {:id (:db/id match)
-                                 :bots (map (fn [b] {:id (:db/id b)
-                                                     :name (:bot/name b)})
-                                            (:match/bots match))
-                                 :winner (:db/id (:match/winner match))})
-                              matches)}}))]
+        {:body {:bot/id (:db/id bot)
+                :bot/name (:bot/name bot)
+                :bot/game (let [game (:bot/game bot)]
+                            {:game/id (:db/id game)
+                             :game/name (:game/name game)})
+                :bot/user (let [user (:bot/user bot)]
+                            {:user/id (:db/id user)
+                             :user/name (:user/name user)
+                             :user/gh-id (:user/gh-id user)})
+                :bot/history history
+                :bot/matches (map (fn [match]
+                                    {:match/id (:db/id match)
+                                     :match/bots (map (fn [b]
+                                                        {:bot/id (:db/id b)
+                                                         :bot/name (:bot/name b)})
+                                                      (:match/bots match))
+                                     :match/winner (:db/id (:match/winner match))})
+                                  matches)}}))]
 
    [[:get "/api/bots/:bot-id/code"]
     (fn [request]
@@ -125,17 +127,17 @@
             bot-id (get-in request [:params :bot-id])
             bot (db/with-conn (db/get-bot (to-long bot-id)))]
         (if (= user-id (:db/id (:bot/user bot)))
-          {:body {:id (:db/id bot)
-                  :name (:bot/name bot)
-                  :code (:code/code (:bot/code bot))
-                  :language (:code/language (:bot/code bot))
-                  :user (let [user (:bot/user bot)]
-                          {:id (:db/id user)
-                           :name (:user/name user)
-                           :gh-id (:user/gh-id user)})
-                  :game (let [game (:bot/game bot)]
-                          {:id (:db/id game)
-                           :name (:game/name game)})}}
+          {:body {:bot/id (:db/id bot)
+                  :bot/name (:bot/name bot)
+                  :bot/code (:code/code (:bot/code bot))
+                  :bot/language (:code/language (:bot/code bot))
+                  :bot/user (let [user (:bot/user bot)]
+                              {:user/id (:db/id user)
+                               :user/name (:user/name user)
+                               :user/gh-id (:user/gh-id user)})
+                  :bot/game (let [game (:bot/game bot)]
+                              {:game/id (:db/id game)
+                               :game/name (:game/name game)})}}
           {:status 500})))]
 
    [[:post "/api/games/:game-id/bot"]
@@ -156,8 +158,9 @@
           (let [game (get-in bot [:bot/game :game/name])
                 code (get-in @registrar/games [game :game.config/starter-code language])
                 bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
-            {:body {:code (:code/code (:bot/code bot))
-                    :language (:code/language (:bot/code bot))}}))))]
+            {:body {:code/code (:code/code (:bot/code bot))
+                    :code/language (:code/language (:bot/code bot))}})
+          {:status 500})))]
 
    [[:put "/api/bots/:bot-id/code"]
     (fn [request]

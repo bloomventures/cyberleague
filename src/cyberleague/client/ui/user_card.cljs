@@ -3,11 +3,11 @@
     [cyberleague.client.state :as state]))
 
 (defn user-card-view
-  [{:keys [data] :as card}]
+  [{:card/keys [data] :as card}]
   (let [user data]
     [:div.card.user
      [:header
-      [:span (str "@" (:name user))]
+      [:span (str "@" (:user/name user))]
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
      [:div.content
       [:table
@@ -17,14 +17,14 @@
          [:th "Bot"]
          [:th "Rating"]]]
        [:tbody
-        (for [bot (:bots user)]
-          ^{:key (:id bot)}
+        (for [bot (:user/bots user)]
+          ^{:key (:bot/id bot)}
           [:tr
            [:td
-            [:a {:on-click (fn [_] (state/nav! :game (:id (:game bot))))}
-             (str "#" (:name (:game bot)))]]
+            [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+             (str "#" (:game/name (:bot/game bot)))]]
            [:td
-            [:a {:on-click (fn [_] (state/nav! :bot (:id bot)))}
-             (if (= :active (:status bot)) "●" "○") " "
-             (:name bot)]]
-           [:td (:rating bot)]])]]]]))
+            [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
+             (if (= :active (:bot/status bot)) "●" "○") " "
+             (:bot/name bot)]]
+           [:td (:bot/rating bot)]])]]]]))

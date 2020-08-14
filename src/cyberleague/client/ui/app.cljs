@@ -30,11 +30,11 @@
     [:h1 "Cyberleague"]
     [:h2 "Code bots to play games."]
     [:nav
-     [:a {:on-click (fn [] (state/nav! :games nil))} "Games"]
-     [:a {:on-click (fn [_] (state/nav! :users nil))} "Users"]
+     [:a {:on-click (fn [] (state/nav! :card.type/games nil))} "Games"]
+     [:a {:on-click (fn [_] (state/nav! :card.type/users nil))} "Users"]
      (when-let [user @state/user]
-       [:a.user {:on-click (fn [_] (state/nav! :user (:id user)))}
-        [:img {:src (str "https://avatars.githubusercontent.com/u/" (user :gh-id) "?v=2&s=40")}]
+       [:a.user {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))}
+        [:img {:src (str "https://avatars.githubusercontent.com/u/" (user :user/gh-id) "?v=2&s=40")}]
         "My Bots"])
      (if-let [user @state/user]
        [:a.log-out {:on-click (fn [_] (state/log-out!))
@@ -43,13 +43,13 @@
        [:a.log-in {:on-click (fn [_] (state/log-in!))}])]]
    [:div.cards
     (for [card @state/cards]
-      (let [card-view (case (card :type)
-                        :users users-card-view
-                        :user user-card-view
-                        :game game-card-view
-                        :games games-card-view
-                        :match match-card-view
-                        :bot bot-card-view
-                        :code code-card-view)]
-        ^{:key (:url card)}
+      (let [card-view (case (card :card/type)
+                        :card.type/users users-card-view
+                        :card.type/user user-card-view
+                        :card.type/game game-card-view
+                        :card.type/games games-card-view
+                        :card.type/match match-card-view
+                        :card.type/bot bot-card-view
+                        :card.type/code code-card-view)]
+        ^{:key (:card/url card)}
         [card-view card]))]])
