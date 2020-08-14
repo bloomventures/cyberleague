@@ -33,6 +33,7 @@
        "## Expected Output:\n"
        "\n"
        "a        ; a is the integer corresponding to your bid, it must be an integer that is still in your deck")
+  :game.config/move-example  5
   :game.config/public-state-example {:your-cards #{1 2 3 6 7 8 9 10 11 12 13}
                                      :their-cards #{1 2 4 5 6 8 9 10 11 12 13}
                                      :trophy-cards #{2 3 4 5 6 7 9 11 12 13}
