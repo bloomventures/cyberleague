@@ -2,6 +2,7 @@
   (:require
    [clojure.string :as string]
    [clojure.test :refer :all]
+   [cyberleague.games.goofspiel.engine]
    [cyberleague.games.protocol :as game]
    [cyberleague.games.goofspiel.bots :as bots]
    [cyberleague.coordinator.game-runner :as runner]))
