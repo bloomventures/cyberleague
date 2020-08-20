@@ -10,7 +10,7 @@
 
 (def ^:dynamic *conn* nil)
 
-(defn init
+(defn init!
   "Initialize the database connection"
   []
   (d/create-database *uri*)
@@ -114,6 +114,9 @@
                  :db/cardinality :db.cardinality/one
                  :db/valueType :db.type/boolean
                  :db.install/_attribute :db.part/db}]))
+
+(defn drop! []
+  (d/delete-database *uri*))
 
 (defmacro with-conn
   "Execute the body with *conn* dynamically bound to a new connection."

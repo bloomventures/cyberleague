@@ -29,8 +29,8 @@
              (vals @registrar/games)))))
 
 (defn seed! []
-
-  (db/init)
+  (db/drop!)
+  (db/init!)
 
   (doseq [entity (make-entities)]
     (cond

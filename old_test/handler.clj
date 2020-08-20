@@ -9,7 +9,7 @@
 (use-fixtures :each
   (fn [t]
     (binding [db/*uri* "datomic:mem://testing"]
-      (db/init)
+      (db/init!)
       (t)
       (datomic.api/delete-database db/*uri*))))
 
