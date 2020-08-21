@@ -4,7 +4,8 @@
     [reagent.core :as r]
     [bloom.omni.fx.ajax :as ajax]
     [goog.events :as events]
-    [cljs.reader :as reader])
+    [cljs.reader :as reader]
+    [cyberleague.client.oauth :as oauth])
   (:import
     (goog.net XhrIo EventType)))
 
@@ -67,11 +68,7 @@
             :xhr/on-complete (fn []
                                (swap! state assoc :state/user nil))}))
 
-(defn log-in! []
-  (edn-xhr {:xhr/url "/api/login"
-            :xhr/method :post
-            :xhr/on-complete (fn [user]
-                               (swap! state assoc :state/user user))}))
+
 
 (defn close-card! [card]
   (swap! state update :state/cards
@@ -124,11 +121,16 @@
             :xhr/method :get
             :xhr/on-complete
             (fn [user]
-              (if (user :id)
+              (if (:user/id user)
                 (do
                   (swap! state assoc :state/user user)
-                  (nav! :card.type/user (user :id)))
+                  (nav! :card.type/user (:user/id user)))
                 (nav! :card.type/games nil)))}))
+
+(defn log-in! []
+  (oauth/start-auth-flow!
+    (fn []
+      (fetch-user!))))
 
 (defn bot-set-language! [bot-id language cb]
   (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/language/" language)

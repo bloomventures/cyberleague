@@ -1,18 +1,12 @@
 (ns cyberleague.core
   (:gen-class)
   (:require
-   [bloom.commons.config :as config]
    [bloom.omni.core :as omni]
    [cyberleague.games.games] ;; so games get registered
+   [cyberleague.config :refer [config]]
    [cyberleague.coordinator.core :as coordinator]
    [cyberleague.server.routes :refer [routes]]
    [cyberleague.db.seed :as seed]))
-
-(def config
-  (config/read
-   "config.edn"
-   [:map
-    [:http-port integer?]]))
 
 (def omni-config
   {:omni/http-port (config :http-port)

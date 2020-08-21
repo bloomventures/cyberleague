@@ -82,7 +82,7 @@
 
       ;user
                 {:db/id #db/id [:db.part/db -12]
-                 :db/ident :user/gh-id
+                 :db/ident :user/github-id
                  :db/cardinality :db.cardinality/one
                  :db/valueType :db.type/long
                  :db.install/_attribute :db.part/db}
@@ -141,19 +141,19 @@
 ;; Users
 
 (defn create-user
-  [gh-id uname]
-  (create-entity {:user/gh-id gh-id :user/name uname}))
+  [github-id uname]
+  (create-entity {:user/github-id github-id :user/name uname}))
 
 (defn get-or-create-user
-  [gh-id uname]
+  [github-id uname]
   (let [db (d/db *conn*)]
     (if-let [user-id (first (first (d/q '[:find ?e
-                                          :in $ ?gh-id
-                                          :where [?e :user/gh-id ?gh-id]]
+                                          :in $ ?github-id
+                                          :where [?e :user/github-id ?github-id]]
                                         db
-                                        gh-id)))]
+                                        github-id)))]
       (d/entity db user-id)
-      (create-user gh-id uname))))
+      (create-user github-id uname))))
 
 (defn get-user-bots
   "Get a list of all bots for a user"
