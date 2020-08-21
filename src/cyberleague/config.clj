@@ -7,6 +7,8 @@
    "config.edn"
    [:map
     [:http-port integer?]
-    [:github-client-id string?]
-    [:github-client-secret string?]
-    [:github-redirect-uri string?]]))
+    [:environment [:enum :prod :dev]]
+    [:github-client-id string?] ;; in :dev, can be garbage
+    [:github-client-secret string?] ;; in :dev, can be garbage
+    [:github-redirect-uri string?] ;; in :dev, can be garbage
+    ]))

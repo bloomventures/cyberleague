@@ -5,10 +5,10 @@
    [cyberleague.game-registrar :as registrar]))
 
 (defn make-entities []
-  (let [users [{:user/id 38405
-                :user/name "jamesnvc"}
-               {:user/id 89664
-                :user/name "rafd"}]]
+  (let [users [{:user/github-id 0
+                :user/name "alice"}
+               {:user/github-id 1
+                :user/name "bob"}]]
     (concat
       ;; users
      users
@@ -34,8 +34,8 @@
 
   (doseq [entity (make-entities)]
     (cond
-      (entity :user/id)
-      (db/with-conn (db/create-user (entity :user/id) (entity :user/name)))
+      (entity :user/github-id)
+      (db/with-conn (db/create-user (entity :user/github-id) (entity :user/name)))
 
       (entity :game/name)
       (db/with-conn (db/create-game (entity :game/name) (entity :game/description)))

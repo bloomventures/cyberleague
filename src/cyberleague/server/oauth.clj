@@ -33,14 +33,22 @@
 (def routes
   [[[:get "/oauth/pre-auth-redirect"]
     (fn [_]
-      (let [csrf-token (string/join "" (take 20 (repeatedly #(rand-int 9))))]
-        {:status 302
-         :headers {"Location"
-                   (str "https://github.com/login/oauth/authorize"
-                        "?client_id=" (config :github-client-id)
-                        "&redirect_uri=" (config :github-redirect-uri)
-                        "&state=" csrf-token)}
-         :session {:csrf-token csrf-token}}))]
+      (if (= :dev (config :environment))
+        ;; in development, immediately log a user in (first in db)
+        {:status 200
+         :headers {"Content-Type" "text/html"}
+         :session {:id (->> (db/with-conn (db/get-users))
+                            first
+                            :db/id)}
+         :body "<script>window.close();</script>"}
+        (let [csrf-token (string/join "" (take 20 (repeatedly #(rand-int 9))))]
+          {:status 302
+           :headers {"Location"
+                     (str "https://github.com/login/oauth/authorize"
+                          "?client_id=" (config :github-client-id)
+                          "&redirect_uri=" (config :github-redirect-uri)
+                          "&state=" csrf-token)}
+           :session {:csrf-token csrf-token}})))]
 
    [[:get "/oauth/post-auth-redirect"]
     (fn [request]
