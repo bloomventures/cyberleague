@@ -211,7 +211,23 @@
            :text-align "left"}]]]
 
        [:&.game
-        {:width 400}]
+
+        [:p
+         {:max-width "30em"}]
+
+        [:table
+
+         [:>tbody
+
+          [:>tr
+
+           [:>td
+            {:vertical-align "middle"}
+
+            [:>.bar
+             {:background colors/blue-light
+              :width "1em" ;; overriden inline
+              :height "0.5em"}]]]]]]
 
        [:&.bot
 

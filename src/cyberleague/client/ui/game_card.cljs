@@ -21,21 +21,28 @@
         [:tr
          [:th "Rank"]
          [:th "Bot"]
-         [:th "Rating"]]]
+         [:th "Rating"]
+         [:th]]]
        [:tbody
-        (->> (:game/bots game)
-             (sort-by :bot/rating)
-             reverse
-             (map-indexed (fn [rank bot]
-                            ^{:key (:bot/id bot)}
-                            [:tr
-                             [:td rank]
-                             [:td
-                              [:a {:on-click (fn [_]
-                                               (state/nav! :card.type/bot (:bot/id bot)))}
-                               (if (= :active (:bot/status bot))
-                                 "●"
-                                 "○")
-                               " "
-                               (:bot/name bot)]]
-                             [:td (:bot/rating bot)]])))]]]]))
+        (let [max-bar-width 100
+              max-rating (apply max (map :bot/rating (:game/bots game)))
+              ->width (fn [rating]
+                        (* max-bar-width (/ rating max-rating)))]
+          (->> (:game/bots game)
+               (sort-by :bot/rating)
+               reverse
+               (map-indexed (fn [rank bot]
+                              ^{:key (:bot/id bot)}
+                              [:tr
+                               [:td rank]
+                               [:td
+                                [:a {:on-click (fn [_]
+                                                 (state/nav! :card.type/bot (:bot/id bot)))}
+                                 (if (= :active (:bot/status bot))
+                                   "●"
+                                   "○")
+                                 " "
+                                 (:bot/name bot)]]
+                               [:td (:bot/rating bot)]
+                               [:td
+                                [:div.bar {:style {:width (->width (:bot/rating bot))}}]]]))))]]]]))
