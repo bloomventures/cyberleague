@@ -28,16 +28,17 @@
                    (-> (into {} player-2) (assoc :db/id (:db/id player-2)
                                                  :bot/code (db/deployed-code (:db/id player-2))))]))]
     (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
-    (if-not (:error result)
+    (if (false? (:game.result/error result))
       ; TODO: handle ties?
-      (let [match-info {:match/bots [(:db/id player-1) (:db/id player-2)]
-                        :match/moves (pr-str (result :history))}
-            match-info (if-let [winner (:winner result)]
-                         (assoc match-info :match/winner winner)
-                         match-info)]
-        (db/with-conn
-          (db/create-entity match-info)
-          (ranking/update-rankings player-1 player-2 (:winner result))))
+      (db/with-conn
+        (db/create-entity (merge
+                            {:match/bots [(:db/id player-1) (:db/id player-2)]
+                             :match/state-history (pr-str (result :game.result/state-history))
+                             :match/moves (pr-str (result :game.result/history))}
+                            ;; optionally add this in b/c datomic does not allow nils
+                            (when-let [winner (:game.result/winner result)]
+                              {:match/winner winner})))
+        (ranking/update-rankings! player-1 player-2 (:game.result/winner result)))
       (if (= (:error result) :exception-executing)
         (let [errd-bot (if (= (:db/id player-1) (:bot result))
                          player-1 player-2)]

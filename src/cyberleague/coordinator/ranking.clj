@@ -27,7 +27,7 @@
 
     [new-R1 new-RD1]))
 
-(defn update-rankings [p1 p2 winner]
+(defn update-rankings! [p1 p2 winner]
   (let [[p1r p1rd] (glicko
                      (:bot/rating p1) (:bot/rating-dev p1)
                      (:bot/rating p2) (:bot/rating-dev p2)

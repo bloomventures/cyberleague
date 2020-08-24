@@ -46,24 +46,26 @@
     (assert (= nplayers (count bots))
             (str "Wrong number of players (" (count bots) ") for " (:game/name game)))
     (try
-      (loop [state (game-engine.protocol/init-state game-engine (map :db/id bots))
+      (loop [states [(game-engine.protocol/init-state game-engine (map :db/id bots))]
              players (cycle bots)]
-        (if (game-engine.protocol/game-over? game-engine state)
-          {:error false
-           :winner (game-engine.protocol/winner game-engine state)
-           :history (state :history)}
-          (if (game-engine.protocol/simultaneous-turns? game-engine)
-            ;; For simulatenous turns, get all the moves
-            (let [moves (->> (take nplayers players)
-                             (map (fn [bot]
-                                    [(:db/id bot) (run-move bot state game-engine)]))
-                             (into {}))]
-              (recur (game-engine.protocol/next-state game-engine state moves)
-                     players))
-            ;; For one-at-a-time, just get the next player's move
-            (let [bot (first players)
-                  move (run-move bot state game-engine)]
-              (recur (game-engine.protocol/next-state game-engine state {(:db/id bot) move})
-                     (next players))))))
+        (let [state (last states)]
+          (if (game-engine.protocol/game-over? game-engine state)
+            {:game.result/error false
+             :game.result/winner (game-engine.protocol/winner game-engine state)
+             :game.result/state-history states
+             :game.result/history (state :history)}
+            (if (game-engine.protocol/simultaneous-turns? game-engine)
+              ;; For simulatenous turns, get all the moves
+              (let [moves (->> (take nplayers players)
+                               (map (fn [bot]
+                                      [(:db/id bot) (run-move bot state game-engine)]))
+                               (into {}))]
+                (recur (conj states (game-engine.protocol/next-state game-engine state moves))
+                       players))
+              ;; For one-at-a-time, just get the next player's move
+              (let [bot (first players)
+                    move (run-move bot state game-engine)]
+                (recur (conj states (game-engine.protocol/next-state game-engine state {(:db/id bot) move}))
+                       (next players)))))))
       (catch Exception e
         (ex-data e)))))

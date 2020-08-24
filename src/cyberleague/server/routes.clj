@@ -91,6 +91,7 @@
                                       :bot/name (:bot/name b)})
                                    (:match/bots match))
                   :match/moves (edn/read-string (:match/moves match))
+                  :match/state-history (edn/read-string (:match/state-history match))
                   :match/winner (:db/id (:match/winner match))}}))]
 
      [[:get "/api/bots/:bot-id"]
