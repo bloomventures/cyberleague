@@ -18,8 +18,7 @@
 
 (defn match-results-view
   [{:match/keys [bots winner] :as match} states moves]
-  (let [p1-id (:bot/id (first bots))
-        p2-id (:bot/id (second bots))]
+  (let [[p1-id p2-id] (map :bot/id bots)]
     [:div.results.goofspiel
      [:table
       [:thead
