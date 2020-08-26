@@ -49,19 +49,23 @@
    [:table
     {:width "100%"}
 
+    [:tfoot
+     [:td
+      {:border-top [["2px" "solid" colors/blue]]}]]
+
+    [:tr
+     {:cursor "pointer"}]
+
     [:th
      {:text-align "center"}]
 
     [:td
-     {:text-align "center"}]]
+     {:text-align "center"}
 
-   [:tr
-    {:cursor "pointer"}]
-
-   [:td.winner
-    {:font-weight 800
-     :color "white"
-     :background colors/blue}]
+     [:&.winner
+      {:font-weight 800
+       :color colors/blue
+       :background colors/blue-ultralight}]]]
 
    [:.hide
     {:display "none"}]
