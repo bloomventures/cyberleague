@@ -2,8 +2,9 @@
   (:require
    [cyberleague.game-registrar]
    [cyberleague.games.othello.engine] ;; so it gets registered
-   [cyberleague.games.ultimate-tic-tac-toe.ui :as ui]
+   [cyberleague.games.othello.ui :as ui]
    [cyberleague.games.othello.bots :as bots]
+   [cyberleague.games.othello.helpers]
    [cyberleague.games.othello.starter-code :as starter-code]))
 
 (def Move
@@ -49,7 +50,7 @@
                                     :history [{:player 1234 :move [0 0]}
                                               {:player 4567 :move [0 1]}]}
 
-  :game.config/move-example [2 3]
+  :game.config/move-example 32
 
   :game.config/public-state-spec [:map
                                   [:grid

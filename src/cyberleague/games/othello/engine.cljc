@@ -1,5 +1,6 @@
 (ns cyberleague.games.othello.engine
   (:require
+   [clojure.set :as set]
    [cyberleague.games.protocol :as protocol]
    [cyberleague.games.othello.helpers :as othello]))
 
@@ -55,9 +56,9 @@
     (game-over? [_ {:keys [available-moves]}]
       (empty? available-moves))
 
-    (winner [_ {:keys [board]}]
+    (winner [_ {:keys [board marker] :as state}]
       (case (compare (othello/stone-count board "B")
                      (othello/stone-count board "W"))
-        -1 "W"
+        -1 (get (set/map-invert (state :marker)) "W")
         0 false
-        1 "B"))))
+        1 (get (set/map-invert (state :marker)) "B")))))
