@@ -32,14 +32,12 @@
        [:tr
         [:td "Score"]
         [:td {:class (when (= p1-id winner) "winner")}
-         (->> match
-              :match/moves
-              (map (fn [move] (if (> (move p1-id) (move p2-id)) (move "trophy") 0)))
+         (->> moves
+              (map (fn [move] (if (> (move p1-id) (move p2-id)) (move :trophy) 0)))
               (apply +))]
         [:td {:class (when (= p2-id winner) "winner")}
-         (->> match
-              :match/moves
-              (map (fn [move] (if (< (move p1-id) (move p2-id)) (move "trophy") 0)))
+         (->> moves
+              (map (fn [move] (if (< (move p1-id) (move p2-id)) (move :trophy) 0)))
               (apply +))]
         [:td]]]
       (into [:<>]
