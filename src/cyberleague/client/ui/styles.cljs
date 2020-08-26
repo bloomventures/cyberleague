@@ -270,7 +270,11 @@
           {:text-align "center"
            :margin-bottom "1em"}]
 
-         [:>.moves
+         [:>.match-results
+          [:>.scrubber
+           [:>input
+            {:width "100%"}]]
+
           (>results)]]]
 
        [:&.code

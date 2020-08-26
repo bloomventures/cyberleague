@@ -9,7 +9,7 @@
        (fn [move {:keys [p1-id p2-id]}]
          [:tbody
           [:tr {:on-click (fn [_] (swap! show-log? not))}
-           [:td (move "trophy")]
+           [:td (move :trophy)]
            [:td {:class (when (> (move p1-id) (move p2-id)) "winner")} (move p1-id)]
            [:td {:class (when (< (move p1-id) (move p2-id)) "winner")} (move p2-id)]
            [:td (if @show-log? "×" "▾")]]
@@ -17,10 +17,9 @@
            [:td {:colSpan 4} "console logging TODO"]]]))))
 
 (defn match-results-view
-  [{:match/keys [bots winner] :as match}]
+  [{:match/keys [bots winner] :as match} states moves]
   (let [p1-id (:bot/id (first bots))
         p2-id (:bot/id (second bots))]
-    (println match)
     [:div.results.goofspiel
      [:table
       [:thead
@@ -44,7 +43,7 @@
               (apply +))]
         [:td]]]
       (into [:<>]
-            (for [move (:match/moves match)]
+            (for [move moves]
               [move-view move {:p1-id p1-id :p2-id p2-id}]))]]))
 
 (defn >results-styles []

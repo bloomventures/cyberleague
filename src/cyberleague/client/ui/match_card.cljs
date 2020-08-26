@@ -17,5 +17,4 @@
          " vs "
          [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} (:bot/name bot2)]])
 
-      [:div.moves
-       [match-results-view match]]]]))
+      [match-results-view match]]]))
