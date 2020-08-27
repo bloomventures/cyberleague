@@ -17,6 +17,8 @@
                         (reduce (fn [memo bot]
                                   (assoc memo (bot :bot/id) bot)) {}))]
     [:div
+     {:style
+      {:font-size 26}}
      [:table
       [:tbody
        (for [[bot-id marker] (state :marker)]
