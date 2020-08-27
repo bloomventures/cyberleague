@@ -21,7 +21,8 @@
                  "W" "⚪️")]])]]
 
     [:table
-     (let [meta-board (state :board)]
+     (let [meta-board (state :board)
+           move (:move (last (get-in state [:history])))]
        [:tbody
         (into [:<>]
               (for [row (partition 8 (range 64))]
@@ -33,7 +34,7 @@
                                (merge {:width "1em"
                                        :height "1em"
                                        :text-align "center"
-                                       :background "lightgreen"
+                                       :background (if (= board-index move) "lightcoral" "lightgreen")
                                        :color "black"
                                        :border "1px solid grey"})} (condp = (meta-board board-index)
                                                                  "B" "⚫️"
