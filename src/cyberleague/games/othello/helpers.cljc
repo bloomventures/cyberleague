@@ -121,6 +121,15 @@
        (squares-to-change current-board stone)
        (make-changes-to-board current-board stone move)))
 
+(defn squares-to-highlight
+  [board stone move]
+  (when board (->> move
+       (neighbouring-squares)
+       (neighbouring-occupied-squares board stone)
+       (valid-directions board stone)
+       (squares-to-change board stone)
+       set)))
+
 (def test-board
   (-> initial-board
       (assoc 43 "W")

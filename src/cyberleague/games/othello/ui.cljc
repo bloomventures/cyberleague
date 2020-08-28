@@ -1,14 +1,7 @@
 (ns cyberleague.games.othello.ui
   (:require
     [reagent.core :as r]
-    [cyberleague.client.ui.colors :as colors]))
-
-(defn get-stone-count
-  [stone-color board]
-  (->> board
-       (filter (fn [square]
-                 (= square stone-color)))
-       count))
+    [cyberleague.games.othello.helpers :as othello]))
 
 (defn marker-view [marker]
   [:span {:style {:display "inline-block"
@@ -29,13 +22,15 @@
   (let [state (last states)
         bots-by-id (->> (match :match/bots)
                         (reduce (fn [memo bot]
-                                  (assoc memo (bot :bot/id) bot)) {}))]
+                                  (assoc memo (bot :bot/id) bot)) {}))
+        prev-state (:board (last (butlast states)))]
     [:div
      [:table.results.othello
       {:style
        {:font-size 26}}
       (let [meta-board (state :board)
-            move (:move (last (get-in state [:history])))]
+            move (:move (last (get-in state [:history])))
+            changed-squares (othello/squares-to-highlight prev-state (othello/other-stone (:current-turn state)) move)]
         [:tbody
          (into [:<>]
                (for [row (partition 8 (range 64))]
@@ -45,7 +40,10 @@
                           [:td {:style
                                 {:text-align "center"
                                  :padding "0.25em"
-                                 :background (if (= board-index move) "lightcoral" "#5bbc5b")
+                                 :background (cond
+                                               (= board-index move) "lightcoral"
+                                               (contains? changed-squares board-index) "blue"
+                                               :else "#5bbc5b")
                                  :border "1px solid #388a38"}}
                            [marker-view (meta-board board-index)]]))]))])]
      [:div {:style {:display "flex"
@@ -55,7 +53,7 @@
         [:div
          [:span (:bot/name (bots-by-id bot-id))] " "
          [:span [marker-view marker]] " "
-         [:span (get-stone-count marker (:board state))]])]]))
+         [:span (othello/stone-count (:board state) marker)]])]]))
 
 (defn match-results-view
   [match state move]
