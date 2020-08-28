@@ -42,7 +42,7 @@
                                  :padding "0.25em"
                                  :background (cond
                                                (= board-index move) "lightcoral"
-                                               (contains? changed-squares board-index) "blue"
+                                               (contains? changed-squares board-index) "#f0808080"
                                                :else "#5bbc5b")
                                  :border "1px solid #388a38"}}
                            [marker-view (meta-board board-index)]]))]))])]
