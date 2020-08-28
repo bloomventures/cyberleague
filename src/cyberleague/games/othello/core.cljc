@@ -8,13 +8,9 @@
    [cyberleague.games.othello.starter-code :as starter-code]))
 
 (def Move
-  [:vector
-   [:and
-    integer?
+  [integer?
     [:>= 0]
-    [:<= 8]
-    [:fn (fn [v]
-           (= 2 (count v)))]]])
+    [:<= 63]])
 
 (cyberleague.game-registrar/register-game!
  {:game.config/name "othello"
@@ -27,47 +23,53 @@
   :game.config/test-bot (pr-str bots/random-valid-bot)
   :game.config/seed-bots [(pr-str bots/random-valid-bot)
                           (pr-str bots/first-valid-bot)]
-  :game.config/public-state-example {:grid [["x" "o" nil nil nil nil nil nil nil]
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))
-                                            (vector (repeat 9 nil))]
-                                     :history [{:player 1234 :move [0 0]}
-                                               {:player 4567 :move [0 1]}]}
-    :game.config/internal-state-spec {:grid [["x" "o" nil nil nil nil nil nil nil]
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))
-                                           (vector (repeat 9 nil))]
-                                    :history [{:player 1234 :move [0 0]}
-                                              {:player 4567 :move [0 1]}]}
+  :game.config/public-state-example {:board ["E" "E" "E" "E" "E" "E" "E" "E"
+                                             "E" "E" "E" "E" "E" "E" "E" "E"
+                                             "E" "E" "E" "E" "W" "E" "E" "E"
+                                             "E" "E" "B" "B" "W" "E" "E" "E"
+                                             "E" "E" "E" "B" "B" "E" "E" "E"
+                                             "E" "E" "E" "E" "E" "B" "E" "E"
+                                             "E" "E" "E" "E" "E" "E" "E" "E"
+                                             "E" "E" "E" "E" "E" "E" "E" "E"]
+                                     :history [{:player 277076930200589 :move 26}
+                                               {:player 277076930200594 :move 20}
+                                               {:player 277076930200589 :move 45}]
+                                     :current-turn "W"
+                                     :available-moves [34 44 25 42]
+                                     :marker {277076930200589 "B" 277076930200594 "W"}}
+  :game.config/internal-state-spec {:board ["E" "E" "E" "E" "E" "E" "E" "E"
+                                            "E" "E" "E" "E" "E" "E" "E" "E"
+                                            "E" "E" "E" "E" "W" "E" "E" "E"
+                                            "E" "E" "B" "B" "W" "E" "E" "E"
+                                            "E" "E" "E" "B" "B" "E" "E" "E"
+                                            "E" "E" "E" "E" "E" "B" "E" "E"
+                                            "E" "E" "E" "E" "E" "E" "E" "E"
+                                            "E" "E" "E" "E" "E" "E" "E" "E"]
+                                    :history [{:player 277076930200589 :move 26}
+                                              {:player 277076930200594 :move 20}
+                                              {:player 277076930200589 :move 45}]
+                                    :current-turn "W"
+                                    :available-moves [34 44 25 42]
+                                    :marker {277076930200589 "B" 277076930200594 "W"}}
 
   :game.config/move-example 32
 
   :game.config/public-state-spec [:map
-                                  [:grid
+                                  [:board
                                    [:vector
-                                    [:and
-                                     [:vector
-                                      [:and
-                                       [:enum "x" "o" nil]
-                                       [:fn (fn [v]
-                                              (= (count v) 9))]]]
-                                     [:fn (fn [v]
-                                            (= (count v) 9))]]]]
+                                    [:vector
+                                     [:and
+                                      [:enum "B" "W" "E"]
+                                      [:fn (fn [v]
+                                             (= (count v) 64))]]]]]
                                   [:history
                                    [:vector
                                     [:map
                                      [:player integer?]
-                                     [:move Move]]]]]
+                                     [:move Move]]]]
+                                  [:available-moves
+                                   [:vector
+                                    [:move Move]]]]
   :game.config/move-spec Move})
 
 
