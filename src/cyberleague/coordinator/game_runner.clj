@@ -3,6 +3,7 @@
    [clojure.data.json :as json]
    [cyberleague.coordinator.evaluators.api :as evaluator.api]
    [cyberleague.coordinator.evaluators.clojure]
+   [cyberleague.coordinator.evaluators.javascript]
    [cyberleague.games.protocol :as game-engine.protocol]))
 
 (defn eval-move

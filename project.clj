@@ -19,6 +19,9 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [org.clojure/data.json "1.0.0"]
                  [borkdude/sci "0.1.1-alpha.6"]
+                 ;; if need macos or windows, see:
+                 ;; https://search.maven.org/search?q=g:com.eclipsesource.j2v8
+                 [com.eclipsesource.j2v8/j2v8_linux_x86_64 "4.8.0"]
 
                  ;; registrar
                  [metosin/malli "0.0.1-20200719.212415-23"]]

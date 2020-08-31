@@ -77,8 +77,8 @@
            (into [:<>]
                  (->> [{:name "Clojure"
                         :language "clojure"}
-                       #_{:name "JavaScript"
-                          :language "javascript"}]
+                       {:name "JavaScript"
+                        :language "javascript"}]
                       (map (fn [language]
                              [:a {:on-click (fn [_]
                                               (state/bot-set-language! (:id @bot)
