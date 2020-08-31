@@ -13,7 +13,13 @@
      move-index (r/atom max-value)]
     [:div.match-results
      [:div.scrubber
-      [:div (str "Turn " @move-index "/" max-value)]
+      [:div.row
+       [:button {:on-click (fn [] (swap! move-index dec))
+                 :disabled (= 0 @move-index)}
+        "<"]
+       (str "Turn " @move-index "/" max-value)
+       [:button {:on-click (fn [] (swap! move-index inc))
+                 :disabled (= max-value @move-index)} ">"]]
       [:input {:type "range"
                :min 0
                :max max-value

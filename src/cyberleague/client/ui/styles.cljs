@@ -272,6 +272,10 @@
 
          [:>.match-results
           [:>.scrubber
+           [:>.row
+            {:display "flex"
+             :justify-content "space-between"
+             :align-items "center"}]
            [:>input
             {:width "100%"}]]
 
