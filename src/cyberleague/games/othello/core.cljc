@@ -15,7 +15,11 @@
 (cyberleague.game-registrar/register-game!
  {:game.config/name "othello"
   :game.config/description
-  (str "Othello")
+  (str "Othello is a two player game played on an 8x8 board.\n"
+       "The game is played with discs that are black on one side and white on the other.\n"
+       "Players take turns placing a disc so that one or more of their opponents discs are enclosed between two of their own discs in a straight line.\n"
+       "Play continues until there are no legal moves available for the current player.\n"
+       "The player with the most discs showing their color on the board wins.")
   :game.config/rules ""
   :game.config/match-results-view ui/match-results-view
   :game.config/match-results-styles ui/>results-styles
