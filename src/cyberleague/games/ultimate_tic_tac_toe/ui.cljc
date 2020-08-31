@@ -51,24 +51,32 @@
      {:border-right (str "1px solid " color)
       :border-left (str "1px solid " color)})))
 
+
+(def p1-color "rgb(0,0,255)")
+(def p2-color "rgb(255,0,0)")
+(def p1-color-bg "rgba(0,0,255,0.1)")
+(def p2-color-bg "rgba(255,0,0,0.1)")
+
+(defn marker-view [marker]
+  [:span {:style {:color (case marker
+                           "x" p1-color
+                           "o" p2-color
+                           "transparent")
+
+                  }}
+   (case marker
+     "x" "×"
+     "o" "○"
+     nil "\u00a0")])
+
 (defn match-results-view*
   [match states _]
   (let [state (last states)
-        p1-color "rgb(0,0,255)"
-        p2-color "rgb(255,0,0)"
-        p1-color-bg "rgba(0,0,255,0.1)"
-        p2-color-bg "rgba(255,0,0,0.1)"
         bots-by-id (->> (match :match/bots)
                         (reduce (fn [memo bot]
                                   (assoc memo (bot :bot/id) bot)) {}))]
     [:div
-     [:table
-      [:tbody
-       (for [[bot-id marker] (state :marker)]
-         ^{:key bot-id}
-         [:tr
-          [:td (:bot/name (bots-by-id bot-id))]
-          [:td marker]])]]
+
 
      [:table.results.ultimate-tic-tac-toe
       (let [meta-board (->> (state :grid)
@@ -103,20 +111,20 @@
                                                   [:td {:style (merge {:width "1em"
                                                                        :height "1em"
                                                                        :text-align "center"
-                                                                       :color (case play
-                                                                                "x" p1-color
-                                                                                "o" p2-color
-                                                                                "transparent")
                                                                        :background (if winning-cell?
                                                                                      (case winner
                                                                                        "x" p1-color-bg
                                                                                        "o" p2-color-bg)
                                                                                      "transparent")}
                                                                       (->border-styles subboard-index "#aaa"))}
-                                                   (case play
-                                                     "x" "×"
-                                                     "o" "○"
-                                                     nil "\u00a0")])))]))])]]))]))])]]))
+                                                   [marker-view play]])))]))])]]))]))])]
+     [:div {:style {:display "flex"
+                    :justify-content "space-between"}}
+      (for [[bot-id marker] (state :marker)]
+         ^{:key bot-id}
+         [:div
+          [:span (:bot/name (bots-by-id bot-id))] " "
+          [:span [marker-view marker]]])]]))
 
 ;; have an intermediary view, just so it refreshes nicely with reagent + the game registry
 (defn match-results-view
