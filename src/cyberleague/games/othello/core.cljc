@@ -25,8 +25,10 @@
   :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code
   :game.config/test-bot (pr-str bots/random-valid-bot)
-  :game.config/seed-bots [(pr-str bots/random-valid-bot)
-                          (pr-str bots/first-valid-bot)]
+  :game.config/seed-bots [{:code/language "clojure"
+                           :code/code (pr-str bots/random-valid-bot)}
+                          {:code/language "clojure"
+                           :code/code (pr-str bots/first-valid-bot)}]
   :game.config/public-state-example {:board ["E" "E" "E" "E" "E" "E" "E" "E"
                                              "E" "E" "E" "E" "E" "E" "E" "E"
                                              "E" "E" "E" "E" "W" "E" "E" "E"

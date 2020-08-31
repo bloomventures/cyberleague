@@ -21,7 +21,10 @@
     [:map-of string?  string?]]
    [:game.config/test-bot string?]
    [:game.config/seed-bots
-    [:vector string?]]
+    [:vector
+     [:map
+      [:code/code string?]
+      [:code/language string?]]]]
    [:game.config/public-state-example some?]
    [:game.config/move-example some?]
    [:game.config/public-state-spec MalliSchema]

@@ -55,5 +55,7 @@
                                    (entity :bot/game-name))))
             bot (db/with-conn
                   (db/create-bot user-id game-id))]
-        (db/with-conn (db/update-bot-code (:db/id bot) (entity :bot/code)))
+        (db/with-conn (db/update-bot-code (:db/id bot)
+                                          (-> entity :bot/code :code/code)
+                                          (-> entity :bot/code :code/language)))
         (db/with-conn (db/deploy-bot (:db/id bot)))))))

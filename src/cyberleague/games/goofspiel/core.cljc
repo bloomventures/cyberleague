@@ -66,6 +66,11 @@
   :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code
   :game.config/test-bot (pr-str bots/random-bot)
-  :game.config/seed-bots [(pr-str bots/random-bot)
-                          (pr-str bots/current-trophy-bot)
-                          (pr-str bots/other-bot)]})
+  :game.config/seed-bots [{:code/language "clojure"
+                           :code/code (pr-str bots/random-bot)}
+                          {:code/language "clojure"
+                           :code/code (pr-str bots/current-trophy-bot)}
+                          {:code/language "clojure"
+                           :code/code (pr-str bots/other-bot)}
+                          {:code/language "javascript"
+                           :code/code bots/js-random-bot}]})
