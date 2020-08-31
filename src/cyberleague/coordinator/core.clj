@@ -3,6 +3,7 @@
   (:require
    [datomic.api :as d]
    [cyberleague.db.core :as db]
+   [cyberleague.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
    [cyberleague.coordinator.ranking :as ranking]))
 
@@ -74,7 +75,7 @@
   (while @run?
     (doseq [[game all-bots] (db/with-conn (db/active-bots))]
       (run-one-game! game all-bots)
-      (Thread/sleep 1000))))
+      (Thread/sleep (config :coordinator-delay)))))
 
 (defn start! []
   (when (not @run?)

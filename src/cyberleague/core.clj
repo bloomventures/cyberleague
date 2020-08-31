@@ -19,11 +19,11 @@
 (defn start! []
   (seed/seed!)
   (omni/start! omni/system omni-config)
-  #_(coordinator/start!))
+  (coordinator/start!))
 
 (defn stop! []
   (omni/stop!)
-  #_(coordinator/stop!))
+  (coordinator/stop!))
 
 (defn restart! []
   (stop!)
