@@ -165,7 +165,7 @@
         (if-let [user-id (get-in request [:session :id])]
           (let [bot-id (get-in request [:params :bot-id])
                 bot (db/with-conn (db/get-bot (to-long bot-id)))
-                code (get-in request [:body-params :code])]
+                code (get-in request [:body-params :bot/code])]
             (if (= user-id (:db/id (:bot/user bot)))
               (do
                 (db/with-conn (db/update-bot-code (:db/id bot) code (:code/language (:bot/code bot))))
