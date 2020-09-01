@@ -14,7 +14,7 @@
         (nil? (:winner match))
         "Tie!"
 
-        (= (:id bot) (:winner match))
+        (= (:bot/id bot) (:winner match))
         "You Won!"
 
         :else
