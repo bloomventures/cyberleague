@@ -7,45 +7,46 @@
     [cyberleague.client.ui.test :refer [test-view]]))
 
 (defn code-card-view
-  [{:keys [data] :as card}]
+  [{:keys [card/data] :as card}]
   (let [status (r/atom :saved) ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
-        bot-id (:id data)
+        bot-id (:bot/id data)
         bot (r/atom data)
         test-match (r/atom nil)
         save! (fn [value]
                 (reset! status :saving)
-                (state/edn-xhr {:url (str "/api/bots/" bot-id "/code")
-                                :method :put
-                                :data {:code value}
-                                :on-complete (fn [result]
-                                               (reset! status :saved))}))
+                (state/edn-xhr {:xhr/url (str "/api/bots/" bot-id "/code")
+                                :xhr/method :put
+                                :xhr/data {:bot/code value}
+                                :xhr/on-complete (fn [result]
+                                                   (reset! status :saved))}))
         debounced-save! (debounce save! 750)
         test! (fn []
                 (reset! status :testing)
                 (state/edn-xhr
-                  {:url (str "/api/bots/" bot-id "/test")
-                   :method :post
-                   :on-complete (fn [match]
-                                  (reset! status (if (:error match) :failed :passed))
-                                  (reset! test-match match))}))
+                 {:xhr/url (str "/api/bots/" bot-id "/test")
+                  :xhr/method :post
+                  :xhr/on-complete (fn [match]
+                                     (reset! status (if (:error match) :failed :passed))
+                                     (reset! test-match match))}))
         deploy! (fn []
                   (reset! status :deploying)
                   (state/edn-xhr
-                    {:url (str "/api/bots/" bot-id "/deploy")
-                     :method :post
-                     :on-complete (fn [result]
-                                    (reset! status :deployed)
-                                    (state/nav! :bot bot-id))}))]
+                   {:xhr/url (str "/api/bots/" bot-id "/deploy")
+                    :xhr/method :post
+                    :xhr/on-complete (fn [result]
+                                       (reset! status :deployed)
+                                       (state/nav! :bot :bot/id))}))]
     (fn [_]
       [:div.card.code
        [:header
-        [:span (:name @bot)]
-        [:a {:on-click (fn [_] (state/nav! :game (:id (:game @bot))))} (str "#" (:name (:game @bot)))]
-        (if (:id (:user @bot))
+        [:span (:bot/name @bot)]
+        [:a {:on-click (fn [_] (state/nav! :game (:game/id (:bot/game @bot))))} (str "#" (:game/name (:bot/game @bot)))]
+        (if (:user/id (:bot/user @bot))
+          ;; "do later"
           [:a {:on-click (fn [_] (state/nav! :user (:id (:user @bot))))} (str "@" (:name (:user @bot)))]
           [:a {:on-click (fn [_] (state/log-in!))} "Log in with Github to save your bot"])
         [:div.gap]
-        (when (:code @bot)
+        (when (:code/code @bot)
           [:div.status
            (case @status
              :editing ""
@@ -66,12 +67,12 @@
              :deployed "Deployed!")])
         [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
        [:div.content
-        (if (:language @bot)
+        (if (:code/language @bot)
           [code-editor-view {:on-change (fn [value]
                                           (reset! status :editing)
                                           (debounced-save! value))
-                             :language (:language @bot)
-                             :value (:code @bot)}]
+                             :language (:code/language @bot)
+                             :value (:code/code @bot)}]
           [:div.lang-pick
            [:h2 "Pick a language:"]
            (into [:<>]
@@ -81,9 +82,11 @@
                         :language "javascript"}]
                       (map (fn [language]
                              [:a {:on-click (fn [_]
-                                              (state/bot-set-language! (:id @bot)
+                                              (state/bot-set-language! (:bot/id @bot)
                                                                        (:language language)
                                                                        (fn [data]
-                                                                         (swap! bot (fn [b] (merge b data))))))}
+                                                                         (swap! bot (fn [b]
+                                                                                      (merge b data))))))}
+
                               (:name language)]))))])
         [test-view @test-match @bot]]])))

@@ -19,12 +19,13 @@
                              :bot/code (:bot/code bot)))
         result (game-runner/run-game (into {} (:bot/game bot))
                                      [coded-bot random-bot])]
-    {:game {:name game-name}
-     :bots [{:id (:db/id bot)
-             :name "You"}
-            {:id random-bot-id
-             :name "Them"}]
-     :moves (result :history)
-     :winner (result :winner)
-     :error (result :error)
-     :info (result :info)}))
+    {:match/game {:game/name game-name}
+     :match/state-history (result :game.result/state-history)
+     :match/bots [{:bot/id (:db/id bot)
+             :bot/name "You"}
+            {:bot/id random-bot-id
+             :bot/name "Them"}]
+     :match/moves (result :game.result/history)
+     :winner (result :game.result/winner)
+     :match/error (result :game.result/error)
+     :match/info (result :info)}))
