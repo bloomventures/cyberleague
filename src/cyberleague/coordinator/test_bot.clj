@@ -14,9 +14,10 @@
                     :bot/code {:code/code (get-in @registrar/games [game-name :game.config/test-bot])
                                :code/language "clojure"}}
         coded-bot (-> (into {} bot)
-                      (assoc :db/id (:db/id bot)
-                             :bot/code-version (rand-int 10000000)
-                             :bot/code (:bot/code bot)))
+                      (assoc
+                        :db/id (:db/id bot)
+                        :bot/code-version (rand-int 10000000)
+                        :bot/code (:bot/code bot)))
         result (game-runner/run-game (into {} (:bot/game bot))
 
                                      [coded-bot random-bot])]
