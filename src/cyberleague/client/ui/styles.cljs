@@ -18,6 +18,18 @@
        (mapv (fn [game]
                ((:game.config/match-results-styles game))))))
 
+(defn >match-results []
+  [:>.match-results
+   [:>.scrubber
+    [:>.row
+     {:display "flex"
+      :justify-content "space-between"
+      :align-items "center"}]
+    [:>input
+     {:width "100%"}]]
+
+   (>results)])
+
 (def styles
   [:body
    {:background "#eeeeee"
@@ -270,16 +282,7 @@
           {:text-align "center"
            :margin-bottom "1em"}]
 
-         [:>.match-results
-          [:>.scrubber
-           [:>.row
-            {:display "flex"
-             :justify-content "space-between"
-             :align-items "center"}]
-           [:>input
-            {:width "100%"}]]
-
-          (>results)]]]
+         (>match-results)]]
 
        [:&.code
         {:min-width "800px"}
@@ -330,7 +333,7 @@
            :background "#f7f7f7"
            :border-left "1px solid #ddd"}
 
-          (>results)]]]]]]]])
+          (>match-results)]]]]]]]])
 
 (def css
   (garden/css flash styles))
