@@ -127,8 +127,8 @@
           (if (= user-id (:db/id (:bot/user bot)))
             {:body {:bot/id (:db/id bot)
                     :bot/name (:bot/name bot)
-                    :bot/code (:code/code (:bot/code bot))
-                    :bot/language (:code/language (:bot/code bot))
+                    :bot/code {:code/code (:code/code (:bot/code bot))
+                               :code/language (:code/language (:bot/code bot))}
                     :bot/user (let [user (:bot/user bot)]
                                 {:user/id (:db/id user)
                                  :user/name (:user/name user)
@@ -156,8 +156,8 @@
             (let [game (get-in bot [:bot/game :game/name])
                   code (get-in @registrar/games [game :game.config/starter-code language])
                   bot (db/with-conn (db/update-bot-code (to-long bot-id) code language))]
-              {:body {:code/code (:code/code (:bot/code bot))
-                      :code/language (:code/language (:bot/code bot))}})
+              {:body {:bot/code {:code/code (:code/code (:bot/code bot))
+                                 :code/language (:code/language (:bot/code bot))}}})
             {:status 500})))]
 
      [[:put "/api/bots/:bot-id/code"]
