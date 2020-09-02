@@ -26,8 +26,8 @@
                  {:xhr/url (str "/api/bots/" bot-id "/test")
                   :xhr/method :post
                   :xhr/on-complete (fn [match]
-                                     (reset! status (if (:error match) :failed :passed))
-                                     (reset! test-match match))}))
+                                     (reset! status (if (nil? (:match/moves match)) :failed :passed))
+                                     (when (= @status :passed) (reset! test-match match)))}))
         deploy! (fn []
                   (reset! status :deploying)
                   (state/edn-xhr
@@ -57,7 +57,9 @@
              :testing "Testing..."
              :passed [:<>
                       [:a.button.test
-                       {:on-click (fn [_] (test!))}
+                       {:on-click (fn [_]
+                                    (reset! test-match nil)
+                                    (test!))}
                        "RE-TEST"]
                       [:a.button.deploy
                        {:on-click (fn [_] (deploy!))}
