@@ -28,7 +28,7 @@
                                                  :bot/code (db/deployed-code (:db/id player-1))))
                    (-> (into {} player-2) (assoc :db/id (:db/id player-2)
                                                  :bot/code (db/deployed-code (:db/id player-2))))]))]
-    (println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:winner result)))
+    #_(println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:game.result/winner result)))
     (if (false? (:game.result/error result))
       ; TODO: handle ties?
       (db/with-conn
