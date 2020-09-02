@@ -35,7 +35,7 @@
                     :xhr/method :post
                     :xhr/on-complete (fn [result]
                                        (reset! status :deployed)
-                                       (state/nav! :bot :bot/id))}))]
+                                       (state/nav! :card.type/bot (:bot/id @bot)))}))]
     (fn [_]
       [:div.card.code
        [:header
