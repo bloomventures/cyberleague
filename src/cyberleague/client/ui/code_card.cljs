@@ -27,7 +27,8 @@
                   :xhr/method :post
                   :xhr/on-complete (fn [match]
                                      (reset! status (if (nil? (:match/moves match)) :failed :passed))
-                                     (when (= @status :passed) (reset! test-match match)))}))
+                                    (reset! test-match match)
+                                     )}))
         deploy! (fn []
                   (reset! status :deploying)
                   (state/edn-xhr

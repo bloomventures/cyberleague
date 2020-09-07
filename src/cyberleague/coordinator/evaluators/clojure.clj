@@ -20,5 +20,5 @@
                                                "CODE" code
                                                "STATE" (pr-str state)))))
         move (sci/eval-string string-to-eval
-                              {:bindings {'println println} :realize-max 10})]
+                              {:bindings {'println println}})]
     (json/write-str move)))

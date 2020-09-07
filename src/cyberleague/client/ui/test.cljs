@@ -8,8 +8,8 @@
    (when match
      [:p
       (cond
-        (:error match)
-        (:info match)
+        (:match/info match)
+        (:match/info match)
 
         (nil? (:winner match))
         "Tie!"
@@ -19,5 +19,5 @@
 
         :else
         "You Lost!")])
-   (when match
+   (when (and match (nil? (:match/info match)))
      [match-results-view match])])
