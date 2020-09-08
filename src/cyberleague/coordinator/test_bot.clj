@@ -18,7 +18,9 @@
                              :bot/code-version (rand-int 10000000)
                              :bot/code (:bot/code bot)))
         result (game-runner/run-game (into {} (:bot/game bot))
+
                                      [coded-bot random-bot])]
+    (when result
     {:match/game {:game/name game-name}
      :match/state-history (result :game.result/state-history)
      :match/bots [{:bot/id (:db/id bot)
@@ -28,4 +30,4 @@
      :match/moves (result :game.result/history)
      :winner (result :game.result/winner)
      :match/error (result :game.result/error)
-     :match/info (result :info)}))
+     :match/info (result :info)})))
