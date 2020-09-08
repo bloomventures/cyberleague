@@ -21,14 +21,13 @@
 
                                      [coded-bot random-bot])]
     (when result
-    {:match/game {:game/name game-name}
-    (when result {:match/game {:game/name game-name}
-     :match/state-history (result :game.result/state-history)
-     :match/bots [{:bot/id (:db/id bot)
-             :bot/name "You"}
-            {:bot/id random-bot-id
-             :bot/name "Them"}]
-     :match/moves (result :game.result/history)
-     :winner (result :game.result/winner)
-     :match/error (result :game.result/error)
-     :match/info (result :info)})))
+      {:match/game {:game/name game-name}
+       :match/state-history (result :game.result/state-history)
+       :match/bots [{:bot/id (:db/id bot)
+                     :bot/name "You"}
+                    {:bot/id random-bot-id
+                     :bot/name "Them"}]
+       :match/moves (result :game.result/history)
+       :winner (result :game.result/winner)
+       :match/error (result :game.result/error)
+       :match/info (result :info)})))
