@@ -22,6 +22,7 @@
                                      [coded-bot random-bot])]
     (when result
     {:match/game {:game/name game-name}
+    (when result {:match/game {:game/name game-name}
      :match/state-history (result :game.result/state-history)
      :match/bots [{:bot/id (:db/id bot)
              :bot/name "You"}
