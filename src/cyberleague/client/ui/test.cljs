@@ -4,20 +4,20 @@
 
 (defn test-view
   [match bot]
-  [:div.test
-   (when match
-     [:p
-      (cond
-        (:error match)
-        (:info match)
+  (when match
+    [:div.test
+     ;; match/info contains error information if there is an error
+     (if (:match/info match)
+       [:p (:match/info match)]
+       [:<>
+        [:p
+         (cond
+           (nil? (:winner match))
+           "Tie!"
 
-        (nil? (:winner match))
-        "Tie!"
+           (= (:bot/id bot) (:winner match))
+           "You Won!"
 
-        (= (:bot/id bot) (:winner match))
-        "You Won!"
-
-        :else
-        "You Lost!")])
-   (when match
-     [match-results-view match])])
+           :else
+           "You Lost!")]
+        [match-results-view match]])]))
