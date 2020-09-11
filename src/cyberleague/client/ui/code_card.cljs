@@ -8,7 +8,9 @@
 
 (defn code-card-view
   [{:keys [card/data] :as card}]
-  (let [status (r/atom :picking-language) ; :picking-language :saved :editing :saving :testing :passed/:failed :deploying :deployed
+  (let [status (r/atom (if (-> data :bot/code :code/language)
+                        :saved
+                        :picking-language)) ; :picking-language :saved :editing :saving :testing :passed/:failed :deploying :deployed
         bot-id (:bot/id data)
         bot (r/atom data)
         test-match (r/atom nil)
