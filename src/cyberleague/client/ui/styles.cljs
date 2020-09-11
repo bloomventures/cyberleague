@@ -318,8 +318,7 @@
             {:padding-top "1em"}]]]
 
          [:>.lang-pick
-          {:width "70%"
-           :padding "1em"
+          {:padding "1em"
            :line-height 1.5}
 
           [:>h2
@@ -329,7 +328,7 @@
            {:display "block"}]]
 
          [:>.test
-          {:width "30%"
+          {:flex-grow 0
            :background "#f7f7f7"
            :border-left "1px solid #ddd"}
 
