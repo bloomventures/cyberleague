@@ -109,6 +109,7 @@
                               {:user/id (:db/id user)
                                :user/name (:user/name user)
                                :user/gh-id (:user/gh-id user)})
+                  :bot/code {:code/language (get-in bot [:bot/code :code/language])}
                   :bot/history history
                   :bot/matches (map (fn [match]
                                       {:match/id (:db/id match)

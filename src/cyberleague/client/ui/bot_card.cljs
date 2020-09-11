@@ -25,6 +25,7 @@
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
 
      [:div.content
+      [:div.language (-> bot :bot/code :code/language)]
       [graph-view (:bot/history bot)]
       [:table.matches
        [:thead]
