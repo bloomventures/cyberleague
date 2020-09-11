@@ -13,18 +13,18 @@
       [:table
        [:thead
         [:tr
-         [:th "Game"]
          [:th "Bot"]
-         [:th "Rating"]]]
+         [:th "Rating"]
+         [:th "Game"]]]
        [:tbody
         (for [bot (:user/bots user)]
           ^{:key (:bot/id bot)}
           [:tr
            [:td
-            [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-             (str "#" (:game/name (:bot/game bot)))]]
-           [:td
             [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
              (if (= :active (:bot/status bot)) "●" "○") " "
              (:bot/name bot)]]
-           [:td (:bot/rating bot)]])]]]]))
+           [:td (:bot/rating bot)]
+           [:td
+            [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+             (str "#" (:game/name (:bot/game bot)))]]])]]]]))
