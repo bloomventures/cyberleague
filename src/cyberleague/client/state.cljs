@@ -142,3 +142,22 @@
             :xhr/method :post
             :xhr/on-complete (fn [data]
                                (nav! :card.type/code (:id data)))}))
+
+(defn bot-save!
+  [bot-id value cb]
+  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/code")
+            :xhr/method :put
+            :xhr/data {:bot/code value}
+            :xhr/on-complete (fn [result] (cb result))}))
+
+(defn bot-test
+  [bot-id cb]
+  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/test")
+            :xhr/method :post
+            :xhr/on-complete (fn [match] (cb match))}))
+
+(defn bot-deploy!
+  [bot-id cb]
+  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/deploy")
+            :xhr/method :post
+            :xhr/on-complete (fn [result] (cb result))}))

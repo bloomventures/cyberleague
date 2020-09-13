@@ -9,35 +9,26 @@
 (defn code-card-view
   [{:keys [card/data] :as card}]
   (let [status (r/atom (if (-> data :bot/code :code/language)
-                        :saved
-                        :picking-language)) ; :picking-language :saved :editing :saving :testing :passed/:failed :deploying :deployed
+                         :saved
+                         :picking-language)) ; :picking-language :saved :editing :saving :testing :passed/:failed :deploying :deployed
         bot-id (:bot/id data)
         bot (r/atom data)
         test-match (r/atom nil)
         save! (fn [value]
                 (reset! status :saving)
-                (state/edn-xhr {:xhr/url (str "/api/bots/" bot-id "/code")
-                                :xhr/method :put
-                                :xhr/data {:bot/code value}
-                                :xhr/on-complete (fn [result]
-                                                   (reset! status :saved))}))
+                (state/bot-save! bot-id value (fn [_]
+                                               (reset! status :saved))))
         debounced-save! (debounce save! 750)
         test! (fn []
                 (reset! status :testing)
-                (state/edn-xhr
-                 {:xhr/url (str "/api/bots/" bot-id "/test")
-                  :xhr/method :post
-                  :xhr/on-complete (fn [match]
-                                     (reset! status (if (nil? (:match/moves match)) :failed :passed))
-                                     (reset! test-match match))}))
+                (state/bot-test bot-id (fn [match]
+                                         (reset! status (if (nil? (:match/moves match)) :failed :passed))
+                                         (reset! test-match match))))
         deploy! (fn []
                   (reset! status :deploying)
-                  (state/edn-xhr
-                   {:xhr/url (str "/api/bots/" bot-id "/deploy")
-                    :xhr/method :post
-                    :xhr/on-complete (fn [result]
-                                       (reset! status :deployed)
-                                       (state/nav! :card.type/bot (:bot/id @bot)))}))]
+                  (state/bot-deploy! bot-id (fn [_]
+                                             (reset! status :deployed)
+                                             (state/nav! :card.type/bot (:bot/id @bot)))))]
     (fn [_]
       [:div.card.code
        [:header
