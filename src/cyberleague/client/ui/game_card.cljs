@@ -19,6 +19,7 @@
       [:table
        [:thead
         [:tr
+         [:th]
          [:th "Rank"]
          [:th "Bot"]
          [:th "Rating"]
@@ -34,7 +35,9 @@
                (map-indexed (fn [rank bot]
                               ^{:key (:bot/id bot)}
                               [:tr
-                               [:td rank]
+                               [:td (when (= (:bot/user-id bot) (:user/id @state/user))
+                                      "★")]
+                               [:td (inc rank)]
                                [:td
                                 [:a {:on-click (fn [_]
                                                  (state/nav! :card.type/bot (:bot/id bot)))}
