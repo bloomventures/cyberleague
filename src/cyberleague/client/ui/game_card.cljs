@@ -34,9 +34,11 @@
                (map-indexed (fn [rank bot]
                               ^{:key (:bot/id bot)}
                               [:tr
-                               [:td rank]
+                               [:td (inc rank)]
                                [:td
-                                [:a {:on-click (fn [_]
+                                [:a {:style (when (= (:bot/user bot) (:user/id @state/user))
+                                              {:backgroundColor "#3f51b54a"})
+                                     :on-click (fn [_]
                                                  (state/nav! :card.type/bot (:bot/id bot)))}
                                  (if (= :active (:bot/status bot))
                                    "●"

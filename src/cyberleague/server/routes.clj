@@ -73,7 +73,8 @@
                   :game/description (:game/description game)
                   :game/bots (->> bots
                                   (map (fn [bot]
-                                         {:bot/name (:bot/name bot)
+                                         {:bot/user (-> bot :bot/user :db/id)
+                                          :bot/name (:bot/name bot)
                                           :bot/rating (:bot/rating bot)
                                           :bot/status (if (nil? (:bot/code-version bot)) :inactive :active)
                                           :bot/id (:db/id bot)})))}}))]
