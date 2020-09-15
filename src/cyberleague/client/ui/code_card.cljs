@@ -21,9 +21,9 @@
         debounced-save! (debounce save! 750)
         test! (fn []
                 (reset! status :testing)
-                (state/bot-test bot-id (fn [match]
-                                         (reset! status (if (nil? (:match/moves match)) :failed :passed))
-                                         (reset! test-match match))))
+                (state/bot-test! bot-id (fn [match]
+                                          (reset! status (if (nil? (:match/moves match)) :failed :passed))
+                                          (reset! test-match match))))
         deploy! (fn []
                   (reset! status :deploying)
                   (state/bot-deploy! bot-id (fn [_]
