@@ -29,21 +29,17 @@
 
 (defn update-rankings! [p1 p2 winner]
   (let [[p1r p1rd] (glicko
-                     (:bot/rating p1) (:bot/rating-dev p1)
-                     (:bot/rating p2) (:bot/rating-dev p2)
-                     (cond
-                       (= winner (:db/id p1)) :win
-                       (nil? winner) :tie
-                       :else :loss))
+                    (:bot/rating p1) (:bot/rating-dev p1)
+                    (:bot/rating p2) (:bot/rating-dev p2)
+                    (cond
+                      (= winner (:db/id p1)) :win
+                      (nil? winner) :tie
+                      :else :loss))
         [p2r p2rd] (glicko
-                     (:bot/rating p2) (:bot/rating-dev p2)
-                     (:bot/rating p1) (:bot/rating-dev p1)
-                     (cond
-                       (= winner (:db/id p2)) :win
-                       (nil? winner) :tie
-                       :else :loss))]
-    (d/transact db/*conn*
-      [[:db/add (:db/id p1) :bot/rating (Math/max 0 (Math/round p1r))]
-       [:db/add (:db/id p2) :bot/rating (Math/max 0 (Math/round p2r))]
-       [:db/add (:db/id p1) :bot/rating-dev (Math/max 50 (Math/round p1rd))]
-       [:db/add (:db/id p2) :bot/rating-dev (Math/max 50 (Math/round p2rd))]])))
+                    (:bot/rating p2) (:bot/rating-dev p2)
+                    (:bot/rating p1) (:bot/rating-dev p1)
+                    (cond
+                      (= winner (:db/id p2)) :win
+                      (nil? winner) :tie
+                      :else :loss))]
+    (db/update-rankings! p1 p1r p1rd p2 p2r p2rd)))
