@@ -280,7 +280,12 @@
 
          [:>h1
           {:text-align "center"
-           :margin-bottom "1em"}]
+           :margin-bottom "1em"}
+
+          [:>.winner
+           [:&:before
+            {:content "\" \""
+             :font-family "fontawesome"}]]]
 
          (>match-results)]]
 
