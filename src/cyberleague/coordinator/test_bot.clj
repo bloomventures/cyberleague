@@ -30,5 +30,5 @@
                      :bot/name "Them"}]
        :match/moves (result :game.result/history)
        :winner (result :game.result/winner)
-       :match/error (result :game.result/error)
+       :match/error (or (:game.result/error result) (result :error))
        :match/info (result :info)})))
