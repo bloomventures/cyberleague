@@ -7,8 +7,10 @@
   (when match
     [:div.test
      ;; match/info contains error information if there is an error
-     (if (:match/info match)
-       [:p (:match/info match)]
+     (if (:match/error match)
+       [:<>
+        [:p "Error: " (:match/error match)]
+        [:p "Info: " (:match/info match)]]
        [:<>
         [:p
          (cond
