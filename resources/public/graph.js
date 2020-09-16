@@ -18,7 +18,7 @@ var bot_graph = function(el, data){
 
   var y = d3.scale.linear()
     .range([height,0])
-    .domain([0, 2500]);
+    .domain([0, 3500]);
 
   var tornadoArea = d3.svg.area()
     .interpolate('step')
@@ -33,7 +33,7 @@ var bot_graph = function(el, data){
 
   var yAxis = d3.svg.axis()
     .scale(y)
-    .tickValues([0, 500, 1000, 1500, 2000, 2500])
+    .tickValues([0, 500, 1000, 1500, 2000, 2500, 3000, 3500])
     .orient("left");
 
   var graph = d3.select(el).append('svg')
