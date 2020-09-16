@@ -1,7 +1,6 @@
 (ns cyberleague.coordinator.core
   (:gen-class)
   (:require
-   [datomic.api :as d]
    [cyberleague.db.core :as db]
    [cyberleague.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
@@ -44,9 +43,7 @@
         (let [errd-bot (if (= (:db/id player-1) (:bot result))
                          player-1 player-2)]
           (println "Exception executing, will disable:" (:db/id errd-bot) (:info result))
-          (db/with-conn
-            (d/transact db/*conn*
-                        [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
+          (db/disable-bot! errd-bot))
         (let [[winner cheater] (if (= (get-in result [:move :bot]) (:db/id player-1))
                                  [player-2 player-1]
                                  [player-1 player-2])]
@@ -57,9 +54,7 @@
                                :match/moves (pr-str (conj (get-in result [:game-state :history])
                                                           (get-in result [:move :move])))
                                :match/winner (:db/id winner)})
-            (d/transact db/*conn*
-                        [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
-                         [:db/retract (:db/id cheater) :bot/code-version (:bot/code-version cheater)]])))))))
+            (db/disable-cheater! cheater)))))))
 
 #_(let [[game bots] (first (db/with-conn (db/active-bots)))]
     (->> bots

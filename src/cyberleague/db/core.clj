@@ -252,3 +252,15 @@
                [:db/add (:db/id p2) :bot/rating (Math/max 0 (Math/round p2r))]
                [:db/add (:db/id p1) :bot/rating-dev (Math/max 50 (Math/round p1rd))]
                [:db/add (:db/id p2) :bot/rating-dev (Math/max 50 (Math/round p2rd))]]))
+
+(defn disable-bot!
+  [errd-bot]
+  (with-conn
+    (d/transact *conn*
+                [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
+
+(defn disable-cheater!
+  [cheater]
+  (d/transact *conn*
+              [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
+              (disable-bot! cheater)]))
