@@ -4,20 +4,7 @@
    [cyberleague.coordinator.evaluators.api :as evaluator.api]
    [cyberleague.coordinator.evaluators.clojure]
    [cyberleague.coordinator.evaluators.javascript]
-   [cyberleague.games.protocol :as game-engine.protocol])
- (:import (java.util.concurrent TimeoutException TimeUnit FutureTask)) )
-
-(defn test-move
-  [function ms]
-  (let [task (FutureTask. function)
-        thread (Thread. task)]
-    (try
-      (.start thread)
-      (.get task ms TimeUnit/MILLISECONDS)
-      (catch TimeoutException e
-        (.cancel task true)
-        (.stop thread)
-        (throw (TimeoutException. "Execution timed out."))))))
+   [cyberleague.games.protocol :as game-engine.protocol]))
 
 (defn eval-move
   [bot state]
@@ -29,7 +16,7 @@
 
 (defn run-move [bot state game-engine]
   (let [move (try
-               (test-move (fn [] (eval-move bot (game-engine.protocol/anonymize-state-for game-engine (:db/id bot) state))) 100)
+               (eval-move bot (game-engine.protocol/anonymize-state-for game-engine (:db/id bot) state))
                (catch Exception e
                  (throw (ex-info "GameError"
                                  {:error :exception-executing
