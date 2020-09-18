@@ -12,14 +12,10 @@
       (when (> (.length parameters) 0)
         (let [arg1 (.get parameters 0)]
           (println arg1)
-          ;; TODO
+          ;; docs recommend releasing, but this seems to conflict with the print
+          ;; we terminate the runtime soon anyway, so, not releasing should be fine
           #_(when (instance? Releasable)
-              (.release arg1))
-          ;; TODO release
-          ;     if (arg1 instanceof Releasable) {
-          ;       ((Releasable) arg1).release();
-          ;     }
-          ))
+              (.release (cast Releasable arg1)))))
       nil)))
 
 (defonce error (atom nil))
@@ -51,4 +47,3 @@
     "function(state) {
        return state.hello.length;
      }")
-

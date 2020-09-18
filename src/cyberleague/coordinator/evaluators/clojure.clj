@@ -6,6 +6,19 @@
    [cyberleague.coordinator.evaluators.api :as api])
   (:import (java.util.concurrent TimeoutException TimeUnit FutureTask)))
 
+(defn thread-with-timeout
+  "Warning: uses Thread.stop, which is 'unsafe'"
+  [function ms]
+  (let [task (FutureTask. function)
+        thread (Thread. task)]
+    (try
+      (.start thread)
+      (.get task ms TimeUnit/MILLISECONDS)
+      (catch TimeoutException e
+        (.cancel task true)
+        (.stop thread)
+        (throw (TimeoutException. "Execution timed out."))))))
+
 (defmethod api/native-code-runner "clojure"
   [json-state _ code]
   (let [state (json/read-str json-state :key-fn keyword)
@@ -20,23 +33,13 @@
                                              (case x
                                                "CODE" code
                                                "STATE" (pr-str state)))))
-        move (sci/eval-string string-to-eval
-                              {:bindings {'println println} :realize-max 10})]
+        move (thread-with-timeout
+               (fn [] (sci/eval-string string-to-eval
+                                       {:bindings {'println println} :realize-max 10}))
+               500)]
     (json/write-str move)))
 
 
-;; TODO
-(defn test-move
-  [function ms]
-  (let [task (FutureTask. function)
-        thread (Thread. task)]
-    (try
-      (.start thread)
-      (.get task ms TimeUnit/MILLISECONDS)
-      (catch TimeoutException e
-        (.cancel task true)
-        (.stop thread)
-        (throw (TimeoutException. "Execution timed out."))))))
 
 #_(try
     (test-move
