@@ -42,20 +42,22 @@
 
       (entity :bot/code)
       (let [user-id (first (db/with-conn
-                             (d/q '[:find [?user-id ...]
-                                    :in $ ?user-name
-                                    :where [?user-id :user/name ?user-name]]
-                                  (d/db db/*conn*)
-                                  (entity :bot/user-name))))
-            game-id  (first (db/with-conn
-                              (d/q '[:find [?game-id ...]
-                                     :in $ ?game-name
-                                     :where [?game-id :game/name ?game-name]]
-                                   (d/db db/*conn*)
-                                   (entity :bot/game-name))))
-            bot (db/with-conn
-                  (db/create-bot user-id game-id))]
-        (db/with-conn (db/update-bot-code (:db/id bot)
-                                          (-> entity :bot/code :code/code)
-                                          (-> entity :bot/code :code/language)))
-        (db/with-conn (db/deploy-bot (:db/id bot)))))))
+                               (d/q '[:find [?user-id ...]
+                                      :in $ ?user-name
+                                      :where [?user-id :user/name ?user-name]]
+                                    (d/db db/*conn*)
+                                    (entity :bot/user-name))))
+              game-id  (first (db/with-conn
+                                (d/q '[:find [?game-id ...]
+                                       :in $ ?game-name
+                                       :where [?game-id :game/name ?game-name]]
+                                     (d/db db/*conn*)
+                                     (entity :bot/game-name))))
+              bot (db/with-conn
+                    (db/create-bot user-id game-id))]
+          (db/with-conn (db/update-bot-code (:db/id bot)
+                                            (-> entity :bot/code :code/code)
+                                            (-> entity :bot/code :code/language)))
+          (db/with-conn (db/deploy-bot (:db/id bot)))))))
+
+#_(seed!)
