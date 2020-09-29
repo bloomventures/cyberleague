@@ -1,0 +1,6 @@
+{:http-port 3000
+ :environment :dev
+ :coordinator-delay 5000
+ :github-client-id "blah"
+ :github-client-secret "Blah"
+ :github-redirect-uri "www.blah.com"}
