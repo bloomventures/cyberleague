@@ -249,7 +249,12 @@
           {:white-space "nowrap"}]]
 
         [:>.content
-
+         [:>.record
+          {:text-align "center"
+           :background "#3f51b5"
+           :font-weight "bolder"
+           :color "white"
+           :margin-bottom "0.75em"}]
          [:>.graph
 
           [:>svg
