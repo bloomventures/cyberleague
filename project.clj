@@ -1,30 +1,33 @@
 (defproject cyberleague "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.10.1"]
+  :dependencies [[io.bloomventures/omni "0.32.2"]
                  [com.datomic/datomic-free "0.9.5697"
                   :exclusions
-                  [com.google.guava/guava]]
-                 [io.bloomventures/commons "0.9.0"
-                  :exclusions
-                  [metosin/muuntaja]]
-                 [io.bloomventures/omni "0.26.2"]
+                  [com.google.guava/guava
+                   commons-codec
+                   org.clojure/tools.cli
+                   org.slf4j/slf4j-nop
+                   org.slf4j/jcl-over-slf4j
+                   org.slf4j/slf4j-api]]
+
 
                  ;; client
                  [markdown-clj "1.10.4"]
-                 [reagent "0.10.0"]
-                 [org.clojure/clojurescript "1.10.764"]
+                 #_[reagent "0.10.0"]
+                 #_[org.clojure/clojurescript "1.10.764"]
                  [cljsjs/codemirror "5.44.0-1"]
                  [cljsjs/d3 "3.5.5-2"]
 
                  ;; coordinator
                  [org.clojure/math.numeric-tower "0.0.4"]
-                 [org.clojure/data.json "1.0.0"]
-                 [borkdude/sci "0.1.1-alpha.6"]
+                 #_[org.clojure/data.json "1.0.0"]
+                 [borkdude/sci "0.2.0"
+                  :exclusions [org.clojure/tools.reader]]
                  ;; if need macos or windows, see:
                  ;; https://search.maven.org/search?q=g:com.eclipsesource.j2v8
                  [com.eclipsesource.j2v8/j2v8_linux_x86_64 "4.8.0"]
 
                  ;; registrar
-                 [metosin/malli "0.0.1-20200719.212415-23"]]
+                 [metosin/malli "0.2.1"]]
 
   :main cyberleague.core
 

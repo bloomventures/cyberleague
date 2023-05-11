@@ -2,7 +2,6 @@
   (:require
     [clojure.string :as string]
     [reagent.core :as r]
-    [bloom.omni.fx.ajax :as ajax]
     [goog.events :as events]
     [cljs.reader :as reader]
     [cyberleague.client.oauth :as oauth])
