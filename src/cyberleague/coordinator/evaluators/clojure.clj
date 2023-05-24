@@ -22,24 +22,14 @@
 (defmethod api/native-code-runner "clojure"
   [json-state _ code]
   (let [state (json/read-str json-state :key-fn keyword)
-        string-to-eval (-> (pr-str
-                            '(let [state STATE
-                                   bot-function CODE]
-                               (bot-function state)))
-                           ;; must do this in one pass, or else,
-                           ;; potential for code to include 'STATE'
-                           (string/replace #"(CODE)|(STATE)"
-                                           (fn [[x _ _]]
-                                             (case x
-                                               "CODE" code
-                                               "STATE" (pr-str state)))))
+        form-to-eval (list 'let ['state state
+                                 'bot-function (sci/parse-string (sci/init {}) code)]
+                             '(bot-function state))
         move (thread-with-timeout
-               (fn [] (sci/eval-string string-to-eval
-                                       {:bindings {'println println} :realize-max 10}))
+               (fn [] (sci/eval-form (sci/init {:bindings {'println println} :realize-max 10})
+                                     form-to-eval))
                500)]
     (json/write-str move)))
-
-
 
 #_(try
     (test-move
@@ -48,3 +38,10 @@
           (Thread/sleep 500)
           (println "1")))
       5000))
+
+(comment
+  (api/native-code-runner
+    "{\"the-state\": 12345}"
+    "clojure"
+    "(fn [x] (get x :the-state))")
+  )
