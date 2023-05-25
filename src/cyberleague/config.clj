@@ -9,6 +9,7 @@
     [:http-port integer?]
     [:environment [:enum :prod :dev]]
     [:coordinator-delay integer?]
+    [:datomic-uri [:re #"^datomic:.*"]]
     [:github-client-id string?] ;; in :dev, can be garbage
     [:github-client-secret string?] ;; in :dev, can be garbage
     [:github-redirect-uri string?] ;; in :dev, can be garbage

@@ -1,11 +1,12 @@
 (ns cyberleague.db.core
   (:require
    [datomic.api :as d]
+   [cyberleague.config :as config]
    [cyberleague.db.schema :as schema]))
 
 (def ^:dynamic *uri*
   "URI for the datomic database"
-  "datomic:mem://cyberleague-dev"
+  (config/config :datomic-uri)
   #_"datomic:free://localhost:4334/cldev"
   #_"datomic:sql://cyberleague?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic")
 
