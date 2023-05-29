@@ -31,6 +31,8 @@
 
   :main cyberleague.core
 
+  :omni-config cyberleague.omni-config/omni-config
+
   :source-paths ["src"]
 
   :test-paths ["test"]
@@ -38,5 +40,8 @@
   :profiles {:uberjar
              {:aot :all
               :dependencies
-              [[org.postgresql/postgresql "42.2.2"]]}
+              [[org.postgresql/postgresql "42.2.2"]]
+              :prep-tasks
+              [["omni" "compile"]
+               "compile"]}
              :dev {:repl-options {:init-ns cyberleague.core}}})
