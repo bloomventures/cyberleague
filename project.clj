@@ -1,6 +1,6 @@
 (defproject cyberleague "0.1.0-SNAPSHOT"
   :dependencies [[io.bloomventures/omni "0.32.2"]
-                 [com.datomic/datomic-free "0.9.5697"
+                 [com.datomic/peer "1.0.6733"
                   :exclusions
                   [com.google.guava/guava
                    commons-codec
@@ -35,6 +35,8 @@
 
   :test-paths ["test"]
 
-  :profiles {:uberjar {:aot :all}
-
+  :profiles {:uberjar
+             {:aot :all
+              :dependencies
+              [[org.postgresql/postgresql "42.2.2"]]}
              :dev {:repl-options {:init-ns cyberleague.core}}})
