@@ -31,6 +31,8 @@
 
   :main cyberleague.core
 
+  :plugins [[io.bloomventures/omni "0.29.3"]]
+
   :omni-config cyberleague.omni-config/omni-config
 
   :source-paths ["src"]
