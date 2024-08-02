@@ -16,11 +16,12 @@
                  #_[org.clojure/clojurescript "1.10.764"]
                  [cljsjs/codemirror "5.44.0-1"]
                  [cljsjs/d3 "3.5.5-2"]
+                 [zprint "1.2.9"]
 
                  ;; coordinator
                  [org.clojure/math.numeric-tower "0.0.4"]
                  #_[org.clojure/data.json "1.0.0"]
-                 [borkdude/sci "0.2.0"
+                 [org.babashka/sci "0.8.42"
                   :exclusions [org.clojure/tools.reader]]
                  ;; if need macos or windows, see:
                  ;; https://search.maven.org/search?q=g:com.eclipsesource.j2v8
