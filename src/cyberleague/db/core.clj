@@ -6,7 +6,9 @@
 
 (def ^:dynamic *uri*
   "URI for the datomic database"
-  (config/config :datomic-uri)
+  (or (config/config :datomic-uri)
+      (do (println "WARNING: Using in memory database. You're fine.")
+          "datomic:mem://cyberleague"))
   #_"datomic:free://localhost:4334/cldev"
   #_"datomic:sql://cyberleague?jdbc:postgresql://localhost:5432/datomic?user=datomic&password=datomic")
 
