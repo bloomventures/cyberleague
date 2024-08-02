@@ -9,9 +9,18 @@
            (when el
              (js/window.bot_graph el (clj->js history))))}])
 
+(defn get-record
+  [bot]
+  (let [match-results (map :match/winner (:bot/matches bot))
+        bot-id (:bot/id bot)]
+    {:wins (count (filter (partial = bot-id) match-results))
+     :losses (count (filter (partial not= bot-id) match-results))
+     :ties (count (filter (partial nil?) match-results))}))
+
 (defn bot-card-view
   [{:card/keys [data] :as card}]
-  (let [bot data]
+  (let [bot data
+        record (get-record bot)]
     [:div.card.bot
      [:header
       [:span.bot-name (:bot/name bot)]
@@ -23,8 +32,9 @@
       (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
         [:a.button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-
      [:div.content
+      [:div.record
+       [:p1 "W:" (:wins record) " L:" (:losses record) " T:" (:ties record)]]
       [:div.language (-> bot :bot/code :code/language)]
       [graph-view (:bot/history bot)]
       [:table.matches
