@@ -313,14 +313,15 @@
          [:>.source
           {:width "70%"}
 
-          [:>.CodeMirror
-           {:font-family "Inconsolata"
-            :line-height 1.2
-            :height "100%"
-            :overflow "hidden"}
+          [:>.wrapper
+           [:>.CodeMirror
+            {:font-family "Inconsolata"
+             :line-height 1.2
+             :height "100%"
+             :overflow "hidden"}
 
-           [:.CodeMirror-lines
-            {:padding-top "1em"}]]]
+            [:.CodeMirror-lines
+             {:padding-top "1em"}]]]]
 
          [:>.lang-pick
           {:padding "1em"
