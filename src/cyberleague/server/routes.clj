@@ -18,7 +18,14 @@
         {:body (when-let [user (db/with-conn (db/get-user (get-in request [:session :id])))]
                  {:user/id (:db/id user)
                   :user/github-id (:user/github-id user)
-                  :user/name (:user/name user)})})]
+                  :user/name (:user/name user)
+                  :user/cli-token (:user/cli-token user)})})]
+
+     [[:put "/api/cli-token"]
+      (fn [request]
+        {:body (when-let [token (db/with-conn (db/reset-cli-token
+                                              (get-in request [:session :id])))]
+                 {:user/cli-token token})})]
 
      [[:post "/api/logout"]
       (fn [_]

@@ -22,3 +22,13 @@
 
 (defn -main []
   (start!))
+
+(comment
+
+  (start!)
+
+  (stop!)
+
+  (restart!)
+
+  )

@@ -338,7 +338,12 @@
            :background "#f7f7f7"
            :border-left "1px solid #ddd"}
 
-          (>match-results)]]]]]]]])
+          (>match-results)]]]]]
+     [:.card.user>.content>.token-management
+      {:background "#9fa8da"
+       :margin "-1em -1em 1em -1em"
+       :padding "1em"
+       :color "white"}]]]])
 
 (def css
   (garden/css flash styles))

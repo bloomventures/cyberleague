@@ -30,7 +30,8 @@
                                      ;; coordinator
                                      [org.clojure/math.numeric-tower "0.0.4"]
                                      #_[org.clojure/data.json "1.0.0"]
-                                     [org.babashka/sci "0.8.42"
+                                     [borkdude/edamame "1.4.26"]
+                                     [org.babashka/sci "0.8.43"
                                       :exclusions [org.clojure/tools.reader]]
                                      ;; if need macos or windows, see:
                                      ;; https://search.maven.org/search?q=g:com.eclipsesource.j2v8
@@ -42,7 +43,9 @@
                       :main cyberleague.core
                       :repl-options {:init-ns cyberleague.core}}
              :cli     {:main         cyberleague.cli.core
-                       :dependencies [[org.clojure/clojure "1.11.4"]
+                       :dependencies [[org.clojure/tools.cli "1.1.230"]
+                                      [com.cognitect/transit-clj "1.0.324"]
+                                      [org.clojure/clojure "1.11.4"]
                                       [http-kit "2.8.0"]
                                       [com.nextjournal/beholder "1.0.2"]]
                        :repl-options {:init-ns cyberleague.cli.core}}

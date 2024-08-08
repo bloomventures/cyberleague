@@ -49,7 +49,24 @@
 
 (defn create-user
   [github-id uname]
-  (create-entity {:user/github-id github-id :user/name uname}))
+  (create-entity {:user/github-id github-id
+                  :user/name uname
+                  :user/cli-token (random-uuid)}))
+
+(defn generate-token [] (random-uuid))
+
+(defn reset-cli-token
+  [user-id]
+  (let [token (generate-token)]
+    @(d/transact *conn* [[:db/add user-id :user/cli-token token]])
+    token))
+
+(defn token->user-id [token]
+  (d/q '[:find ?e
+         :in $ ?token
+         :where [?e :user/token ?token]]
+       (d/db *conn*)
+       token))
 
 (defn get-or-create-user
   [github-id uname]

@@ -160,3 +160,11 @@
   (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/deploy")
             :xhr/method :post
             :xhr/on-complete callback}))
+
+(defn new-cli-token!
+  []
+  (edn-xhr {:xhr/url (str "/api/cli-token")
+            :xhr/method :put
+            :xhr/on-complete (fn [data]
+                               (swap! user assoc :user/cli-token
+                                      (:user/cli-token data)))}))
