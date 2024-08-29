@@ -1,6 +1,6 @@
 (defproject cyberleague "0.1.0-SNAPSHOT"
 
-  :plugins [[io.bloomventures/omni "0.29.3"]]
+  :plugins [[io.bloomventures/omni "0.32.2"]]
 
   :omni-config cyberleague.omni-config/omni-config
 
