@@ -10,6 +10,18 @@
 (defn to-long [v]
   (java.lang.Long. v))
 
+(defn wrap-api-token [handler]
+  (fn [request]
+    (if-let [header-token (get-in request [:headers "authorization"])]
+      (let [api-token (parse-uuid
+                       (second
+                        (re-matches #"^Bearer ([0-9a-f-]{36})" header-token)))]
+        (if-let [user-id (db/with-conn (db/token->user-id api-token))]
+         (handler (assoc-in request [:session :id] user-id))
+         {:status 400
+          :body "Invalid API token"}))
+      (handler request))))
+
 (def routes
   (concat
     oauth/routes
@@ -169,6 +181,18 @@
                                  :code/language (:code/language (:bot/code bot))}}})
             {:status 500})))]
 
+     [[:post "/api/bots/get-id"]
+      (fn [request]
+        (if-let [user-id (get-in request [:session :id])]
+          (let [bot-name (get-in request [:body-params :bot/name])
+                bot-id (db/with-conn (db/get-bot-id user-id bot-name))]
+            (if bot-id
+              {:status 200
+               :body {:bot-id bot-id}}
+              {:status 500}))
+          {:status 500}))
+      [wrap-api-token]]
+
      [[:put "/api/bots/:bot-id/code"]
       (fn [request]
         (if-let [user-id (get-in request [:session :id])]
@@ -180,7 +204,8 @@
                 (db/with-conn (db/update-bot-code (:db/id bot) code (:code/language (:bot/code bot))))
                 {:status 200})
               {:status 500}))
-          {:status 500}))]
+          {:status 500}))
+      [wrap-api-token]]
 
      [[:post "/api/bots/:bot-id/test"]
       (fn [request]

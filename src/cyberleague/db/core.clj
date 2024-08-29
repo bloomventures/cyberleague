@@ -62,11 +62,11 @@
     token))
 
 (defn token->user-id [token]
-  (d/q '[:find ?e
-         :in $ ?token
-         :where [?e :user/token ?token]]
-       (d/db *conn*)
-       token))
+   (d/q '[:find ?e .
+          :in $ ?token
+          :where [?e :user/cli-token ?token]]
+        (d/db *conn*)
+        token))
 
 (defn get-or-create-user
   [github-id uname]
@@ -219,6 +219,17 @@
 
 (defn get-code [id]
   (by-id id))
+
+(defn get-bot-id [user-id bot-name]
+  (let [db (d/db *conn*)]
+    (d/q '[:find ?e .
+           :in $ ?user-id ?bot-name
+           :where
+           [?e :bot/user ?user-id]
+           [?e :bot/name ?bot-name]]
+         db
+         user-id
+         bot-name)))
 
 (defn get-bot [id]
   (by-id id))
