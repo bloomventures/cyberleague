@@ -18,6 +18,9 @@
 (defn get-token []
   (:token (edn/read-string (slurp "cli.edn"))))
 
+(def token-re
+  #"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
+
 (defn http-request [{:keys [path method body]}]
   @(http/request
      {:method method
@@ -55,7 +58,16 @@
   (when (#{:modify :create} type)
     (push! path)))
 
-(defn auth! [])
+(defn auth! []
+  (println "Enter token: ")
+  (flush)
+  (let [token (str/trim (read-line))]
+    (if (re-matches token-re token)
+      (do (spit "cli.edn" (pr-str {:token token}))
+          (println "Token saved!")
+          (flush))
+      (do (println "Token doesn't match format.")
+          (flush)))))
 
 (defn watch! [file-path]
   (if (.exists (io/file file-path))
