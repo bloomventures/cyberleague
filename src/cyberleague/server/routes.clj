@@ -12,14 +12,14 @@
 
 (defn wrap-api-token [handler]
   (fn [request]
-    (if-let [header-token (get-in request [:headers "authorization"])]
-      (let [api-token (parse-uuid
-                       (second
-                        (re-matches #"^Bearer ([0-9a-f-]{36})" header-token)))]
-        (if-let [user-id (db/with-conn (db/token->user-id api-token))]
-         (handler (assoc-in request [:session :id] user-id))
-         {:status 400
-          :body "Invalid API token"}))
+    (if-let [api-token (some->> (get-in request [:headers "authorization"])
+                                (re-matches #"^Bearer ([0-9a-f-]{36})")
+                                second
+                                parse-uuid)]
+      (if-let [user-id (db/with-conn (db/token->user-id api-token))]
+        (handler (assoc-in request [:session :id] user-id))
+        {:status 400
+         :body "Invalid API token"})
       (handler request))))
 
 (def routes
