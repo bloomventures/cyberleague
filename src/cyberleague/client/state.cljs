@@ -21,8 +21,7 @@
         (fn [e] (on-error {:error (.getResponseText xhr)}))))
     (.send xhr url (.toUpperCase (name method)) (when data (pr-str data))
            #js {"Content-Type" "application/edn"
-                "Accept" "application/edn"
-                "Authorization" (str "Basic " (js/btoa (string/join ":" auth)))})))
+                "Accept" "application/edn"})))
 
 ;; state
 
