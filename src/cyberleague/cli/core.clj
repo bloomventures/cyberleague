@@ -41,7 +41,7 @@
               (.toString out))
       :as :stream}
      (fn [{:keys [status body]}]
-       (if (= status 200)
+       (if (and (= status 200) (pos? (.getCount body)))
          (transit/read (transit/reader body :json))
          nil))))
 
