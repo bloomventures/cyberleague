@@ -78,7 +78,8 @@
 
 (defn watch! [file-path]
   (if (.exists (io/file file-path))
-    (reset! watcher (beholder/watch #'watch-fn file-path))
+    (do (reset! watcher (beholder/watch #'watch-fn file-path))
+        @(promise))
     (println "File does not exist!")))
 
 (defn -main [& opts]
