@@ -8,6 +8,7 @@
 
   :test-paths ["test"]
 
+  :dependencies [[com.hyperfiddle/rcf "20220926-202227"]]
   :profiles {:server {:dependencies [[io.bloomventures/omni "0.32.2"]
                                      [com.datomic/peer "1.0.6733"
                                       :exclusions

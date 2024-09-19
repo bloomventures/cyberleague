@@ -5,15 +5,22 @@
             [org.httpkit.client :as http]
             [nextjournal.beholder :as beholder]
             [cognitect.transit :as transit]
+            [hyperfiddle.rcf :as rcf]
             [clojure.string :as str])
   (:import [java.io ByteArrayOutputStream]))
+
+#_(rcf/enable!)
 
 (defonce watcher (atom nil))
 
 (def api-root "http://127.0.0.1:3000")
 
 (defn extract-bot-name [file-name]
-  (re-find #"[A-Z]{3}-[0-9]{4}" file-name))
+  (some-> (re-find #"[A-Z]{3}[-_][0-9]{4}" file-name)
+          (str/replace "_" "-")))
+
+(rcf/tests
+  (extract-bot-name "ABC_1234.clj") := "ABC-1234")
 
 (defn get-token []
   (:token (edn/read-string (slurp "cli.edn"))))
