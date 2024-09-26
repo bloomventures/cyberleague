@@ -79,6 +79,7 @@
 (defn watch! [file-path]
   (if (.exists (io/file file-path))
     (do (reset! watcher (beholder/watch #'watch-fn file-path))
+        (println "Watching files at:" file-path "👀")
         @(promise))
     (println "File does not exist!")))
 
