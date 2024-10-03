@@ -35,7 +35,6 @@
       [:div.gap]
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
      [:div.content
-      (println user @state/user)
       (when (= (:user/id user)
                (:user/id @state/user))
         [token-management-view])
