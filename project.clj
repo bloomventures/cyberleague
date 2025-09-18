@@ -19,6 +19,7 @@
                                        org.slf4j/jcl-over-slf4j
                                        org.slf4j/slf4j-api]]
 
+                                     [tada "0.3.0"]
 
                                      ;; client
                                      [markdown-clj "1.10.4"]
@@ -39,7 +40,9 @@
                                      [com.eclipsesource.j2v8/j2v8_linux_x86_64 "4.8.0"]
 
                                      ;; registrar
-                                     [metosin/malli "0.2.1"]]
+                                     ;; using malli from tada
+                                     ;; [metosin/malli "0.2.1"]
+                                     ]
 
                       :main cyberleague.core
                       :repl-options {:init-ns cyberleague.core}}
