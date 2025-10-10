@@ -52,6 +52,9 @@
    {:db/ident :user/name
     :db/cardinality :db.cardinality/one
     :db/valueType :db.type/string}
+   {:db/ident :user/cli-token
+    :db/cardinality :db.cardinality/one
+    :db/valueType :db.type/uuid}
 
    ;match
    {:db/ident :match/bots
