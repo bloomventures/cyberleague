@@ -48,7 +48,7 @@
 (defn get-bot-id [bot-name]
   (-> (http-request {:path   "/api/bots/get-id"
                      :method :post
-                     :body   {:bot/name bot-name}})
+                     :body   {:bot-name bot-name}})
       :bot-id))
 
 (defn push! [path]
@@ -57,7 +57,7 @@
       (do (println "Pushing " bot-name " code to the arena!")
           (http-request {:path   (str "/api/bots/" bot-id "/code")
                          :method :put
-                         :body   {:bot/code (slurp (str path))}}))
+                         :body   {:bot-code (slurp (str path))}}))
       (println "Warning: Bot does not exist!"))
     (println "Ignoring file: Not a Bot")))
 

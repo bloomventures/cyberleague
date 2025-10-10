@@ -145,7 +145,7 @@
   [bot-id value callback]
   (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/code")
             :xhr/method :put
-            :xhr/data {:bot/code value}
+            :xhr/data {:code value}
             :xhr/on-complete callback}))
 
 (defn bot-test!

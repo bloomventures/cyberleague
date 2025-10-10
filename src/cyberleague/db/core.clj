@@ -45,6 +45,14 @@
     (->> (d/resolve-tempid db-after tempids new-id)
          (d/entity db-after))))
 
+(defn entity-exists? [id-key id]
+  (let [entity (by-id id)]
+   (and (some? id)
+        ((id-key {:user/id :user/name
+                  :bot/id :bot/name
+                  :game/id :game/name
+                  :match/id :match/bots}) entity))))
+
 ;; Users
 
 (defn create-user
