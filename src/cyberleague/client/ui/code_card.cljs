@@ -8,9 +8,7 @@
 
 (defn code-card-view
   [{:keys [card/data] :as card}]
-  (let [status (r/atom (if (-> data :bot/code :code/language)
-                         :saved
-                         :picking-language)) ; :picking-language :saved :editing :saving :testing :passed/:failed :deploying :deployed
+  (let [status (r/atom :saved) ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
         bot-id (:bot/id data)
         test-match (r/atom nil)
         save! (fn [value]
@@ -62,7 +60,7 @@
             :deployed "Deployed!")]
          [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
         [:div.content
-         (if (= :picking-language @status)
+         (if (nil? (-> bot :bot/code :code/language))
            [:div.lang-pick
             [:h2 "Pick a language:"]
             (into [:<>]
@@ -76,10 +74,9 @@
                                      (state/bot-set-language!
                                       (:bot/id bot)
                                       (:language language)
-                                      (fn [data]
-                                        (swap! bot (fn [b]
-                                                     (merge b data)))
-                                        (reset! status :saved))))}
+                                      (fn [_data]
+                                       ;; Relying on the card's auto-refresh to move us to the next state
+                                        )))}
                                (:name language)]))))]
            [code-editor-view {:on-change (fn [value]
                                            (reset! status :editing)
