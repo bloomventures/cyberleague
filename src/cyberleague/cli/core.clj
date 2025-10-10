@@ -41,9 +41,10 @@
               (.toString out))
       :as :stream}
      (fn [{:keys [status body]}]
-       (if (and (= status 200) (pos? (.getCount body)))
-         (transit/read (transit/reader body :json))
-         nil))))
+       (if (<= 200 status 299)
+         (when (pos? (.getCount body))
+           (transit/read (transit/reader body :json)))
+         (println "ERROR: " (slurp body))))))
 
 (defn get-bot-id [bot-name]
   (-> (http-request {:path   "/api/bots/get-id"
