@@ -1,12 +1,12 @@
 (ns cyberleague.client.state
   (:require
-    [clojure.string :as string]
-    [reagent.core :as r]
-    [goog.events :as events]
-    [cljs.reader :as reader]
-    [cyberleague.client.oauth :as oauth])
+   [clojure.string :as string]
+   [reagent.core :as r]
+   [goog.events :as events]
+   [cljs.reader :as reader]
+   [cyberleague.client.oauth :as oauth])
   (:import
-    (goog.net XhrIo EventType)))
+   (goog.net XhrIo EventType)))
 
 (defn edn-xhr
   "Send an xhr request with the given data as EDN
@@ -15,10 +15,12 @@
   (let [xhr (XhrIo.)]
     (when on-complete
       (events/listen xhr EventType.SUCCESS
-        (fn [e] (on-complete (reader/read-string (.getResponseText xhr))))))
-    (when on-error
-      (events/listen xhr EventType.ERROR
-        (fn [e] (on-error {:error (.getResponseText xhr)}))))
+                     (fn [e] (on-complete (reader/read-string (.getResponseText xhr))))))
+    (events/listen xhr EventType.ERROR
+                   (fn [e]
+                     (js/console.error (.getResponseText xhr))
+                     (when on-error
+                       (on-error {:error (.getResponseText xhr)}))))
     (.send xhr url (.toUpperCase (name method)) (when data (pr-str data))
            #js {"Content-Type" "application/edn"
                 "Accept" "application/edn"})))
@@ -42,17 +44,17 @@
   []
   (doseq [card @cards]
     (fetch-card-data!
-      {:id (card :card/id)
-       :type (card :card/type)}
-      (fn [data]
-        (swap! state update :state/cards
-               (fn [cards]
-                 (map (fn [*card]
-                        (if (= (*card :card/url)
-                               (card :card/url))
-                          (assoc *card :card/data data)
-                          *card))
-                      cards)))))))
+     {:id (card :card/id)
+      :type (card :card/type)}
+     (fn [data]
+       (swap! state update :state/cards
+              (fn [cards]
+                (map (fn [*card]
+                       (if (= (*card :card/url)
+                              (card :card/url))
+                         (assoc *card :card/data data)
+                         *card))
+                     cards)))))))
 
 (defonce update-interval
   (when card-refresh-rate
@@ -65,8 +67,6 @@
             :xhr/method :post
             :xhr/on-complete (fn []
                                (swap! state assoc :state/user nil))}))
-
-
 
 (defn close-card! [card]
   (swap! state update :state/cards
@@ -127,8 +127,8 @@
 
 (defn log-in! []
   (oauth/start-auth-flow!
-    (fn []
-      (fetch-user!))))
+   (fn []
+     (fetch-user!))))
 
 (defn bot-set-language! [bot-id language cb]
   (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/language/" language)
