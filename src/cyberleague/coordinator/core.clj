@@ -31,7 +31,7 @@
     (if (false? (:game.result/error result))
       ; TODO: handle ties?
       (db/with-conn
-        (db/create-entity (merge
+        (db/create-entity! (merge
                             {:match/bots [(:db/id player-1) (:db/id player-2)]
                              :match/state-history (pr-str (result :game.result/state-history))
                              :match/moves (pr-str (result :game.result/history))}
@@ -49,7 +49,7 @@
                                  [player-1 player-2])]
           (println "Bad move from " cheater)
           (db/with-conn
-            (db/create-entity {:match/bots [(:db/id player-1) (:db/id player-2)]
+            (db/create-entity! {:match/bots [(:db/id player-1) (:db/id player-2)]
                                :match/error true
                                :match/moves (pr-str (conj (get-in result [:game-state :history])
                                                           (get-in result [:move :move])))

@@ -55,7 +55,7 @@
     :conditions (fn [{:keys [user-id]}]
                   [(entity-exists?-condition :user/id user-id)])
     :effect (fn [{:keys [user-id]}]
-              (db/reset-cli-token user-id))
+              (db/reset-cli-token! user-id))
     :return (fn [{token :tada/effect-return}]
               {:user/cli-token token})}
    {:id :api/users
@@ -223,7 +223,7 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :game/id game-id)])
     :effect (fn [{:keys [user-id game-id]}]
-              (db/create-bot user-id game-id))
+              (db/create-bot! user-id game-id))
     :return (fn [{bot :tada/effect-return}]
               {:id (:db/id bot)})}
    {:id :api/set-bot-language!
@@ -240,7 +240,7 @@
               (let [bot (db/get-bot bot-id)
                     game-name (get-in bot [:bot/game :game/name])
                     code (get-in @registrar/games [game-name :game.config/starter-code language])
-                    bot (db/update-bot-code bot-id code language)]
+                    bot (db/update-bot-code! bot-id code language)]
                 bot))
     :return (fn [{bot :tada/effect-return}]
               {:bot/code {:code/code (:code/code (:bot/code bot))
@@ -257,7 +257,7 @@
                    [#(:code/language (:bot/code (db/get-bot bot-id)))]])
     :effect (fn [{:keys [user-id bot-id code]}]
               (let [bot (db/get-bot bot-id)]
-                (db/update-bot-code (:db/id bot)
+                (db/update-bot-code! (:db/id bot)
                                       code
                                       (:code/language (:bot/code bot)))))
     :return :tada/effect-return}
@@ -287,7 +287,7 @@
                        (and (:code/code code) (:code/language code)))]])
     :effect (fn [{:keys [user-id bot-id]}]
               (let [bot (db/get-bot bot-id)]
-                (db/deploy-bot (:db/id bot))))
+                (db/deploy-bot! (:db/id bot))))
     :return :tada/effect-return}])
 
 (tada/register! t events)

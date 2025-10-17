@@ -35,10 +35,10 @@
   (doseq [entity (make-entities)]
     (cond
       (entity :user/github-id)
-      (db/with-conn (db/create-user (entity :user/github-id) (entity :user/name)))
+      (db/with-conn (db/create-user! (entity :user/github-id) (entity :user/name)))
 
       (entity :game/name)
-      (db/with-conn (db/create-game (entity :game/name) (entity :game/description)))
+      (db/with-conn (db/create-game! (entity :game/name) (entity :game/description)))
 
       (entity :bot/code)
       (let [user-id (first (db/with-conn
@@ -54,10 +54,10 @@
                                      (d/db db/*conn*)
                                      (entity :bot/game-name))))
               bot (db/with-conn
-                    (db/create-bot user-id game-id))]
-          (db/with-conn (db/update-bot-code (:db/id bot)
+                    (db/create-bot! user-id game-id))]
+          (db/with-conn (db/update-bot-code! (:db/id bot)
                                             (-> entity :bot/code :code/code)
                                             (-> entity :bot/code :code/language)))
-          (db/with-conn (db/deploy-bot (:db/id bot)))))))
+          (db/with-conn (db/deploy-bot! (:db/id bot)))))))
 
 #_(seed!)

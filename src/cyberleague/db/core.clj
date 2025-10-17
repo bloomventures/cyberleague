@@ -35,7 +35,7 @@
   [eid]
   (d/entity (d/db *conn*) eid))
 
-(defn create-entity
+(defn create-entity!
   "Create a new entity with the given attributes and return the newly-created
   entity"
   [attributes]
@@ -55,15 +55,15 @@
 
 ;; Users
 
-(defn create-user
+(defn create-user!
   [github-id uname]
-  (create-entity {:user/github-id github-id
+  (create-entity! {:user/github-id github-id
                   :user/name uname
                   :user/cli-token (random-uuid)}))
 
 (defn generate-token [] (random-uuid))
 
-(defn reset-cli-token
+(defn reset-cli-token!
   [user-id]
   (let [token (generate-token)]
     @(d/transact *conn* [[:db/add user-id :user/cli-token token]])
@@ -85,7 +85,7 @@
                                         db
                                         github-id)))]
       (d/entity db user-id)
-      (create-user github-id uname))))
+      (create-user! github-id uname))))
 
 (defn get-user-bots
   "Get a list of all bots for a user"
@@ -121,9 +121,9 @@
          (map (comp (partial d/entity db) first)))))
 ;; Games
 
-(defn create-game
+(defn create-game!
   [name description]
-  (create-entity {:game/name name
+  (create-entity! {:game/name name
                   :game/description description}))
 
 (defn get-game [id]
@@ -156,16 +156,16 @@
        "-"
        (+ 1000 (rand-int 8999))))
 
-(defn create-bot
+(defn create-bot!
   [user-id game-id]
-  (create-entity {:bot/user user-id
+  (create-entity! {:bot/user user-id
                   :bot/game game-id
                   :bot/name (gen-bot-name)
                   :bot/rating 1500
                   :bot/rating-dev 350}))
 
-(defn update-bot-code
-  ([bot-id code] (update-bot-code bot-id code "clojure"))
+(defn update-bot-code!
+  ([bot-id code] (update-bot-code! bot-id code "clojure"))
   ([bot-id code language]
    (let [bot (by-id bot-id)]
      (-> @(d/transact *conn*
@@ -194,7 +194,7 @@
        (sort-by second)
        vec))
 
-(defn deploy-bot
+(defn deploy-bot!
   [bot-id]
   (let [bot (by-id bot-id)
         code-timestamp (ffirst (d/q '[:find ?tx
