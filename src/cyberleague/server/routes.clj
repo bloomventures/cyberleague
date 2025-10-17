@@ -21,19 +21,19 @@
                                 (re-matches #"^Bearer ([0-9a-f-]{36})")
                                 second
                                 parse-uuid)]
-      (if-let [user-id (db/with-conn (db/token->user-id api-token))]
+      (if-let [user-id (db/token->user-id api-token)]
         (handler (assoc-in request [:session :id] user-id))
         {:status 400
          :body "Invalid API token"})
       (handler request))))
 
 (defn entity-exists?-condition [id-key id]
-  [#(db/with-conn (db/entity-exists? id-key id))
+  [#(db/entity-exists? id-key id)
    :forbidden
    (str "Entity " id-key " " id " does not exist.")])
 
 (defn user-owns-bot?-condition [user-id bot-id]
-  [#(= user-id (:db/id (:bot/user (db/with-conn (db/get-bot bot-id)))))
+  [#(= user-id (:db/id (:bot/user (db/get-bot bot-id))))
    :forbidden
    (str "User " user-id " does not own bot " bot-id ".")])
 
@@ -44,7 +44,7 @@
     :conditions (fn [{:keys [user-id]}]
                   [(entity-exists?-condition :user/id user-id)])
     :return (fn [{:keys [user-id]}]
-              (let [user (db/with-conn (db/get-user user-id))]
+              (let [user (db/get-user user-id)]
                 {:user/id (:db/id user)
                  :user/github-id (:user/github-id user)
                  :user/name (:user/name user)
@@ -55,14 +55,14 @@
     :conditions (fn [{:keys [user-id]}]
                   [(entity-exists?-condition :user/id user-id)])
     :effect (fn [{:keys [user-id]}]
-              (db/with-conn (db/reset-cli-token user-id)))
+              (db/reset-cli-token user-id))
     :return (fn [{token :tada/effect-return}]
               {:user/cli-token token})}
    {:id :api/users
     :params {:user-id [:maybe :user/id]}
     :rest [:get "/api/users"]
     :return (fn [{:keys [user-id]}]
-              (->> (db/with-conn (db/get-users))
+              (->> (db/get-users)
                    (map
                     (fn [user]
                       {:user/id (:db/id user)
@@ -70,9 +70,8 @@
                        :user/gh-id (:user/gh-id user)
                          ;; TODO: likely a better way to fetch counts in datomic
                        :user/bot-count (count
-                                        (db/with-conn
-                                          (db/get-user-bots
-                                           (:db/id user))))}))))}
+                                        (db/get-user-bots
+                                           (:db/id user)))}))))}
    {:id :api/user
     :params {:user-id [:maybe :user/id]
              :other-user-id :user/id}
@@ -80,8 +79,8 @@
     :conditions (fn [{:keys [other-user-id]}]
                   [(entity-exists?-condition :user/id other-user-id)])
     :return (fn [{:keys [other-user-id]}]
-              (let [user (db/with-conn (db/get-user other-user-id))
-                    bots (db/with-conn (db/get-user-bots other-user-id))]
+              (let [user (db/get-user other-user-id)
+                    bots (db/get-user-bots other-user-id)]
                 {:user/id (:db/id user)
                  :user/name (:user/name user)
                  :user/bots (->> bots
@@ -102,16 +101,15 @@
     :params {:user-id [:maybe :user/id]}
     :rest [:get "/api/games"]
     :return (fn [_]
-              (->> (db/with-conn (db/get-games))
+              (->> (db/get-games)
                    (map
                     (fn [game]
                       {:game/id (:db/id game)
                        :game/name (:game/name game)
                          ;; TODO: likely a better way to fetch counts in datomic
                        :game/bot-count (count
-                                        (db/with-conn
-                                          (db/get-game-bots
-                                           (:db/id game))))}))))}
+                                        (db/get-game-bots
+                                           (:db/id game)))}))))}
 
    {:id :api/game
     :params {:user-id [:maybe :user/id]
@@ -120,8 +118,8 @@
     :conditions (fn [{:keys [game-id]}]
                   [(entity-exists?-condition :game/id game-id)])
     :return (fn [{:keys [game-id]}]
-              (let [game (db/with-conn (db/get-game game-id))
-                    bots (db/with-conn (db/get-game-bots game-id))]
+              (let [game (db/get-game game-id)
+                    bots (db/get-game-bots game-id)]
                 {:game/id (:db/id game)
                  :game/name (:game/name game)
                  :game/description (:game/description game)
@@ -143,7 +141,7 @@
     :conditions (fn [{:keys [match-id]}]
                   [(entity-exists?-condition :match/id match-id)])
     :return (fn [{:keys [match-id]}]
-              (let [match (db/with-conn (db/get-match match-id))]
+              (let [match (db/get-match match-id)]
                 {:match/id (:db/id match)
                  :match/game (let [game (-> match :match/bots first :bot/game)]
                                {:game/name (:game/name game)
@@ -163,7 +161,7 @@
     :conditions (fn [{:keys [user-id]}]
                   [(entity-exists?-condition :user/id user-id)])
     :return (fn [{:keys [user-id bot-name]}]
-              (when-let [bot-id (db/with-conn (db/get-bot-id user-id bot-name))]
+              (when-let [bot-id (db/get-bot-id user-id bot-name)]
                 {:bot-id bot-id}))}
    {:id :api/bot
     :params {:user-id [:maybe :user/id]
@@ -172,9 +170,9 @@
     :conditions (fn [{:keys [bot-id]}]
                   [(entity-exists?-condition :bot/id bot-id)])
     :return (fn [{:keys [bot-id]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))
-                    matches (db/with-conn (db/get-bot-matches (:db/id bot)))
-                    history (db/with-conn (db/get-bot-history (:db/id bot)))]
+              (let [bot (db/get-bot bot-id)
+                    matches (db/get-bot-matches (:db/id bot))
+                    history (db/get-bot-history (:db/id bot))]
                 {:bot/id (:db/id bot)
                  :bot/name (:bot/name bot)
                  :bot/game (let [game (:bot/game bot)]
@@ -205,7 +203,7 @@
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)])
     :return (fn [{:keys [user-id bot-id]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))]
+              (let [bot (db/get-bot bot-id)]
                 {:bot/id (:db/id bot)
                  :bot/name (:bot/name bot)
                  :bot/code {:code/code (:code/code (:bot/code bot))
@@ -225,7 +223,7 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :game/id game-id)])
     :effect (fn [{:keys [user-id game-id]}]
-              (db/with-conn (db/create-bot user-id game-id)))
+              (db/create-bot user-id game-id))
     :return (fn [{bot :tada/effect-return}]
               {:id (:db/id bot)})}
    {:id :api/set-bot-language!
@@ -237,12 +235,12 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   [#(nil? (:code/language (:bot/code (db/with-conn (db/get-bot bot-id)))))]])
+                   [#(nil? (:code/language (:bot/code (db/get-bot bot-id))))]])
     :effect (fn [{:keys [user-id bot-id language]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))
+              (let [bot (db/get-bot bot-id)
                     game-name (get-in bot [:bot/game :game/name])
                     code (get-in @registrar/games [game-name :game.config/starter-code language])
-                    bot (db/with-conn (db/update-bot-code bot-id code language))]
+                    bot (db/update-bot-code bot-id code language)]
                 bot))
     :return (fn [{bot :tada/effect-return}]
               {:bot/code {:code/code (:code/code (:bot/code bot))
@@ -256,13 +254,12 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   [#(:code/language (:bot/code (db/with-conn (db/get-bot bot-id))))]])
+                   [#(:code/language (:bot/code (db/get-bot bot-id)))]])
     :effect (fn [{:keys [user-id bot-id code]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))]
-                (db/with-conn
-                  (db/update-bot-code (:db/id bot)
+              (let [bot (db/get-bot bot-id)]
+                (db/update-bot-code (:db/id bot)
                                       code
-                                      (:code/language (:bot/code bot))))))
+                                      (:code/language (:bot/code bot)))))
     :return :tada/effect-return}
    {:id :api/test-bot!
     :params {:user-id :user/id
@@ -272,10 +269,10 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   [#(let [code (:bot/code (db/with-conn (db/get-bot bot-id)))]
+                   [#(let [code (:bot/code (db/get-bot bot-id))]
                        (and (:code/code code) (:code/language code)))]])
     :effect (fn [{:keys [user-id bot-id]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))]
+              (let [bot (db/get-bot bot-id)]
                 (coordinator/test-bot user-id bot-id bot)))
     :return :tada/effect-return}
    {:id :api/deploy-bot!
@@ -286,11 +283,11 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   [#(let [code (:bot/code (db/with-conn (db/get-bot bot-id)))]
+                   [#(let [code (:bot/code (db/get-bot bot-id))]
                        (and (:code/code code) (:code/language code)))]])
     :effect (fn [{:keys [user-id bot-id]}]
-              (let [bot (db/with-conn (db/get-bot bot-id))]
-                (db/with-conn (db/deploy-bot (:db/id bot)))))
+              (let [bot (db/get-bot bot-id)]
+                (db/deploy-bot (:db/id bot))))
     :return :tada/effect-return}])
 
 (tada/register! t events)
@@ -304,12 +301,13 @@
         (map (fn [event]
                [(:rest event)
                 (fn [request]
-                  (tada.ring/ring-dispatch-event!
-                   t
-                   (:id event)
-                   (-> (:params request)
-                       (merge (:body-params request))
-                       (assoc :user-id (get-in request [:session :id])))))
+                  (db/with-conn
+                    (tada.ring/ring-dispatch-event!
+                     t
+                     (:id event)
+                     (-> (:params request)
+                         (merge (:body-params request))
+                         (assoc :user-id (get-in request [:session :id]))))))
                 [wrap-api-token]])))
    [[[:post "/api/logout"]
      (fn [_]
