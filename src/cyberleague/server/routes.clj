@@ -54,9 +54,10 @@
     :rest [:put "/api/cli-token"]
     :conditions (fn [{:keys [user-id]}]
                   [(entity-exists?-condition :user/id user-id)])
-    :return (fn [{:keys [user-id]}]
-              (let [token (db/with-conn (db/reset-cli-token user-id))]
-                {:user/cli-token token}))}
+    :effect (fn [{:keys [user-id]}]
+              (db/with-conn (db/reset-cli-token user-id)))
+    :return (fn [{token :tada/effect-return}]
+              {:user/cli-token token})}
    {:id :api/users
     :params {:user-id [:maybe :user/id]}
     :rest [:get "/api/users"]
@@ -209,9 +210,9 @@
                  :bot/name (:bot/name bot)
                  :bot/code {:code/code (:code/code (:bot/code bot))
                             :code/language (:code/language (:bot/code bot))}
-                   :bot/user (let [user (:bot/user bot)]
-                               {:user/id (:db/id user)
-                                :user/name (:user/name user)
+                 :bot/user (let [user (:bot/user bot)]
+                             {:user/id (:db/id user)
+                              :user/name (:user/name user)
                               :user/gh-id (:user/gh-id user)})
                  :bot/game (let [game (:bot/game bot)]
                              {:game/id (:db/id game)
@@ -223,10 +224,10 @@
     :conditions (fn [{:keys [user-id game-id]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :game/id game-id)])
-    ;; TODO: Turn :return into an :effect and :return
-    :return (fn [{:keys [user-id game-id]}]
-              (let [bot (db/with-conn (db/create-bot user-id game-id))]
-                {:id (:db/id bot)}))}
+    :effect (fn [{:keys [user-id game-id]}]
+              (db/with-conn (db/create-bot user-id game-id)))
+    :return (fn [{bot :tada/effect-return}]
+              {:id (:db/id bot)})}
    {:id :api/set-bot-language!
     :params {:user-id :user/id
              :bot-id :bot/id
@@ -237,13 +238,15 @@
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
                    [#(nil? (:code/language (:bot/code (db/with-conn (db/get-bot bot-id)))))]])
-    :return (fn [{:keys [user-id bot-id language]}]
+    :effect (fn [{:keys [user-id bot-id language]}]
               (let [bot (db/with-conn (db/get-bot bot-id))
                     game-name (get-in bot [:bot/game :game/name])
                     code (get-in @registrar/games [game-name :game.config/starter-code language])
                     bot (db/with-conn (db/update-bot-code bot-id code language))]
-                {:bot/code {:code/code (:code/code (:bot/code bot))
-                            :code/language (:code/language (:bot/code bot))}}))}
+                bot))
+    :return (fn [{bot :tada/effect-return}]
+              {:bot/code {:code/code (:code/code (:bot/code bot))
+                          :code/language (:code/language (:bot/code bot))}})}
    {:id :api/set-bot-code!
     :params {:user-id :user/id
              :bot-id :bot/id
@@ -253,14 +256,14 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   ;; TODO: Check that bot has a language
-                   ])
-    :return (fn [{:keys [user-id bot-id code]}]
+                   [#(:code/language (:bot/code (db/with-conn (db/get-bot bot-id))))]])
+    :effect (fn [{:keys [user-id bot-id code]}]
               (let [bot (db/with-conn (db/get-bot bot-id))]
                 (db/with-conn
                   (db/update-bot-code (:db/id bot)
                                       code
-                                      (:code/language (:bot/code bot))))))}
+                                      (:code/language (:bot/code bot))))))
+    :return :tada/effect-return}
    {:id :api/test-bot!
     :params {:user-id :user/id
              :bot-id :bot/id}
@@ -269,11 +272,12 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   ;; TODO: Check that bot has language and code
-                   ])
-    :return (fn [{:keys [user-id bot-id]}]
+                   [#(let [code (:bot/code (db/with-conn (db/get-bot bot-id)))]
+                       (and (:code/code code) (:code/language code)))]])
+    :effect (fn [{:keys [user-id bot-id]}]
               (let [bot (db/with-conn (db/get-bot bot-id))]
-                (coordinator/test-bot user-id bot-id bot)))}
+                (coordinator/test-bot user-id bot-id bot)))
+    :return :tada/effect-return}
    {:id :api/deploy-bot!
     :params {:user-id :user/id
              :bot-id :bot/id}
@@ -282,11 +286,12 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   ;; TODO: Check that bot has language, code, and has been tested
-                   ])
-    :return (fn [{:keys [user-id bot-id]}]
+                   [#(let [code (:bot/code (db/with-conn (db/get-bot bot-id)))]
+                       (and (:code/code code) (:code/language code)))]])
+    :effect (fn [{:keys [user-id bot-id]}]
               (let [bot (db/with-conn (db/get-bot bot-id))]
-                (db/with-conn (db/deploy-bot (:db/id bot)))))}])
+                (db/with-conn (db/deploy-bot (:db/id bot)))))
+    :return :tada/effect-return}])
 
 (tada/register! t events)
 
