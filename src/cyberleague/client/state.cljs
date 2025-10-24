@@ -4,26 +4,31 @@
    [reagent.core :as r]
    [goog.events :as events]
    [cljs.reader :as reader]
+   [bloom.commons.ajax :as ajax]
+   [cyberleague.client.cqrs :as cqrs]
    [cyberleague.client.oauth :as oauth])
   (:import
    (goog.net XhrIo EventType)))
 
-(defn edn-xhr
-  "Send an xhr request with the given data as EDN
-  Implementation taken from om-sync."
-  [{:xhr/keys [method url data on-complete on-error auth]}]
-  (let [xhr (XhrIo.)]
-    (when on-complete
-      (events/listen xhr EventType.SUCCESS
-                     (fn [e] (on-complete (reader/read-string (.getResponseText xhr))))))
-    (events/listen xhr EventType.ERROR
-                   (fn [e]
-                     (js/console.error (.getResponseText xhr))
-                     (when on-error
-                       (on-error {:error (.getResponseText xhr)}))))
-    (.send xhr url (.toUpperCase (name method)) (when data (pr-str data))
-           #js {"Content-Type" "application/edn"
-                "Accept" "application/edn"})))
+(def tada-events->rest (let [events (cqrs/events)]
+                         (zipmap (map :id events)
+                                 (map :rest events))))
+
+(defn ajax-promise! [opts]
+  (js/Promise.
+   (fn [resolve reject]
+     (ajax/request (assoc opts
+                          :on-success resolve
+                          :on-error reject)))))
+
+(defn tada! [[event-id params]]
+  (let [[method uri] (tada-events->rest event-id)
+        uri (string/replace uri #":([a-z-]+)" (fn [[_ match]] (params (keyword match))))]
+    ;; NOTE: Sending all params even though that may sometimes unnecessary,
+    ;; but backend just ignores extra params
+    (ajax-promise! {:uri uri
+                    :method method
+                    :params params})))
 
 ;; state
 
@@ -63,10 +68,10 @@
 ;; side effect functions
 
 (defn log-out! []
-  (edn-xhr {:xhr/url "/api/logout"
-            :xhr/method :post
-            :xhr/on-complete (fn []
-                               (swap! state assoc :state/user nil))}))
+  (-> (ajax-promise! {:uri "/api/logout"
+                      :method :post})
+      (.then (fn []
+               (swap! state assoc :state/user nil)))))
 
 (defn close-card! [card]
   (swap! state update :state/cards
@@ -85,9 +90,9 @@
 
 (defn- fetch-card-data!
   [{:keys [id type] :as opts} callback]
-  (edn-xhr {:xhr/url (->url opts)
-            :xhr/method :get
-            :xhr/on-complete callback}))
+  (ajax/request {:uri (->url opts)
+                 :method :get
+                 :on-success callback}))
 
 (defn- open-card!
   [{:keys [type id] :as opts}]
@@ -115,15 +120,13 @@
                :id id}))
 
 (defn fetch-user! []
-  (edn-xhr {:xhr/url "/api/user"
-            :xhr/method :get
-            :xhr/on-complete
-            (fn [user]
-              (if (:user/id user)
-                (do
-                  (swap! state assoc :state/user user)
-                  (nav! :card.type/user (:user/id user)))
-                (nav! :card.type/games nil)))}))
+  (-> (tada! [:api/me])
+      (.then (fn [user]
+               (if (:user/id user)
+                 (do
+                   (swap! state assoc :state/user user)
+                   (nav! :card.type/user (:user/id user)))
+                 (nav! :card.type/games nil))))))
 
 (defn log-in! []
   (oauth/start-auth-flow!
@@ -131,39 +134,32 @@
      (fetch-user!))))
 
 (defn bot-set-language! [bot-id language cb]
-  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/language/" language)
-            :xhr/method :put
-            :xhr/on-complete (fn [data] (cb data))}))
+  (-> (tada! [:api/set-bot-language! {:bot-id bot-id :language language}])
+      (.then cb)))
 
 (defn new-bot! [game-id]
-  (edn-xhr {:xhr/url (str "/api/games/" game-id "/bot")
-            :xhr/method :post
-            :xhr/on-complete (fn [data]
-                               (nav! :card.type/code (:id data)))}))
+  (-> (tada! [:api/create-bot! {:game-id game-id}])
+      (.then (fn [data]
+               (nav! :card.type/code (:id data))))))
 
 (defn bot-save!
-  [bot-id value callback]
-  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/code")
-            :xhr/method :put
-            :xhr/data {:code value}
-            :xhr/on-complete callback}))
+  [bot-id code callback]
+  (-> (tada! [:api/set-bot-code! {:bot-id bot-id :code code}])
+      (.then callback)))
 
 (defn bot-test!
   [bot-id callback]
-  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/test")
-            :xhr/method :post
-            :xhr/on-complete callback}))
+  (-> (tada! [:api/test-bot! {:bot-id bot-id}])
+      (.then callback)))
 
 (defn bot-deploy!
   [bot-id callback]
-  (edn-xhr {:xhr/url (str "/api/bots/" bot-id "/deploy")
-            :xhr/method :post
-            :xhr/on-complete callback}))
+  (-> (tada! [:api/deploy-bot! {:bot-id bot-id}])
+      (.then callback)))
 
 (defn new-cli-token!
   []
-  (edn-xhr {:xhr/url (str "/api/cli-token")
-            :xhr/method :put
-            :xhr/on-complete (fn [data]
-                               (swap! user assoc :user/cli-token
-                                      (:user/cli-token data)))}))
+  (-> (tada! [:api/reset-cli-token!])
+      (.then (fn [data]
+               (swap! user assoc :user/cli-token
+                      (:user/cli-token data))))))
