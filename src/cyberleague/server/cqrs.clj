@@ -276,5 +276,5 @@
 #_(tada/do! t :api/user {:user-id 5})
 
 ;; NOTE: Also need to reload routes when changing this file.
-(when (= :dev (cyberleague.config/config :environment))
+#_(when (= :dev (cyberleague.config/config :environment))
   (require '[cyberleague.server.routes] :reload))
