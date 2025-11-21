@@ -241,8 +241,7 @@
               (let [bot (db/get-bot bot-id)]
                 (db/update-bot-code! (:db/id bot)
                                       code
-                                      (:code/language (:bot/code bot)))))
-    :return :tada/effect-return}
+                                      (:code/language (:bot/code bot)))))}
    {:id :api/test-bot!
     :params {:user-id :user/id
              :bot-id :bot/id}
