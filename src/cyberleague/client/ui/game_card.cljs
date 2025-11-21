@@ -12,7 +12,12 @@
        (str "#" (:game/name game))]
       [:div.gap]
       (when @state/user
-        [:a.button {:on-click (fn [_] (state/new-bot! (:game/id game)))} "CREATE A BOT"])
+        [:a.button
+         {:on-click (fn [_]
+                      (-> (state/tada! [:api/create-bot! {:game-id (:game/id game)}])
+                          (.then (fn [data]
+                                   (state/nav! :card.type/code (:id data))))))}
+         "CREATE A BOT"])
       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
      [:div.content
       [:div {:dangerouslySetInnerHTML #js {:__html (markdown/md->html (:game/description game))}}]

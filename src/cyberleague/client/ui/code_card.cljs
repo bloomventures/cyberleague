@@ -13,19 +13,22 @@
         test-match (r/atom nil)
         save! (fn [value]
                 (reset! status :saving)
-                (state/bot-save! bot-id value (fn [_]
-                                               (reset! status :saved))))
+                (-> (state/tada! [:api/set-bot-code! {:bot-id bot-id :code value}])
+                    (.then (fn [_]
+                             (reset! status :saved)))))
         debounced-save! (debounce save! 750)
         test! (fn []
                 (reset! status :testing)
-                (state/bot-test! bot-id (fn [match]
-                                          (reset! status (if (nil? (:match/moves match)) :failed :passed))
-                                          (reset! test-match match))))
+                (-> (state/tada! [:api/test-bot! {:bot-id bot-id}])
+                    (.then (fn [match]
+                             (reset! status (if (nil? (:match/moves match)) :failed :passed))
+                             (reset! test-match match)))))
         deploy! (fn []
                   (reset! status :deploying)
-                  (state/bot-deploy! bot-id (fn [_]
-                                             (reset! status :deployed)
-                                             (state/nav! :card.type/bot bot-id))))]
+                  (-> (state/tada! [:api/deploy-bot! {:bot-id bot-id}])
+                      (.then (fn [_]
+                               (reset! status :deployed)
+                               (state/nav! :card.type/bot bot-id)))))]
     (fn [{:keys [card/data]}]
       (let [bot data]
         [:div.card.code
@@ -66,20 +69,21 @@
             (into [:<>]
                   (->> [{:name "Clojure"
                          :language "clojure"}
-                        {:name "JavaScript"
-                         :language "javascript"}]
-                       (map (fn [language]
-                              [:a {:on-click
-                                   (fn [_]
-                                     (state/bot-set-language!
-                                      (:bot/id bot)
-                                      (:language language)
-                                      (fn [_data]
+                         {:name "JavaScript"
+                          :language "javascript"}]
+                        (map (fn [language]
+                               [:a
+                                {:on-click
+                                 (fn [_]
+                                   (-> (state/tada! [:api/set-bot-language!
+                                                     {:bot-id (:bot/id bot)
+                                                      :language (:language language)}])
+                                       (.then (fn [_data]
                                        ;; Relying on the card's auto-refresh to move us to the next state
-                                        )))}
-                               (:name language)]))))]
-           [code-editor-view {:on-change (fn [value]
-                                           (reset! status :editing)
+                                                ))))}
+                                (:name language)]))))]
+            [code-editor-view {:on-change (fn [value]
+                                            (reset! status :editing)
                                            (debounced-save! value))
                               :language (-> bot :bot/code :code/language)
                               :value (-> bot :bot/code :code/code)}])

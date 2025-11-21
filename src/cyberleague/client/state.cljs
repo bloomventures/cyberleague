@@ -133,30 +133,6 @@
    (fn []
      (fetch-user!))))
 
-(defn bot-set-language! [bot-id language cb]
-  (-> (tada! [:api/set-bot-language! {:bot-id bot-id :language language}])
-      (.then cb)))
-
-(defn new-bot! [game-id]
-  (-> (tada! [:api/create-bot! {:game-id game-id}])
-      (.then (fn [data]
-               (nav! :card.type/code (:id data))))))
-
-(defn bot-save!
-  [bot-id code callback]
-  (-> (tada! [:api/set-bot-code! {:bot-id bot-id :code code}])
-      (.then callback)))
-
-(defn bot-test!
-  [bot-id callback]
-  (-> (tada! [:api/test-bot! {:bot-id bot-id}])
-      (.then callback)))
-
-(defn bot-deploy!
-  [bot-id callback]
-  (-> (tada! [:api/deploy-bot! {:bot-id bot-id}])
-      (.then callback)))
-
 (defn new-cli-token!
   []
   (-> (tada! [:api/reset-cli-token!])
