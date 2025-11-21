@@ -1,7 +1,7 @@
 (ns cyberleague.client.ui.game-card
   (:require
-    [cyberleague.client.state :as state]
-    [markdown.core :as markdown]))
+   [cyberleague.client.state :as state]
+   [markdown.core :as markdown]))
 
 (defn game-card-view
   [{:card/keys [data] :as card}]
