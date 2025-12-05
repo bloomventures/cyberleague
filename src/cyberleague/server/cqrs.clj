@@ -1,12 +1,11 @@
 (ns cyberleague.server.cqrs
   (:require
-     [clojure.edn :as edn]
-     [cyberleague.db.core :as db]
-     [cyberleague.game-registrar :as registrar]
-     [cyberleague.coordinator.test-bot :as coordinator]
-     [cyberleague.schema :as schema] ;; To load custom schema
-     [tada.events.core :as tada]))
-
+   [clojure.edn :as edn]
+   [cyberleague.db.core :as db]
+   [cyberleague.game-registrar :as registrar]
+   [cyberleague.coordinator.test-bot :as coordinator]
+   [cyberleague.schema :as schema] ;; To load custom schema
+   [tada.events.core :as tada]))
 
 (defonce t (tada/init :malli))
 
@@ -54,7 +53,7 @@
                          ;; TODO: likely a better way to fetch counts in datomic
                        :user/bot-count (count
                                         (db/get-user-bots
-                                           (:db/id user)))}))))}
+                                         (:db/id user)))}))))}
    {:id :api/user
     :params {:user-id [:maybe :user/id]
              :other-user-id :user/id}
@@ -73,8 +72,8 @@
                                      :bot/id (:db/id bot)
                                      :bot/rating (:bot/rating bot)
                                      :bot/status (if (:bot/code-version bot)
-                                                  :active
-                                                  :inactive)
+                                                   :active
+                                                   :inactive)
                                      :bot/game (let [game (:bot/game bot)]
                                                  {:game/id (:db/id game)
                                                   :game/name
@@ -90,9 +89,7 @@
                        :game/name (:game/name game)
                          ;; TODO: likely a better way to fetch counts in datomic
                        :game/bot-count (count
-                                        (db/with-conn (db/get-game-bots
-                                           (:db/id game))))}))
-                   doall))}
+                                        (db/get-game-bots (:db/id game)))}))))}
 
    {:id :api/game
     :params {:user-id [:maybe :user/id]
@@ -240,8 +237,8 @@
     :effect (fn [{:keys [user-id bot-id code]}]
               (let [bot (db/get-bot bot-id)]
                 (db/update-bot-code! (:db/id bot)
-                                      code
-                                      (:code/language (:bot/code bot)))))}
+                                     code
+                                     (:code/language (:bot/code bot)))))}
    {:id :api/test-bot!
     :params {:user-id :user/id
              :bot-id :bot/id}
@@ -276,4 +273,4 @@
 
 ;; NOTE: Also need to reload routes when changing this file.
 #_(when (= :dev (cyberleague.config/config :environment))
-  (require '[cyberleague.server.routes] :reload))
+    (require '[cyberleague.server.routes] :reload))

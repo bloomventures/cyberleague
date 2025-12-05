@@ -1,8 +1,9 @@
 (ns cyberleague.server.routes
   (:require
+   [clojure.walk :as walk]
    [cyberleague.db.core :as db]
-   [cyberleague.server.oauth :as oauth]
    [cyberleague.server.cqrs :as cqrs]
+   [cyberleague.server.oauth :as oauth]
    [tada.events.ring :as tada.ring]))
 
 (defn wrap-api-token [handler]
@@ -25,12 +26,14 @@
                [(:rest event)
                 (fn [request]
                   (db/with-conn
-                    (tada.ring/ring-dispatch-event!
-                     cqrs/t
-                     (:id event)
-                     (-> (:params request)
-                         (merge (:body-params request))
-                         (assoc :user-id (get-in request [:session :id]))))))
+                    (-> (tada.ring/ring-dispatch-event!
+                         cqrs/t
+                         (:id event)
+                         (-> (:params request)
+                             (merge (:body-params request))
+                             (assoc :user-id (get-in request [:session :id]))))
+                        ; Need to consume lazy sequences before we leave the db/with-conn
+                        (update :body (fn [v] (walk/postwalk identity v))))))
                 [wrap-api-token]])))
    [[[:post "/api/logout"]
      (fn [_]
