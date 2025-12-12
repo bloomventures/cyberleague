@@ -33,7 +33,10 @@
                              (merge (:body-params request))
                              (assoc :user-id (get-in request [:session :id]))))
                         ; Need to consume lazy sequences before we leave the db/with-conn
-                        (update :body (fn [v] (walk/postwalk identity v))))))
+                        (update :body (fn [v] (walk/postwalk identity v)))
+                        ((fn [response] (if (string? (:body response))
+                                          (assoc-in response [:headers "Content-Type"] "text/plain")
+                                          response))))))
                 [wrap-api-token]])))
    [[[:post "/api/logout"]
      (fn [_]
