@@ -30,6 +30,21 @@
                     :method method
                     :params params})))
 
+(defn tada-atom [[event-id params] & {:keys [refresh]}]
+  (let [refresh-fn (atom nil)
+        a (with-meta (r/atom nil) {::refresh-fn refresh-fn})
+        f (fn []
+            (-> (tada! [event-id params])
+                (.then (fn [data]
+                         (reset! a data)))))]
+    (reset! refresh-fn f)
+    (f)
+    (when refresh (js/setInterval f refresh))
+    a))
+
+(defn refresh! [a]
+  (@(::refresh-fn (meta a))))
+
 ;; state
 
 (defonce state
@@ -38,32 +53,6 @@
 
 (def cards (r/cursor state [:state/cards]))
 (def user (r/cursor state [:state/user]))
-
-;; other
-
-(declare fetch-card-data!)
-
-(def card-refresh-rate 1000) ; set to nil to disable
-
-(defn refresh-all-cards!
-  []
-  (doseq [card @cards]
-    (fetch-card-data!
-     {:id (card :card/id)
-      :type (card :card/type)}
-     (fn [data]
-       (swap! state update :state/cards
-              (fn [cards]
-                (map (fn [*card]
-                       (if (= (*card :card/url)
-                              (card :card/url))
-                         (assoc *card :card/data data)
-                         *card))
-                     cards)))))))
-
-(defonce update-interval
-  (when card-refresh-rate
-    (js/setInterval (fn [] (refresh-all-cards!)) card-refresh-rate)))
 
 ;; side effect functions
 
@@ -75,49 +64,19 @@
 
 (defn close-card! [card]
   (swap! state update :state/cards
-         (fn [cards] (into [] (remove (fn [c] (= (:card/url c) (:card/url card))) cards)))))
-
-(defn ->url
-  [{:keys [id type] :as card}]
-  (case type
-    :card.type/game (str "/api/games/" id)
-    :card.type/games "/api/games"
-    :card.type/users "/api/users"
-    :card.type/user (str "/api/users/" id)
-    :card.type/bot (str "/api/bots/" id)
-    :card.type/code (str "/api/bots/" id "/code")
-    :card.type/match (str "/api/matches/" id)))
-
-(defn- fetch-card-data!
-  [{:keys [id type] :as opts} callback]
-  (ajax/request {:uri (->url opts)
-                 :method :get
-                 :on-success callback}))
+         (fn [cards] (remove #{card} cards))))
 
 (defn- open-card!
-  [{:keys [type id] :as opts}]
-  (let [existing-card (->> @cards
-                           (filter (fn [card]
-                                     (= (->url opts)
-                                        (card :card/url))))
-                           first)]
-    (if existing-card
-      (swap! state update :state/cards
-             (fn [cards]
-               (-> cards
-                   (->> (remove #{existing-card}))
-                   (conj existing-card))))
-      (fetch-card-data! opts (fn [data]
-                               (swap! state update :state/cards conj
-                                      {:card/id id
-                                       :card/type type
-                                       :card/data data
-                                       :card/url (->url opts)}))))))
+  [card]
+  (swap! state update :state/cards
+         (fn [cards]
+           (-> cards
+               (->> (remove #{card}))
+               (conj card)))))
 
 (defn nav!
   [card-type id]
-  (open-card! {:type card-type
-               :id id}))
+  (open-card! [card-type {:id id}]))
 
 (defn fetch-user! []
   (-> (tada! [:api/me])

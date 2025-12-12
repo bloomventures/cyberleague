@@ -43,8 +43,8 @@
         "×"]
        [:a.log-in {:on-click (fn [_] (state/log-in!))}])]]
    [:div.cards
-    (for [card @state/cards]
-      (let [card-view (case (card :card/type)
+    (for [[type params :as card] @state/cards]
+      (let [card-view (case type
                         :card.type/users users-card-view
                         :card.type/user user-card-view
                         :card.type/game game-card-view
@@ -52,5 +52,5 @@
                         :card.type/match match-card-view
                         :card.type/bot bot-card-view
                         :card.type/code code-card-view)]
-        ^{:key (:card/url card)}
+        ^{:key card}
         [card-view card]))]])

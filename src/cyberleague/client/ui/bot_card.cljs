@@ -1,7 +1,8 @@
 (ns cyberleague.client.ui.bot-card
   (:require
-    [cyberleague.client.state :as state]
-    [cljsjs.d3]))
+   [cyberleague.client.state :as state]
+   [reagent.core :as r]
+   [cljsjs.d3]))
 
 (defn graph-view [history]
   [:div.graph
@@ -10,45 +11,46 @@
              (js/window.bot_graph el (clj->js history))))}])
 
 (defn bot-card-view
-  [{:card/keys [data] :as card}]
-  (let [bot data]
-    [:div.card.bot
-     [:header
-      [:span.bot-name (:bot/name bot)]
-      [:a.user-name {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
-       (str "@" (:user/name (:bot/user bot)))]
-      [:a.game-name {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-       (str "#" (:game/name (:bot/game bot)))]
-      [:div.gap]
-      (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
-        [:a.button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])
-      [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
+  [[_ {:keys [id]} :as card]]
+  (r/with-let [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh 2500})]
+    (when-let [bot @data]
+      [:div.card.bot
+       [:header
+        [:span.bot-name (:bot/name bot)]
+        [:a.user-name {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
+         (str "@" (:user/name (:bot/user bot)))]
+        [:a.game-name {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+         (str "#" (:game/name (:bot/game bot)))]
+        [:div.gap]
+        (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
+          [:a.button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])
+        [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
 
-     [:div.content
-      [:div.language (-> bot :bot/code :code/language)]
-      [graph-view (:bot/history bot)]
-      [:table.matches
-       [:thead]
-       [:tbody
-        (for [match (->> (:bot/matches bot)
+       [:div.content
+        [:div.language (-> bot :bot/code :code/language)]
+        [graph-view (:bot/history bot)]
+        [:table.matches
+         [:thead]
+         [:tbody
+          (for [match (->> (:bot/matches bot)
                          ;; ids are monotically increasing with time
                          ;; so can use them to order
-                         (sort-by :match/id)
-                         (reverse))]
-          ^{:key (:match/id match)}
-          [:tr
-           [:td
-            [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
+                           (sort-by :match/id)
+                           (reverse))]
+            ^{:key (:match/id match)}
+            [:tr
+             [:td
+              [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
              ;; case doesn't work here
-             (cond
-               (= (:match/winner match) (:bot/id bot))
-               "won"
-               (nil? (:match/winner match))
-               "tied"
-               :else
-               "lost")
-             " vs "
-             (let [other-bot (->> (:match/bots match)
-                                  (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
-                                  first)]
-               (:bot/name other-bot))]]])]]]]))
+               (cond
+                 (= (:match/winner match) (:bot/id bot))
+                 "won"
+                 (nil? (:match/winner match))
+                 "tied"
+                 :else
+                 "lost")
+               " vs "
+               (let [other-bot (->> (:match/bots match)
+                                    (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
+                                    first)]
+                 (:bot/name other-bot))]]])]]]])))
