@@ -33,15 +33,16 @@
      [:a {:on-click (fn [] (state/nav! :card.type/games nil))} "Games"]
      [:a {:on-click (fn [_] (state/nav! :card.type/users nil))} "Users"]
      (when-let [user @state/user]
-       [:a.user {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))}
-        [:img {:src (str "https://avatars.githubusercontent.com/u/" (user :user/github-id) "?v=2&s=40")}]
-        (user :user/name)
-        "My Bots"])
+       [:<>
+        [:a {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))} "My Bots"]
+        [:a.user {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))}
+         [:img {:src (str "https://avatars.githubusercontent.com/u/" (user :user/github-id) "?v=2&s=40")}]
+         [:span.name (user :user/name)]]])
      (if-let [user @state/user]
        [:a.log-out {:on-click (fn [_] (state/log-out!))
                     :title "Log Out"}
         "×"]
-       [:a.log-in {:on-click (fn [_] (state/log-in!))}])]]
+       [:a.log-in {:on-click (fn [_] (state/log-in!))} "Log In"])]]
    [:div.cards
     (for [[type params :as card] @state/cards]
       (let [card-view (case type
