@@ -1,7 +1,7 @@
 (ns ^:figwheel-hooks
   cyberleague.client.core
   (:require
-    [reagent.dom :as rdom]
+    [bloom.omni.reagent :as rdom]
     [cyberleague.games.games] ;; so games get registered
     [cyberleague.client.state :as state]
     [cyberleague.client.ui.app :refer [app-view]]))
@@ -11,8 +11,7 @@
 (defn render
   []
   (rdom/render
-    [app-view]
-    (js/document.getElementById "app")))
+    [app-view]))
 
 (defn ^:export init []
   (render)
