@@ -9,7 +9,8 @@
   :test-paths ["test"]
 
   :dependencies [[com.hyperfiddle/rcf "20220926-202227"]]
-  :profiles {:server {:dependencies [[io.bloomventures/omni "0.32.2"]
+  :profiles {:server {:dependencies [[org.clojure/clojure "1.12.4"] ; Omni currently broken without this
+                                     [io.bloomventures/omni "0.32.2"]
                                      [com.datomic/peer "1.0.6733"
                                       :exclusions
                                       [com.google.guava/guava
