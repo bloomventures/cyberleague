@@ -1,6 +1,7 @@
 (ns cyberleague.client.ui.match-card
   (:require
    [cyberleague.client.state :as state]
+   [cyberleague.client.ui.common :as ui]
    [cyberleague.client.ui.match-results :refer [match-results-view]]
    [reagent.core :as r]))
 
@@ -15,11 +16,11 @@
         [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
        [:div.content
         (let [[bot1 bot2] (:match/bots match)]
-          [:h1
+          [:h1 {:tw "flex gap-1 items-center"}
            [:a {:class (when (= (:match/winner match) (:bot/id bot1)) "winner")
-                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} (:bot/name bot1)]
+                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} [ui/bot-chip bot1]]
            " vs "
-           [:a {:class (when (= (:match/winner match) (:bot/id bot2)) "winner")
-                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} (:bot/name bot2)]])
+           [:a {:tw (when (= (:match/winner match) (:bot/id bot2)) "bg-#d5daef p-1 rounded")
+                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} [ui/bot-chip bot2]]])
 
         [match-results-view match]]])))

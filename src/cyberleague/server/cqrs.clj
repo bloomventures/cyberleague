@@ -69,6 +69,8 @@
                                  (map
                                   (fn [bot]
                                     {:bot/name (:bot/name bot)
+                                     :bot/user (select-keys (:bot/user bot)
+                                                            [:db/id :user/name])
                                      :bot/id (:db/id bot)
                                      :bot/rating (:bot/rating bot)
                                      :bot/status (if (:bot/code-version bot)
@@ -106,7 +108,7 @@
                  :game/bots (->> bots
                                  (map
                                   (fn [bot]
-                                    {:bot/user-id (-> bot :bot/user :db/id)
+                                    {:bot/user (select-keys (:bot/user bot) [:db/id :user/name])
                                      :bot/name (:bot/name bot)
                                      :bot/rating (:bot/rating bot)
                                      :bot/status (if (:bot/code-version bot)
@@ -127,6 +129,11 @@
                                 :game/id (:game/id game)})
                  :match/bots (map (fn [b]
                                     {:bot/id (:db/id b)
+                                     :bot/status (if (:bot/code-version b)
+                                                   :active
+                                                   :inactive)
+                                     :bot/user (select-keys (:bot/user b)
+                                                            [:db/id :user/name])
                                      :bot/name (:bot/name b)})
                                   (:match/bots match))
                  :match/moves (edn/read-string (:match/moves match))
@@ -154,6 +161,9 @@
                     history (db/get-bot-history (:db/id bot))]
                 {:bot/id (:db/id bot)
                  :bot/name (:bot/name bot)
+                 :bot/status (if (:bot/code-version bot)
+                                                   :active
+                                                   :inactive)
                  :bot/game (let [game (:bot/game bot)]
                              {:game/id (:db/id game)
                               :game/name (:game/name game)})
@@ -169,6 +179,10 @@
                                  {:match/id (:db/id match)
                                   :match/bots (map (fn [b]
                                                      {:bot/id (:db/id b)
+                                                      :bot/user (select-keys (:bot/user b) [:db/id :user/name])
+                                                      :bot/status (if (:bot/code-version bot)
+                                                   :active
+                                                   :inactive)
                                                       :bot/name (:bot/name b)})
                                                    (:match/bots match))
                                   :match/winner (:db/id (:match/winner match))})

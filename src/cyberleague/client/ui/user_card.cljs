@@ -58,8 +58,7 @@
              [:tr
               [:td
                [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
-                (if (= :active (:bot/status bot)) "●" "○") " "
-                (:bot/name bot)]]
+                [ui/bot-chip bot]]]
               [:td (:bot/rating bot)]
               [:td
                [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}

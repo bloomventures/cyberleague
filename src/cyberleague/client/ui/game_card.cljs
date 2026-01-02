@@ -1,6 +1,7 @@
 (ns cyberleague.client.ui.game-card
   (:require
    [cyberleague.client.state :as state]
+   [cyberleague.client.ui.common :as ui]
    [reagent.core :as r]
    [markdown.core :as markdown]))
 
@@ -37,24 +38,20 @@
                 max-rating (apply max (map :bot/rating (:game/bots game)))
                 ->width (fn [rating]
                           (* max-bar-width (/ rating max-rating)))]
-            (->> (:game/bots game)
-                 (sort-by :bot/rating)
-                 reverse
-                 (map-indexed (fn [rank bot]
-                                ^{:key (:bot/id bot)}
-                                [:tr
-                                 [:td (when (= (:bot/user-id bot) (:user/id @state/user))
-                                        "★")]
-                                 [:td (inc rank)]
-                                 [:td
-                                  [:a {:on-click (fn [_]
-                                                   (state/nav! :card.type/bot (:bot/id bot)))}
-                                   (if (= :active (:bot/status bot))
-                                     "●"
-                                     "○")
-                                   " "
-                                   (:bot/name bot)]]
-                                 [:td (:bot/rating bot)]
-                                 [:td
-                                  [:div.bar {:style {:width (->width (:bot/rating bot))}}]]]))
-                 doall))]]]])))
+            (for [[rank bot] (->> (:game/bots game)
+                                  (sort-by :bot/rating)
+                                  reverse
+                                  (map-indexed vector))]
+              ^{:key (:bot/id bot)}
+              [:tr
+               [:td (when (= (:db/id (:bot/user bot)) (:user/id @state/user))
+                      "★")]
+               [:td (inc rank)]
+               [:td
+                [:a {:on-click (fn [_]
+                                 (state/nav! :card.type/bot (:bot/id bot)))}
+                 [ui/bot-chip bot]]]
+               [:td (:bot/rating bot)]
+               [:td
+                [:div.bar {:style {:width (->width (:bot/rating bot))}}]]])
+            )]]]])))

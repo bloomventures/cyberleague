@@ -1,6 +1,7 @@
 (ns cyberleague.client.ui.bot-card
   (:require
    [cyberleague.client.state :as state]
+   [cyberleague.client.ui.common :as ui]
    [reagent.core :as r]
    [cljsjs.d3]))
 
@@ -16,7 +17,7 @@
     (when-let [bot @data]
       [:div.card.bot
        [:header
-        [:span.bot-name (:bot/name bot)]
+        [:span.bot-name [ui/bot-chip bot]]
         [:a.user-name {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
          (str "@" (:user/name (:bot/user bot)))]
         [:a.game-name {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
@@ -53,4 +54,4 @@
                (let [other-bot (->> (:match/bots match)
                                     (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
                                     first)]
-                 (:bot/name other-bot))]]])]]]])))
+                 [ui/bot-chip other-bot])]]])]]]])))
