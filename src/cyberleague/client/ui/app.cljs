@@ -36,7 +36,8 @@
        [:<>
         [:a {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))} "My Bots"]
         [:a.user {:on-click (fn [_] (state/nav! :card.type/user (:user/id user)))}
-         [:img {:src (str "https://avatars.githubusercontent.com/u/" (user :user/github-id) "?v=2&s=40")}]
+         [:img {:tw "bg-#9fa8da"
+                :src (str "https://avatars.githubusercontent.com/u/" (user :user/github-id) "?v=2&s=40")}]
          [:span.name (user :user/name)]]])
      (if-let [user @state/user]
        [:a.log-out {:on-click (fn [_] (state/log-out!))
