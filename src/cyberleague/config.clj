@@ -13,4 +13,5 @@
     [:github-client-id string?] ;; in :dev, can be garbage
     [:github-client-secret string?] ;; in :dev, can be garbage
     [:github-redirect-uri string?] ;; in :dev, can be garbage
+    [:oauth-nonce-secret string?]
     ]))

@@ -20,6 +20,7 @@
                                        org.slf4j/jcl-over-slf4j
                                        org.slf4j/slf4j-api]]
 
+                                     [com.taoensso/tempel "1.1.0"]
                                      [tada "0.3.0"]
 
                                      ;; client
