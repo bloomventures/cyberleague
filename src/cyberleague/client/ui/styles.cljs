@@ -316,7 +316,8 @@
              :overflow "hidden"}
 
             [:.CodeMirror-lines
-             {:padding-top "1em"}]]]]
+             {:padding-top "1em"
+              :padding-left "1em"}]]]]
 
          [:>.lang-pick
           {:padding "1em"
@@ -330,6 +331,8 @@
 
          [:>.test
           {:flex-grow 0
+           :width "30%"
+           :padding "1em"
            :background "#f7f7f7"
            :border-left "1px solid #ddd"}
 

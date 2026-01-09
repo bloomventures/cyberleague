@@ -4,9 +4,9 @@
 
 (defn test-view
   [match bot]
-  (when match
-    [:div.test
-     ;; match/info contains error information if there is an error
+  [:div.test
+   ;; match/info contains error information if there is an error
+   (when match
      (if (:match/error match)
        [:<>
         [:p "Error: " (:match/error match)]
@@ -22,4 +22,4 @@
 
            :else
            "You Lost!")]
-        [match-results-view match]])]))
+        [match-results-view match]]))])
