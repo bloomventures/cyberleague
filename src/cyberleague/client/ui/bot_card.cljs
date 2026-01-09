@@ -13,7 +13,7 @@
 
 (defn bot-card-view
   [[_ {:keys [id]} :as card]]
-  (r/with-let [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh 2500})]
+  (r/with-let [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh-rate 2500})]
     (when-let [bot @data]
       [:div.card.bot
        [:header

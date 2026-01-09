@@ -8,7 +8,7 @@
 (defn game-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let
-    [data (state/tada-atom [:api/game {:game-id id}] {:refresh 5000})]
+    [data (state/tada-atom [:api/game {:game-id id}] {:refresh-rate 5000})]
     (when-let [game @data]
       [:div.card.game
        [:header
