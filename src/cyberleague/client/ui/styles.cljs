@@ -150,6 +150,7 @@
       [:>.card
        {:background "white"
         :margin "0 10px"
+        :max-width "90vw"
         :flex-shrink 0
         :box-shadow "0 1px 1.5px 0 rgba(0,0,0,0.12)"
         :display "flex"
