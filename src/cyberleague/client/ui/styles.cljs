@@ -72,7 +72,7 @@
    [:#app
 
     [:>.app
-     {:height "100%"
+     {:height "100vh"
       :display "flex"
       :flex-direction "column"}
 
@@ -145,7 +145,7 @@
       {:padding "0 10px 20px 10px"
        :flex-grow 1
        :display "flex"
-       :overflow-y "hidden"}
+       :overflow-x "auto"}
 
       [:>.card
        {:background "white"
