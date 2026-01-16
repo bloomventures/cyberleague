@@ -23,4 +23,4 @@
            [:a {:tw (when (= (:match/winner match) (:bot/id bot2)) "bg-#d5daef p-1 rounded")
                 :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} [ui/bot-chip bot2]]])
 
-        [match-results-view match]]])))
+        [match-results-view {:match match}]]])))

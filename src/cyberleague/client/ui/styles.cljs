@@ -20,14 +20,6 @@
 
 (defn >match-results []
   [:>.match-results
-   [:>.scrubber
-    [:>.row
-     {:display "flex"
-      :justify-content "space-between"
-      :align-items "center"}]
-    [:>input
-     {:width "100%"}]]
-
    (>results)])
 
 (def styles
@@ -307,7 +299,7 @@
           {:box-sizing "border-box"}]
 
          [:>.source
-          {:width "70%"}
+          {:width "65%"}
 
           [:>.wrapper
            [:>.CodeMirror
@@ -331,12 +323,6 @@
            {:display "block"}]]
 
          [:>.test
-          {:flex-grow 0
-           :width "30%"
-           :padding "1em"
-           :background "#f7f7f7"
-           :border-left "1px solid #ddd"}
-
           (>match-results)]]]]]]]])
 
 (def css
