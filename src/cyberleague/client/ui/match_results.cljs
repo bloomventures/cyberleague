@@ -4,14 +4,12 @@
    [zprint.core :as zprint]
    [cyberleague.game-registrar :as registrar]))
 
-
-
 (defn match-results-view
   [{:keys [message match]}]
   (r/with-let
     [view (get-in @registrar/games
-            [(get-in match [:match/game :game/name])
-             :game.config/match-results-view])
+                  [(get-in match [:match/game :game/name])
+                   :game.config/match-results-view])
      state-history (match :match/state-history)
      max-value (dec (count state-history))
      move-index (r/atom max-value)]
@@ -62,4 +60,17 @@
                      (assoc :history ["omitted"])))
          "reformat"
          {:width 33
-          :style [#_:indent-only :community]})]]]]))
+          :style [#_:indent-only :community]})]
+       (when (and 
+               (:match/error match)
+               (= @move-index max-value))
+         [:<>
+          [:div {:tw "font-bold border-black border-solid border-b"}
+           "Error"]
+          [:code {:tw "block whitespace-pre-wrap py-1"}
+           (zprint/zprint-file-str
+            (pr-str (:match/error match))
+            "reformat"
+            {:width 33
+             :style [#_:indent-only :community]})]])]]]))
+
