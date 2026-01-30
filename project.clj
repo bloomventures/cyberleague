@@ -4,7 +4,7 @@
 
   :omni-config cyberleague.omni-config/omni-config
 
-  :source-paths ["src"]
+  :source-paths ["src" "dev-src"]
 
   :test-paths ["test"]
 
