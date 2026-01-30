@@ -34,7 +34,7 @@
 
     (number-of-players [_] 2)
 
-    (valid-move? [_ move] (<= 1 move 13))
+    (valid-move? [_ move] (and (int? move) (<= 1 move 13)))
 
     (init-state [_ players]
       (set-next-trophy
