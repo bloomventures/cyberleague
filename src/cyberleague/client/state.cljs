@@ -31,23 +31,22 @@
                     :method method
                     :params params})))
 
-(def tada-atom
-  (memoize
-   (fn [[event-id params] & {:keys [refresh-rate]}]
-     (let [ratom (ratom/atom nil)
-           f (fn []
-               (-> (tada! [event-id params])
-                   (.then (fn [data]
-                            (reset! ratom data)))))
-           interval (when refresh-rate (js/setInterval f refresh-rate))]
-       (f)
-       (ratom/make-reaction (fn []
-                              (with-meta
-                                @ratom
-                                {::refresh-fn f}))
-                            :on-dispose
-                            (fn []
-                              (js/clearInterval interval)))))))
+(defn tada-atom
+  [[event-id params] & {:keys [refresh-rate]}]
+  (let [ratom (ratom/atom nil)
+        f (fn []
+            (-> (tada! [event-id params])
+                (.then (fn [data]
+                         (reset! ratom data)))))
+        interval (when refresh-rate (js/setInterval f refresh-rate))]
+    (f)
+    (ratom/make-reaction (fn []
+                           (with-meta
+                             @ratom
+                             {::refresh-fn f}))
+                         :on-dispose
+                         (fn []
+                           (js/clearInterval interval)))))
 
 (defn refresh! [rx]
   ((::refresh-fn (meta @rx))))
