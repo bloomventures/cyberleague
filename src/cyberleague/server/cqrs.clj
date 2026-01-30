@@ -180,7 +180,7 @@
                                   :match/bots (map (fn [b]
                                                      {:bot/id (:db/id b)
                                                       :bot/user (select-keys (:bot/user b) [:db/id :user/name])
-                                                      :bot/status (if (:bot/code-version bot)
+                                                      :bot/status (if (:bot/code-version b)
                                                    :active
                                                    :inactive)
                                                       :bot/name (:bot/name b)})
