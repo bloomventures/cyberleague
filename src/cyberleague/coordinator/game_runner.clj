@@ -22,6 +22,9 @@
                            :move.error/data {:message (str e)
                                              :bot-id (:db/id bot)}}}))]
     (cond
+      (::error move)
+      move
+
       (not (game-engine.protocol/valid-move? game-engine move))
       {::error {:move.error/type :move.error.type/invalid-move
                 :move.error/data {:bot-id (:db/id bot)
@@ -54,9 +57,10 @@
                              (map (fn [bot]
                                     [(:db/id bot)
                                      (run-move bot state game-engine)]))
-                             (into {}))]
-              (if (some #(contains? (second %) ::error) moves)
-                {:game.result/error (map ::error moves)
+                             (into {}))
+                  errors (keep #(::error (second %)) moves)]
+              (if (seq errors)
+                {:game.result/error errors
                  :game.result/winner nil
                  :game.result/state-history states
                  :game.result/history (:history state)}

@@ -14,9 +14,9 @@
        [:header "MATCH"
         [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:match/game match))))} (str "#" (:game/name (:match/game match)))]
         [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-       [:div.content
+       [:div.content {:tw "flex flex-col"}
         (let [[bot1 bot2] (:match/bots match)]
-          [:h1 {:tw "flex gap-1 items-center"}
+          [:h1 {:tw "flex gap-1 justify-center items-center"}
            [:a {:class (when (= (:match/winner match) (:bot/id bot1)) "winner")
                 :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} [ui/bot-chip bot1]]
            " vs "

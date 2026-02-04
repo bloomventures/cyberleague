@@ -44,37 +44,32 @@
                     (-> (into {} player-2) (assoc :db/id (:db/id player-2)
                                                   :bot/code (db/deployed-code (:db/id player-2))))]))]
       #_(println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:game.result/winner result)))
-      (if-let [{:move.error/keys [data type] :as error} (:game.result/error result)]
-        (case type
-          :move.error.type/invalid-code
-          (let [errd-bot (if (= (:db/id player-1) (:bot-id data))
-                           player-1
-                           player-2)]
-            (println "Exception executing, will disable:" (:db/id errd-bot) (:message data))
-            (db/disable-bot! errd-bot))
+      (let [{:move.error/keys [data _type] :as error} (:game.result/error result)
+            ;; TODO assuming 2 player games
+            [winning-bot errd-bot] (when error
+                                     (if (= (:bot-id data) (:db/id player-1))
+                                       [player-2 player-1]
+                                       [player-1 player-2]))
+            ;; run-game returns game.result/winner only for completed games
+            ;; but for tournament purposes, if a bot errors
+            ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
+            ;; (ie. when about to lose, error)
+            winner-id (or (:game.result/winner result)
+                          (:db/id winning-bot))]
+        (when errd-bot
+          (println "Disabling bot:" (:db/id errd-bot) (:message data))
+          (db/disable-bot! errd-bot))
 
-          (:move.error.type/invalid-move :move.error.type/illegal-move)
-          (let [[winner cheater] (if (= (:bot-id data) (:db/id player-1))
-                                   [player-2 player-1]
-                                   [player-1 player-2])]
-            (println "Bad move from " cheater)
-            (db/with-conn
-             (db/create-entity! {:match/bots [(:db/id player-1) (:db/id player-2)]
-                                 :match/error true
-                                 :match/state-history (pr-str (:game.result/state-history result))
-                                 :match/moves (pr-str (:game.result/history result))
-                                 :match/winner (:db/id winner)})
-             (db/disable-cheater! cheater))))
-        ; TODO: handle ties?
         (db/with-conn
          (db/create-entity! (merge
                              {:match/bots [(:db/id player-1) (:db/id player-2)]
                               :match/state-history (pr-str (:game.result/state-history result))
                               :match/moves (pr-str (:game.result/history result))}
-                             ;; optionally add this in b/c datomic does not allow nils
-                             (when-let [winner (:game.result/winner result)]
-                               {:match/winner winner})))
-         (ranking/update-rankings! player-1 player-2 (:game.result/winner result)))))))
+                             (when error
+                               {:match/error (pr-str error)})
+                             (when winner-id
+                               {:match/winner winner-id})))
+         (ranking/update-rankings! player-1 player-2 winner-id))))))
 
 #_(let [[game bots] (first (db/with-conn (db/active-bots)))]
     (->> bots

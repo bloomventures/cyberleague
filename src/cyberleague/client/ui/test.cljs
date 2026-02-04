@@ -6,6 +6,7 @@
   [match bot]
   [:div.test {:tw "h-full w-35% bg-gray-100"}
    (when match
+     ^{:key (:match/id match)} ;; to force re-render
      [match-results-view
       {:message (cond
                   (:match/error match)

@@ -73,4 +73,5 @@
     :db/valueType :db.type/ref}
    {:db/ident :match/error
     :db/cardinality :db.cardinality/one
-    :db/valueType :db.type/boolean}])
+    :db/valueType :db.type/string
+    :db/doc "Stored as edn vector"}])
