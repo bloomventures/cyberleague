@@ -138,6 +138,7 @@
                                   (:match/bots match))
                  :match/error (edn/read-string (:match/error match))
                  :match/moves (edn/read-string (:match/moves match))
+                 :match/std-out-history (edn/read-string (:match/std-out-history match))
                  :match/state-history (edn/read-string
                                        (:match/state-history match))
                  :match/winner (:db/id (:match/winner match))}))}
@@ -234,7 +235,7 @@
     :effect (fn [{:keys [user-id bot-id language]}]
               (let [bot (db/get-bot bot-id)
                     game-name (get-in bot [:bot/game :game/name])
-                    code (get-in @registrar/games [game-name :game.config/starter-code language])
+                    code (get-in @registrar/games [game-name :game.config/starter-code language] "")
                     bot (db/update-bot-code! bot-id code language)]
                 bot))
     :return (fn [{bot :tada/effect-return}]

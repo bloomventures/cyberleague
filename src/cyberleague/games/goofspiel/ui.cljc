@@ -3,18 +3,12 @@
    [reagent.core :as r]
    [cyberleague.client.ui.colors :as colors]))
 
-(defn move-view [_]
-  #?(:cljs
-     (let [show-log? (r/atom false)]
-       (fn [move {:keys [p1-id p2-id]}]
-         [:tbody
-          [:tr {:on-click (fn [_] (swap! show-log? not))}
-           [:td (move :trophy)]
-           [:td {:class (when (> (move p1-id) (move p2-id)) "winner")} (move p1-id)]
-           [:td {:class (when (< (move p1-id) (move p2-id)) "winner")} (move p2-id)]
-           [:td (if @show-log? "×" "▾")]]
-          [:tr.log {:class (if @show-log? "show" "hide")}
-           [:td {:colSpan 4} "console logging TODO"]]]))))
+(defn move-view [move {:keys [p1-id p2-id]}]
+  [:tbody
+   [:tr
+    [:td (move :trophy)]
+    [:td {:class (when (> (move p1-id) (move p2-id)) "winner")} (move p1-id)]
+    [:td {:class (when (< (move p1-id) (move p2-id)) "winner")} (move p2-id)]]])
 
 (defn match-results-view
   [{:match/keys [bots winner] :as match} states moves]

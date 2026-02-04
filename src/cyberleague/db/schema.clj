@@ -68,6 +68,10 @@
     :db/cardinality :db.cardinality/one
     :db/valueType :db.type/string
     :db/doc "Stored as edn vector"}
+   {:db/ident :match/std-out-history
+    :db/cardinality :db.cardinality/one
+    :db/valueType :db.type/string
+    :db/doc "Stored as edn vector"}
    {:db/ident :match/winner
     :db/cardinality :db.cardinality/one
     :db/valueType :db.type/ref}

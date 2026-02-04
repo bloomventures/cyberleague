@@ -26,6 +26,7 @@
       {:match/id (uuid/random)
        :match/game {:game/name game-name}
        :match/state-history (:game.result/state-history result)
+       :match/std-out-history (:game.result/std-out-history result)
        :match/bots [{:bot/id (:db/id bot)
                      :bot/name "You"}
                     {:bot/id random-bot-id
