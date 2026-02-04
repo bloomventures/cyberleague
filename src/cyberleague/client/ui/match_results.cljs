@@ -12,6 +12,7 @@
                   [(get-in match [:match/game :game/name])
                    :game.config/match-results-view])
      state-history (match :match/state-history)
+     std-out-history (match :match/std-out-history)
      max-value (dec (count state-history))
      move-index (r/atom max-value)]
     [:div.match-results
@@ -55,6 +56,12 @@
          "Move"]
         [:code {:tw "block py-1"}
          (pr-str (:move (last (:history (get state-history @move-index)))))]]
+
+       [:div
+        [:div {:tw "font-bold border-black border-solid border-b"}
+         "Log"]
+        [:code {:tw "block py-1 whitespace-pre-wrap"}
+         (get std-out-history @move-index)]]
 
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}

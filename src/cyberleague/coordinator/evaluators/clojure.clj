@@ -1,10 +1,12 @@
 (ns cyberleague.coordinator.evaluators.clojure
   (:require
-   [clojure.string :as string]
    [clojure.data.json :as json]
-   [sci.core :as sci]
-   [cyberleague.coordinator.evaluators.api :as api])
-  (:import (java.util.concurrent TimeoutException TimeUnit FutureTask)))
+   [clojure.string :as str]
+   [cyberleague.coordinator.evaluators.api :as api]
+   [sci.core :as sci])
+  (:import
+   (java.util.concurrent FutureTask TimeUnit TimeoutException)
+   (java.io StringWriter)))
 
 (defn thread-with-timeout
   "Warning: uses Thread.stop, which is 'unsafe'"
@@ -24,24 +26,28 @@
   (let [state (json/read-str json-state :key-fn keyword)
         form-to-eval (list 'let ['state state
                                  'bot-function (sci/parse-string (sci/init {}) code)]
-                             '(bot-function state))
+                           '(bot-function state))
+        sw (StringWriter.)
         move (thread-with-timeout
-               (fn [] (sci/eval-form (sci/init {:bindings {'println println} :realize-max 10})
-                                     form-to-eval))
-               500)]
-    (json/write-str move)))
+              (fn [] (sci/binding
+                      [sci/out sw]
+                       (sci/eval-form
+                        (sci/init {:realize-max 10})
+                        form-to-eval)))
+              500)]
+    {:eval/return-value (json/write-str move)
+     :eval/std-out (str sw)}))
 
 #_(try
     (test-move
-      (fn []
-        (while true
-          (Thread/sleep 500)
-          (println "1")))
-      5000))
+     (fn []
+       (while true
+         (Thread/sleep 500)
+         (println "1")))
+     5000))
 
 (comment
   (api/native-code-runner
-    "{\"the-state\": 12345}"
-    "clojure"
-    "(fn [x] (get x :the-state))")
-  )
+   "{\"the-state\": 12345}"
+   "clojure"
+   "(fn [x] (get x :the-state))"))

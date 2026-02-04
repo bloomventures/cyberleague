@@ -64,6 +64,7 @@
          (db/create-entity! (merge
                              {:match/bots [(:db/id player-1) (:db/id player-2)]
                               :match/state-history (pr-str (:game.result/state-history result))
+                              :match/std-out-history (pr-str (:game.result/std-out-history result))
                               :match/moves (pr-str (:game.result/history result))}
                              (when error
                                {:match/error (pr-str error)})
