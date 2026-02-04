@@ -212,8 +212,7 @@
            :padding "0.25em"}]
 
          [:td
-          {:padding "0.25em"
-           :text-align "left"}]]]
+          {:padding "0.25em"}]]]
 
        [:&.game
 

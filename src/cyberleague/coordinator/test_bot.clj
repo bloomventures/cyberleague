@@ -1,5 +1,6 @@
 (ns cyberleague.coordinator.test-bot
   (:require
+   [bloom.commons.uuid :as uuid]
    [clojure.java.io :as io]
    [cyberleague.game-registrar :as registrar]
    [cyberleague.coordinator.game-runner :as game-runner]))
@@ -22,7 +23,8 @@
                                      [coded-bot random-bot])]
     (when result
       ;; mimicking a match so that we can reuse the same views on the frontend
-      {:match/game {:game/name game-name}
+      {:match/id (uuid/random)
+       :match/game {:game/name game-name}
        :match/state-history (:game.result/state-history result)
        :match/bots [{:bot/id (:db/id bot)
                      :bot/name "You"}
@@ -31,3 +33,4 @@
        :match/moves (:game.result/history result)
        :winner (:game.result/winner result)
        :match/error (:game.result/error result)})))
+

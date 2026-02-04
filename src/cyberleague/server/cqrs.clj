@@ -136,6 +136,7 @@
                                                             [:db/id :user/name])
                                      :bot/name (:bot/name b)})
                                   (:match/bots match))
+                 :match/error (edn/read-string (:match/error match))
                  :match/moves (edn/read-string (:match/moves match))
                  :match/state-history (edn/read-string
                                        (:match/state-history match))
@@ -177,12 +178,13 @@
                  :bot/matches (map
                                (fn [match]
                                  {:match/id (:db/id match)
+                                  :match/error (edn/read-string (:match/error match))
                                   :match/bots (map (fn [b]
                                                      {:bot/id (:db/id b)
                                                       :bot/user (select-keys (:bot/user b) [:db/id :user/name])
                                                       :bot/status (if (:bot/code-version b)
-                                                   :active
-                                                   :inactive)
+                                                                    :active
+                                                                    :inactive)
                                                       :bot/name (:bot/name b)})
                                                    (:match/bots match))
                                   :match/winner (:db/id (:match/winner match))})
