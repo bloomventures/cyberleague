@@ -55,9 +55,10 @@
                                       [http-kit "2.8.0"]
                                       [com.nextjournal/beholder "1.0.2"]]
                        :repl-options {:init-ns cyberleague.cli.core}}
-             :uberjar {:aot :all
-                       :dependencies
-                       [[org.postgresql/postgresql "42.2.2"]]
-                       :prep-tasks
-                       [["omni" "compile"]
-                        "compile"]}})
+             :uberjar [:server
+                       {:aot :all
+                        :dependencies
+                        [[org.postgresql/postgresql "42.2.2"]]
+                        :prep-tasks
+                        [["omni" "compile"]
+                         "compile"]}]})
