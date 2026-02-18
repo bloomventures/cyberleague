@@ -8,86 +8,88 @@
 
 (defn code-card-view
   [[_ {:keys [id]} :as card]]
-  #_{:clj-kondo/ignore [:unresolved-var]}
   (r/with-let
-    [data (state/tada-atom [:api/bot-code {:bot-id id}])
-     status (r/atom :saved) ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
-     bot-id id
-     test-match (r/atom nil)
-     save! (fn [value]
-             (reset! status :saving)
-             (-> (state/tada! [:api/set-bot-code! {:bot-id bot-id :code value}])
-                 (.then (fn [_]
-                          (reset! status :saved)))))
-     debounced-save! (debounce save! 750)
-     test! (fn []
-             (reset! status :testing)
-             (-> (state/tada! [:api/test-bot! {:bot-id bot-id}])
-                 (.then (fn [match]
-                          (reset! status (if (nil? (:match/moves match)) :failed :passed))
-                          (reset! test-match match)))))
-     deploy! (fn []
-               (reset! status :deploying)
-               (-> (state/tada! [:api/deploy-bot! {:bot-id bot-id}])
-                   (.then (fn [_]
-                            (reset! status :deployed)
-                            (state/nav! :card.type/bot bot-id)))))]
-    (let [bot @data]
-      [:div.card.code
-       [:header
-        [:span (:bot/name bot)]
-        [:a {:on-click (fn [_] (state/nav! :game (:game/id (:bot/game bot))))} (str "#" (:game/name (:bot/game bot)))]
-        (if (:user/id (:bot/user bot))
-           ;; "do later"
-          [:a {:on-click (fn [_] (state/nav! :user (:user/id (:bot/user bot))))} (str "@" (:name (:user bot)))]
-          [:a {:on-click (fn [_] (state/log-in!))} "Log in with Github to save your bot"])
-        [:div.gap]
-        [:div.status
-         (case @status
-           :picking-language nil
-           :editing ""
-           :saving "Saving..."
-           :saved [:a.button.test
-                   {:on-click (fn [_] (test!))}
-                   "TEST"]
-           :testing "Testing..."
-           :passed [:<>
-                    [:a.button.test
-                     {:on-click (fn [_]
-                                  (reset! test-match nil)
-                                  (test!))}
-                     "RE-TEST"]
-                    [:a.button.deploy
-                     {:on-click (fn [_] (deploy!))}
-                     "DEPLOY"]]
-           :failed "Bot error!"
-           :deploying "Deploying..."
-           :deployed "Deployed!")]
-        [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-       [:div.content
-        (if (nil? (-> bot :bot/code :code/language))
-          [:div.lang-pick
-           [:h2 "Pick a language:"]
-           (into [:<>]
-                 (->> [{:name "Clojure"
-                        :language "clojure"}
-                       {:name "JavaScript"
-                        :language "javascript"}]
-                      (map (fn [language]
-                             [:a
-                              {:on-click
-                               (fn [_]
-                                 (-> (state/tada! [:api/set-bot-language!
-                                                   {:bot-id (:bot/id bot)
-                                                    :language (:language language)}])
-                                     (.then (fn [_data]
-                                              (state/refresh! data)
-                                       ;; Relying on the card's auto-refresh to move us to the next state
-                                              ))))}
-                              (:name language)]))))]
-          [code-editor-view {:on-change (fn [value]
-                                          (reset! status :editing)
-                                          (debounced-save! value))
-                             :language (-> bot :bot/code :code/language)
-                             :value (-> bot :bot/code :code/code)}])
-        [test-view @test-match bot]]])))
+   [data (state/tada-atom [:api/bot-code {:bot-id id}])
+    status (r/atom :saved) ; :saved :editing :saving :testing :passed/:failed :deploying :deployed
+    bot-id id
+    test-match (r/atom nil)
+    save! (fn [value]
+            (reset! status :saving)
+            (-> (state/tada! [:api/set-bot-code! {:bot-id bot-id :code value}])
+                (.then (fn [_]
+                         (reset! status :saved)))))
+    debounced-save! (debounce save! 750)
+    test! (fn []
+            (reset! test-match nil)
+            (reset! status :testing)
+            (-> (state/tada! [:api/test-bot! {:bot-id bot-id}])
+                (.then (fn [match]
+                         (reset! status (if (:match/error match) :failed :passed))
+                         (reset! test-match match)))))
+    deploy! (fn []
+              (reset! status :deploying)
+              (-> (state/tada! [:api/deploy-bot! {:bot-id bot-id}])
+                  (.then (fn [_]
+                           (reset! status :deployed)
+                           (state/nav! :card.type/bot bot-id)))))]
+   (let [bot @data]
+     [:div.card.code
+      [:header
+       [:span (:bot/name bot)]
+       [:a {:on-click (fn [_] (state/nav! :game (:game/id (:bot/game bot))))} (str "#" (:game/name (:bot/game bot)))]
+       (if (:user/id (:bot/user bot))
+         ;; "do later"
+         [:a {:on-click (fn [_] (state/nav! :user (:user/id (:bot/user bot))))} (str "@" (:name (:user bot)))]
+         [:a {:on-click (fn [_] (state/log-in!))} "Log in with Github to save your bot"])
+       [:div.gap]
+       [:div.status
+        (case @status
+          :picking-language nil
+          :editing ""
+          :saving "Saving..."
+          :saved [:a.button.test
+                  {:on-click (fn [_] (test!))}
+                  "TEST"]
+          :testing "Testing..."
+          :passed [:<>
+                   [:a.button.test
+                    {:on-click (fn [_] (test!))}
+                    "RE-TEST"]
+                   [:a.button.deploy
+                    {:on-click (fn [_] (deploy!))}
+                    "DEPLOY"]]
+          :failed [:<>
+                   "Bot error!"
+                   [:a.button.test
+                    {:on-click (fn [_] (test!))}
+                    "RE-TEST"]]
+          :deploying "Deploying..."
+          :deployed "Deployed!")]
+       [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
+      [:div.content
+       (if (nil? (-> bot :bot/code :code/language))
+         [:div.lang-pick
+          [:h2 "Pick a language:"]
+          (into [:<>]
+                (->> [{:name "Clojure"
+                       :language "clojure"}
+                      {:name "JavaScript"
+                       :language "javascript"}]
+                     (map (fn [language]
+                            [:a
+                             {:on-click
+                              (fn [_]
+                                (-> (state/tada! [:api/set-bot-language!
+                                                  {:bot-id (:bot/id bot)
+                                                   :language (:language language)}])
+                                    (.then (fn [_data]
+                                             (state/refresh! data)
+                                             ;; Relying on the card's auto-refresh to move us to the next state
+                                             ))))}
+                             (:name language)]))))]
+         [code-editor-view {:on-change (fn [value]
+                                         (reset! status :editing)
+                                         (debounced-save! value))
+                            :language (-> bot :bot/code :code/language)
+                            :value (-> bot :bot/code :code/code)}])
+       [test-view @test-match bot]]])))

@@ -20,14 +20,6 @@
 
 (defn >match-results []
   [:>.match-results
-   [:>.scrubber
-    [:>.row
-     {:display "flex"
-      :justify-content "space-between"
-      :align-items "center"}]
-    [:>input
-     {:width "100%"}]]
-
    (>results)])
 
 (def styles
@@ -150,6 +142,7 @@
       [:>.card
        {:background "white"
         :margin "0 10px"
+        :max-width "90vw"
         :flex-shrink 0
         :box-shadow "0 1px 1.5px 0 rgba(0,0,0,0.12)"
         :display "flex"
@@ -219,8 +212,7 @@
            :padding "0.25em"}]
 
          [:td
-          {:padding "0.25em"
-           :text-align "left"}]]]
+          {:padding "0.25em"}]]]
 
        [:&.game
 
@@ -306,7 +298,7 @@
           {:box-sizing "border-box"}]
 
          [:>.source
-          {:width "70%"}
+          {:width "65%"}
 
           [:>.wrapper
            [:>.CodeMirror
@@ -330,12 +322,6 @@
            {:display "block"}]]
 
          [:>.test
-          {:flex-grow 0
-           :width "30%"
-           :padding "1em"
-           :background "#f7f7f7"
-           :border-left "1px solid #ddd"}
-
           (>match-results)]]]]]]]])
 
 (def css

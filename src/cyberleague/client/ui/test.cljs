@@ -4,22 +4,20 @@
 
 (defn test-view
   [match bot]
-  [:div.test
-   ;; match/info contains error information if there is an error
+  [:div.test {:tw "h-full w-35% bg-gray-100"}
    (when match
-     (if (:match/error match)
-       [:<>
-        [:p "Error: " (:match/error match)]
-        [:p "Info: " (:match/info match)]]
-       [:<>
-        [:p
-         (cond
-           (nil? (:winner match))
-           "Tie!"
+     ^{:key (:match/id match)} ;; to force re-render
+     [match-results-view
+      {:message (cond
+                  (:match/error match)
+                  "Bot Error"
 
-           (= (:bot/id bot) (:winner match))
-           "You Won!"
+                  (nil? (:winner match))
+                  "Tie!"
 
-           :else
-           "You Lost!")]
-        [match-results-view match]]))])
+                  (= (:bot/id bot) (:winner match))
+                  "You Won!"
+
+                  :else
+                  "You Lost!")
+       :match match}])])

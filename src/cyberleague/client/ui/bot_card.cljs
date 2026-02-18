@@ -40,16 +40,19 @@
                            (reverse))]
             ^{:key (:match/id match)}
             [:tr
-             [:td
+             [:td {:tw "text-right"}
               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
-             ;; case doesn't work here
                (cond
                  (= (:match/winner match) (:bot/id bot))
                  "won"
                  (nil? (:match/winner match))
                  "tied"
+                 (:match/error match)
+                 "errored"
                  :else
-                 "lost")
+                 "lost")]]
+             [:td
+              [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
                " vs "
                (let [other-bot (->> (:match/bots match)
                                     (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
