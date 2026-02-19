@@ -34,8 +34,7 @@
                                      ;; coordinator
                                      [org.clojure/math.numeric-tower "0.0.4"]
                                      #_[org.clojure/data.json "1.0.0"]
-                                     [borkdude/edamame "1.4.26"]
-                                     [org.babashka/sci "0.8.43"
+                                     [org.babashka/sci "0.12.51"
                                       :exclusions [org.clojure/tools.reader]]
                                      ;; if need macos or windows, see:
                                      ;; https://search.maven.org/search?q=g:com.eclipsesource.j2v8
