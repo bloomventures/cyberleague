@@ -11,6 +11,18 @@
            (when el
              (js/window.bot_graph el (clj->js history))))}])
 
+(defn record-summary
+  [{:bot/keys [id matches]}]
+  (->> matches
+       (map :match/winner)
+       (map (fn [winning-bot-id]
+              (cond
+                (= id winning-bot-id) :wins
+                (nil? winning-bot-id) :ties
+                :else :losses)))
+       frequencies
+       (merge {:wins 0 :losses 0 :ties 0})))
+
 (defn bot-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh-rate 2500})]
@@ -30,6 +42,10 @@
        [:div.content
         [:div.language (-> bot :bot/code :code/language)]
         [graph-view (:bot/history bot)]
+        [:div.record
+         (let [{:keys [wins losses ties]} (record-summary bot)]
+           [:p {:tw "text-center"}
+            "Wins: " wins ", Losses: " losses ", Ties: " ties])]
         [:table.matches
          [:thead]
          [:tbody
