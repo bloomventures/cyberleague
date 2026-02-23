@@ -1,10 +1,10 @@
 (ns cyberleague.games.ultimate-tic-tac-toe.core
   (:require
    [cyberleague.game-registrar]
-   [cyberleague.games.ultimate-tic-tac-toe.engine] ;; so it gets registered
-   [cyberleague.games.ultimate-tic-tac-toe.ui :as ui]
    [cyberleague.games.ultimate-tic-tac-toe.bots :as bots]
-   [cyberleague.games.ultimate-tic-tac-toe.starter-code :as starter-code]))
+   [cyberleague.games.ultimate-tic-tac-toe.engine] ;; so it gets registered
+   [cyberleague.games.ultimate-tic-tac-toe.starter-code :as starter-code]
+   [cyberleague.games.ultimate-tic-tac-toe.ui :as ui]))
 
 (def Move
   [:vector

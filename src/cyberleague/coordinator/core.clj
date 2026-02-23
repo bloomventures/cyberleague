@@ -2,10 +2,10 @@
   (:gen-class)
   (:require
    [hyperfiddle.rcf :as rcf]
-   [cyberleague.db.core :as db]
    [cyberleague.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
-   [cyberleague.coordinator.ranking :as ranking]))
+   [cyberleague.coordinator.ranking :as ranking]
+   [cyberleague.db.core :as db]))
 
 (defonce run? (atom false))
 

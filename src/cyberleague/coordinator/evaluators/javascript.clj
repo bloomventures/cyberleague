@@ -1,9 +1,8 @@
 (ns cyberleague.coordinator.evaluators.javascript
   (:require
-    [cyberleague.coordinator.evaluators.api :as api])
+   [cyberleague.coordinator.evaluators.api :as api])
   (:import
-    (com.eclipsesource.v8 V8 JavaVoidCallback V8Object V8Array
-                          V8RuntimeException Releasable)))
+   (com.eclipsesource.v8 JavaVoidCallback Releasable V8 V8Array V8Object V8RuntimeException)))
 
 (defn print-handler [out]
   (reify

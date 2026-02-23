@@ -1,9 +1,9 @@
 (ns cyberleague.coordinator.test-bot
   (:require
-   [bloom.commons.uuid :as uuid]
    [clojure.java.io :as io]
-   [cyberleague.game-registrar :as registrar]
-   [cyberleague.coordinator.game-runner :as game-runner]))
+   [bloom.commons.uuid :as uuid]
+   [cyberleague.coordinator.game-runner :as game-runner]
+   [cyberleague.game-registrar :as registrar]))
 
 (defn test-bot
   [user-id bot-id bot]

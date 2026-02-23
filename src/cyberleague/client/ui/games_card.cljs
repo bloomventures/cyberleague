@@ -1,8 +1,8 @@
 (ns cyberleague.client.ui.games-card
   (:require
+   [reagent.core :as r]
    [cyberleague.client.state :as state]
-   [cyberleague.client.ui.card :as card]
-   [reagent.core :as r]))
+   [cyberleague.client.ui.card :as card]))
 
 (defn games-card-view
   [card]

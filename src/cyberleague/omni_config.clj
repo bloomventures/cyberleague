@@ -1,7 +1,7 @@
 (ns cyberleague.omni-config
   (:require
-    [cyberleague.config :refer [config]]
-    [cyberleague.server.routes :refer [routes]]))
+   [cyberleague.config :refer [config]]
+   [cyberleague.server.routes :refer [routes]]))
 
 (def omni-config
   {:omni/http-port (config :http-port)

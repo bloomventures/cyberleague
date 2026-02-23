@@ -1,10 +1,10 @@
 (ns cyberleague.games.goofspiel.core
   (:require
    [cyberleague.game-registrar]
-   [cyberleague.games.goofspiel.engine] ;; so it gets registered
    [cyberleague.games.goofspiel.bots :as bots]
-   [cyberleague.games.goofspiel.ui :as ui]
-   [cyberleague.games.goofspiel.starter-code :as starter-code]))
+   [cyberleague.games.goofspiel.engine] ;; so it gets registered
+   [cyberleague.games.goofspiel.starter-code :as starter-code]
+   [cyberleague.games.goofspiel.ui :as ui]))
 
 (def UserId
   integer?)

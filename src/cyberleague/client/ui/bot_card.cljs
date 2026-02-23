@@ -1,10 +1,10 @@
 (ns cyberleague.client.ui.bot-card
   (:require
+   [cljsjs.d3]
+   [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
-   [cyberleague.client.ui.common :as ui]
-   [cljsjs.d3]
-   [reagent.core :as r]))
+   [cyberleague.client.ui.common :as ui]))
 
 (defn graph-view [history]
   [:div.graph

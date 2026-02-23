@@ -2,8 +2,8 @@
   (:require
    [clojure.pprint :as pprint]
    [malli.core :as malli]
-   [malli.util :as malli.util]
-   [malli.error :as malli.error]))
+   [malli.error :as malli.error]
+   [malli.util :as malli.util]))
 
 (def games (atom {}))
 

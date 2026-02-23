@@ -1,10 +1,10 @@
 (ns cyberleague.client.ui.match-card
   (:require
+   [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]
-   [cyberleague.client.ui.match-results :refer [match-results-view]]
-   [reagent.core :as r]))
+   [cyberleague.client.ui.match-results :refer [match-results-view]]))
 
 (defn match-card-view
   [[_ {:keys [id]} :as card]]

@@ -1,10 +1,10 @@
 (ns cyberleague.server.routes
   (:require
    [clojure.walk :as walk]
+   [tada.events.ring :as tada.ring]
    [cyberleague.db.core :as db]
    [cyberleague.server.cqrs :as cqrs]
-   [cyberleague.server.oauth :as oauth]
-   [tada.events.ring :as tada.ring]))
+   [cyberleague.server.oauth :as oauth]))
 
 (defn wrap-api-token [handler]
   (fn [request]

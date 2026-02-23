@@ -2,11 +2,11 @@
   (:require
    [clojure.data.json :as json]
    [clojure.string :as str]
-   [cyberleague.coordinator.evaluators.api :as api]
-   [sci.core :as sci])
+   [sci.core :as sci]
+   [cyberleague.coordinator.evaluators.api :as api])
   (:import
-   (java.util.concurrent FutureTask TimeUnit TimeoutException)
-   (java.io StringWriter)))
+   (java.io StringWriter)
+   (java.util.concurrent FutureTask TimeUnit TimeoutException)))
 
 (defn thread-with-timeout
   "Warning: uses Thread.stop, which is 'unsafe'"

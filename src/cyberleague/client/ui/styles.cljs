@@ -1,9 +1,9 @@
 (ns cyberleague.client.ui.styles
+  (:require-macros
+   [garden.def :refer [defkeyframes]])
   (:require
    [garden.core :as garden]
-   [cyberleague.client.ui.colors :as colors])
-  (:require-macros
-   [garden.def :refer [defkeyframes]]))
+   [cyberleague.client.ui.colors :as colors]))
 
 (defkeyframes flash
   ["0%" {:background "default"}]

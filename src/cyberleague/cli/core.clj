@@ -1,13 +1,15 @@
 (ns cyberleague.cli.core
-  (:require [clojure.tools.cli :as cli]
-            [clojure.edn :as edn]
-            [clojure.java.io :as io]
-            [org.httpkit.client :as http]
-            [nextjournal.beholder :as beholder]
-            [cognitect.transit :as transit]
-            [hyperfiddle.rcf :as rcf]
-            [clojure.string :as str])
-  (:import [java.io ByteArrayOutputStream]))
+  (:require
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.tools.cli :as cli]
+   [cognitect.transit :as transit]
+   [hyperfiddle.rcf :as rcf]
+   [nextjournal.beholder :as beholder]
+   [org.httpkit.client :as http])
+  (:import
+   (java.io ByteArrayOutputStream)))
 
 #_(rcf/enable!)
 

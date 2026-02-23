@@ -1,6 +1,6 @@
 (ns cyberleague.games.othello.starter-code
   (:require
-    [cyberleague.games.othello.bots :as bots]))
+   [cyberleague.games.othello.bots :as bots]))
 
 (def starter-code
   {"clojure"

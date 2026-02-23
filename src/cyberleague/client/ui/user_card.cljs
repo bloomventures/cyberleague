@@ -1,9 +1,9 @@
 (ns cyberleague.client.ui.user-card
   (:require
+   [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
-   [cyberleague.client.ui.common :as ui]
-   [reagent.core :as r]))
+   [cyberleague.client.ui.common :as ui]))
 
 (defn copy! [{:keys [element to-be-copied message]}]
   (let [original-text (.-innerText element)]

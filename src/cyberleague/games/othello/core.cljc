@@ -1,11 +1,11 @@
 (ns cyberleague.games.othello.core
   (:require
    [cyberleague.game-registrar]
-   [cyberleague.games.othello.engine] ;; so it gets registered
-   [cyberleague.games.othello.ui :as ui]
    [cyberleague.games.othello.bots :as bots]
+   [cyberleague.games.othello.engine] ;; so it gets registered
    [cyberleague.games.othello.helpers]
-   [cyberleague.games.othello.starter-code :as starter-code]))
+   [cyberleague.games.othello.starter-code :as starter-code]
+   [cyberleague.games.othello.ui :as ui]))
 
 (def Move
   [integer?

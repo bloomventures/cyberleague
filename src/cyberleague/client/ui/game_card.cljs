@@ -1,10 +1,10 @@
 (ns cyberleague.client.ui.game-card
   (:require
+   [markdown.core :as markdown]
+   [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
-   [cyberleague.client.ui.common :as ui]
-   [markdown.core :as markdown]
-   [reagent.core :as r]))
+   [cyberleague.client.ui.common :as ui]))
 
 (defn game-card-view
   [[_ {:keys [id]} :as card]]

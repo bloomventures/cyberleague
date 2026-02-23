@@ -1,8 +1,8 @@
 (ns cyberleague.schema
   (:require
    [malli.core :as m]
-   [malli.transform :as mt]
-   [malli.registry :as mr]))
+   [malli.registry :as mr]
+   [malli.transform :as mt]))
 
 (def DbId :pos-int)
 (def NonEmptyString [:re #"^.+$"])

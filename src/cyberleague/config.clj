@@ -1,6 +1,6 @@
 (ns cyberleague.config
   (:require
-    [bloom.commons.config :as config]))
+   [bloom.commons.config :as config]))
 
 (def config
   (config/read

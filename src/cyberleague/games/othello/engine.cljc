@@ -1,8 +1,8 @@
 (ns cyberleague.games.othello.engine
   (:require
    [clojure.set :as set]
-   [cyberleague.games.protocol :as protocol]
-   [cyberleague.games.othello.helpers :as othello]))
+   [cyberleague.games.othello.helpers :as othello]
+   [cyberleague.games.protocol :as protocol]))
 
 (comment
   ; Example game state

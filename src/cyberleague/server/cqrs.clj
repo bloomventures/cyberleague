@@ -1,11 +1,12 @@
 (ns cyberleague.server.cqrs
   (:require
    [clojure.edn :as edn]
+   [tada.events.core :as tada]
+   [cyberleague.coordinator.test-bot :as coordinator]
    [cyberleague.db.core :as db]
    [cyberleague.game-registrar :as registrar]
-   [cyberleague.coordinator.test-bot :as coordinator]
    [cyberleague.schema :as schema] ;; To load custom schema
-   [tada.events.core :as tada]))
+))
 
 (defonce t (tada/init :malli))
 

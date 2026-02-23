@@ -1,13 +1,13 @@
 (ns cyberleague.server.oauth
   (:require
-   [clojure.string :as string]
    [clojure.data.json :as json]
+   [clojure.string :as string]
    [org.httpkit.client :as http]
    [taoensso.tempel :as tempel]
    [cyberleague.config :refer [config]]
    [cyberleague.db.core :as db])
   (:import
-   [java.util Base64]))
+   (java.util Base64)))
 
 ;; Oauth requires a state parameter.
 ;; We will encrypt a value and check if it can be decrypted.

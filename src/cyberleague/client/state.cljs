@@ -1,15 +1,15 @@
 (ns cyberleague.client.state
   (:require
    [clojure.string :as string]
+   [bloom.commons.ajax :as ajax]
+   [cljs.reader :as reader]
+   [goog.events :as events]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [goog.events :as events]
-   [cljs.reader :as reader]
-   [bloom.commons.ajax :as ajax]
    [cyberleague.client.cqrs :as cqrs]
    [cyberleague.client.oauth :as oauth])
   (:import
-   (goog.net XhrIo EventType)))
+   (goog.net EventType XhrIo)))
 
 (def tada-events->rest (let [events (cqrs/events)]
                          (zipmap (map :id events)

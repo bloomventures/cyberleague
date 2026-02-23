@@ -2,8 +2,8 @@
   (:require
    [reagent.core :as r]
    [zprint.core :as zprint]
-   [cyberleague.game-registrar :as registrar]
-   [cyberleague.client.ui.error-boundary :as eb]))
+   [cyberleague.client.ui.error-boundary :as eb]
+   [cyberleague.game-registrar :as registrar]))
 
 (defn match-results-view
   [{:keys [message match]}]

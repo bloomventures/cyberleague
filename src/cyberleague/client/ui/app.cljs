@@ -1,14 +1,14 @@
 (ns cyberleague.client.ui.app
   (:require
    [cyberleague.client.state :as state]
-   [cyberleague.client.ui.styles :as styles]
-   [cyberleague.client.ui.users-card :refer [users-card-view]]
-   [cyberleague.client.ui.code-card :refer [code-card-view]]
-   [cyberleague.client.ui.match-card :refer [match-card-view]]
    [cyberleague.client.ui.bot-card :refer [bot-card-view]]
-   [cyberleague.client.ui.user-card :refer [user-card-view]]
+   [cyberleague.client.ui.code-card :refer [code-card-view]]
    [cyberleague.client.ui.game-card :refer [game-card-view]]
-   [cyberleague.client.ui.games-card :refer [games-card-view]]))
+   [cyberleague.client.ui.games-card :refer [games-card-view]]
+   [cyberleague.client.ui.match-card :refer [match-card-view]]
+   [cyberleague.client.ui.styles :as styles]
+   [cyberleague.client.ui.user-card :refer [user-card-view]]
+   [cyberleague.client.ui.users-card :refer [users-card-view]]))
 
 (defn app-view []
   [:div.app

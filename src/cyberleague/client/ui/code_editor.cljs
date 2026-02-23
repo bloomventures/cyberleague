@@ -1,10 +1,10 @@
 (ns cyberleague.client.ui.code-editor
   (:require
-   [reagent.core :as r]
    ;; https://github.com/cljsjs/packages/tree/master/codemirror
    [cljsjs.codemirror]
-   [cljsjs.codemirror.mode.clojure]
    [cljsjs.codemirror.addon.edit.matchbrackets]
+   [cljsjs.codemirror.mode.clojure]
+   [reagent.core :as r]
    [zprint.core :as zprint]
    [cyberleague.client.ui.common :as ui]))
 
