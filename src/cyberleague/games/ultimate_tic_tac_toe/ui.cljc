@@ -131,5 +131,3 @@
   [match state move]
   [match-results-view* match state move])
 
-(defn >results-styles []
-  [:>.results.ultimate-tic-tac-toe])

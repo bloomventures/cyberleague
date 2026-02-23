@@ -1,8 +1,9 @@
 (ns cyberleague.client.ui.user-card
   (:require
    [cyberleague.client.state :as state]
-   [reagent.core :as r]
-   [cyberleague.client.ui.common :as ui]))
+   [cyberleague.client.ui.card :as card]
+   [cyberleague.client.ui.common :as ui]
+   [reagent.core :as r]))
 
 (defn copy! [{:keys [element to-be-copied message]}]
   (let [original-text (.-innerText element)]
@@ -17,7 +18,7 @@
   []
   (let [token (:user/cli-token @state/user)]
     [:section.token-management
-     {:tw "bg-#9fa8da -mb-1em -mx-1em p-1em text-white space-y-2"}
+     {:tw "bg-#9fa8da -mb-4 -mx-4 p-4 text-white space-y-2"}
      [:div {:tw "flex justify-between items-center"}
       [:h1 "CLI Token"]
       [ui/button {:on-click state/new-cli-token!}
@@ -37,32 +38,33 @@
   (r/with-let
     [data (state/tada-atom [:api/user {:other-user-id id}])]
     (when-let [user @data]
-      [:div.card.user
-       [:header
-        [:span (str "@" (:user/name user))]
-        [:div.gap]
-        [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-       [:div.content
-        {:tw "flex flex-col"}
-        [:div.bots
-         {:tw "grow"}
-         [:table
-          [:thead
-           [:tr
-            [:th "Bot"]
-            [:th "Rating"]
-            [:th "Game"]]]
-          [:tbody
-           (for [bot (:user/bots user)]
-             ^{:key (:bot/id bot)}
-             [:tr
-              [:td
-               [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
-                [ui/bot-chip bot]]]
-              [:td (:bot/rating bot)]
-              [:td
-               [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-                (str "#" (:game/name (:bot/game bot)))]]])]]]
-        (when (= (:user/id user)
-                 (:user/id @state/user))
-          [token-management-view])]])))
+      [card/wrapper {}
+       [card/header {:card card}
+        [:<>
+         [:span {:tw "mr-4"} (str "@" (:user/name user))]
+         [:div {:tw "grow"}]]]
+       [card/body {}
+        [:<>
+         [:div.bots
+          {:tw "grow"}
+          [:table
+           {:tw "mx-auto"}
+           [:thead
+            [:tr
+             [:th {:tw "text-left font-bold p-1"} "Bot"]
+             [:th {:tw "text-left font-bold p-1"} "Rating"]
+             [:th {:tw "text-left font-bold p-1"} "Game"]]]
+           [:tbody
+            (for [bot (:user/bots user)]
+              ^{:key (:bot/id bot)}
+              [:tr
+               [:td {:tw "p-1"}
+                [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
+                 [ui/bot-chip bot]]]
+               [:td {:tw "p-1"} (:bot/rating bot)]
+               [:td {:tw "p-1"}
+                [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+                 (str "#" (:game/name (:bot/game bot)))]]])]]]
+         (when (= (:user/id user)
+                  (:user/id @state/user))
+           [token-management-view])]]])))

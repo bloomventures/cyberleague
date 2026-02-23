@@ -15,12 +15,12 @@
 (defn code-editor-view
   [{:keys [on-change language value]}]
   (r/with-let
-   [code-mirror-instance (atom nil)
-    code-mirror-value (atom value)]
-   [:div.source {:tw "flex flex-col"}
-    [:div.wrapper {:tw "grow"
-                   :ref
-                   (fn [el]
+    [code-mirror-instance (atom nil)
+     code-mirror-value (atom value)]
+    [:div.source {:tw "flex flex-col w-65%"}
+     [:div.wrapper {:tw "grow"
+                    :ref
+                    (fn [el]
                      (when (and el (not @code-mirror-instance))
                        (reset! code-mirror-instance
                                (doto (js/CodeMirror el #js {:value value

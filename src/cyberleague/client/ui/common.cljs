@@ -6,6 +6,18 @@
                 opts)]
         children))
 
+(defn nav-button [opts & children]
+  (into [:a
+         (merge {:tw "bg-white/65 text-#3f51b5 font-bold px-1 py-0.5 rounded hover:bg-white"}
+                opts)]
+        children))
+
+(defn nav-link [opts & children]
+  (into [:a
+         (merge {:tw "text-white/65 hover:text-white whitespace-nowrap"}
+                opts)]
+        children))
+
 (defn bot-chip [bot]
   [:div {:tw "inline-flex items-center gap-1"}
    [:span (if (= :active (:bot/status bot))

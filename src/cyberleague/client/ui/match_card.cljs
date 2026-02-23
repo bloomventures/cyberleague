@@ -1,6 +1,7 @@
 (ns cyberleague.client.ui.match-card
   (:require
    [cyberleague.client.state :as state]
+   [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]
    [cyberleague.client.ui.match-results :refer [match-results-view]]
    [reagent.core :as r]))
@@ -10,17 +11,19 @@
   (r/with-let
     [data (state/tada-atom [:api/match {:match-id id}])]
     (when-let [match @data]
-      [:div.card.match
-       [:header "MATCH"
-        [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:match/game match))))} (str "#" (:game/name (:match/game match)))]
-        [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-       [:div.content {:tw "flex flex-col"}
-        (let [[bot1 bot2] (:match/bots match)]
-          [:h1 {:tw "flex gap-1 justify-center items-center"}
-           [:a {:class (when (= (:match/winner match) (:bot/id bot1)) "winner")
-                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} [ui/bot-chip bot1]]
-           " vs "
-           [:a {:tw (when (= (:match/winner match) (:bot/id bot2)) "bg-#d5daef p-1 rounded")
-                :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} [ui/bot-chip bot2]]])
-
-        [match-results-view {:match match}]]])))
+      [card/wrapper {}
+       [card/header {:card card}
+        [:<>
+         "MATCH"
+         [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:match/game match))))}
+          (str "#" (:game/name (:match/game match)))]]]
+       [card/body {}
+        [:<>
+         (let [[bot1 bot2] (:match/bots match)]
+           [:h1 {:tw "flex gap-1 justify-center items-center mb-4"}
+            [:a {:tw (when (= (:match/winner match) (:bot/id bot1)) "bg-#d5daef p-1 rounded")
+                 :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} [ui/bot-chip bot1]]
+            " vs "
+            [:a {:tw (when (= (:match/winner match) (:bot/id bot2)) "bg-#d5daef p-1 rounded")
+                 :on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} [ui/bot-chip bot2]]])
+         [match-results-view {:match match}]]]])))

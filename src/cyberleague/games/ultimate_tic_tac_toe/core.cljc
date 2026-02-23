@@ -22,7 +22,6 @@
        "In Ultimate Tic-Tac-Toe, you play 9 games of Tic-Tac-Toe nested a meta Tic-Tac-Toe game.")
   :game.config/rules ""
   :game.config/match-results-view ui/match-results-view
-  :game.config/match-results-styles ui/>results-styles
   :game.config/public-state-example {:grid [["x" "o" nil nil nil nil nil nil nil]
                                             (vector (repeat 9 nil))
                                             (vector (repeat 9 nil))

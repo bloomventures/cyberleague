@@ -63,7 +63,6 @@
                                      [:trophy Card]]]]]
   :game.config/move-spec Card
   :game.config/match-results-view ui/match-results-view
-  :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code
   :game.config/test-bot (pr-str bots/random-bot)
   :game.config/seed-bots [{:code/language "clojure"

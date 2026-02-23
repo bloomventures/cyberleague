@@ -1,9 +1,10 @@
 (ns cyberleague.client.ui.bot-card
   (:require
    [cyberleague.client.state :as state]
+   [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]
-   [reagent.core :as r]
-   [cljsjs.d3]))
+   [cljsjs.d3]
+   [reagent.core :as r]))
 
 (defn graph-view [history]
   [:div.graph
@@ -27,50 +28,51 @@
   [[_ {:keys [id]} :as card]]
   (r/with-let [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh-rate 2500})]
     (when-let [bot @data]
-      [:div.card.bot
-       [:header
-        [:span.bot-name [ui/bot-chip bot]]
-        [:a.user-name {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
-         (str "@" (:user/name (:bot/user bot)))]
-        [:a.game-name {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-         (str "#" (:game/name (:bot/game bot)))]
-        [:div.gap]
-        (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
-          [:a.button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])
-        [:a.close {:on-click (fn [_] (state/close-card! card))} "×"]]
-
-       [:div.content
-        [:div.language (-> bot :bot/code :code/language)]
-        [graph-view (:bot/history bot)]
-        [:div.record
+      [card/wrapper {}
+       [card/header {:card card}
+        [:<>
+         [:span {:tw "whitespace-nowrap"} [ui/bot-chip bot]]
+         [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
+          (str "@" (:user/name (:bot/user bot)))]
+         [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+          (str "#" (:game/name (:bot/game bot)))]
+         [:div {:tw "grow"}]
+         (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
+           [ui/nav-button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])]]
+       [card/body {}
+        [:<>
+         [:div.language (-> bot :bot/code :code/language)]
+         [graph-view (:bot/history bot)]
          (let [{:keys [wins losses ties]} (record-summary bot)]
            [:p {:tw "text-center"}
-            "Wins: " wins ", Losses: " losses ", Ties: " ties])]
-        [:table.matches
-         [:thead]
-         [:tbody
-          (for [match (->> (:bot/matches bot)
-                         ;; ids are monotically increasing with time
-                         ;; so can use them to order
-                           (sort-by :match/id)
-                           (reverse))]
-            ^{:key (:match/id match)}
-            [:tr
-             [:td {:tw "text-right"}
-              [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
-               (cond
-                 (= (:match/winner match) (:bot/id bot))
-                 "won"
-                 (nil? (:match/winner match))
-                 "tied"
-                 (:match/error match)
-                 "errored"
-                 :else
-                 "lost")]]
-             [:td
-              [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
-               " vs "
-               (let [other-bot (->> (:match/bots match)
-                                    (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
-                                    first)]
-                 [ui/bot-chip other-bot])]]])]]]])))
+            "Wins: " wins ", Losses: " losses ", Ties: " ties])
+         [:table.matches
+          {:tw "self-center mt-4"}
+          [:thead]
+          [:tbody
+           (for [match (->> (:bot/matches bot)
+                            ;; ids are monotically increasing with time
+                            ;; so can use them to order
+                            (sort-by :match/id)
+                            (reverse))]
+             ^{:key (:match/id match)}
+             [:tr
+              [:td {:tw "text-right p-1"}
+               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
+                (cond
+                  (= (:match/winner match) (:bot/id bot))
+                  "won"
+                  (nil? (:match/winner match))
+                  "tied"
+                  (:match/error match)
+                  "errored"
+                  :else
+                  "lost")]]
+              [:td {:tw "p-1"}
+               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
+                " vs "
+                (let [other-bot (->> (:match/bots match)
+                                     (remove (fn [b] (= (:bot/id bot) (:bot/id b))))
+                                     first)]
+                  [ui/bot-chip other-bot])]]])]]]]])))
+

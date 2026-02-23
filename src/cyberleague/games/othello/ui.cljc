@@ -59,6 +59,4 @@
   [match state move]
   [match-results-view* match state move])
 
-(defn >results-styles [])
-
 

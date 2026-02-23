@@ -16,7 +16,6 @@
    [:game.config/description string?]
    [:game.config/rules string?]
    [:game.config/match-results-view some?] ;; fn that takes a match, returns reagent data
-   [:game.config/match-results-styles some?] ;; fn that takes no args, returns garden data
    [:game.config/starter-code
     [:map-of string?  string?]]
    [:game.config/test-bot string?]

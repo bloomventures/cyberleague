@@ -22,7 +22,6 @@
        "The player with the most discs showing their color on the board wins.")
   :game.config/rules ""
   :game.config/match-results-view ui/match-results-view
-  :game.config/match-results-styles ui/>results-styles
   :game.config/starter-code starter-code/starter-code
   :game.config/test-bot (pr-str bots/random-valid-bot)
   :game.config/seed-bots [{:code/language "clojure"
