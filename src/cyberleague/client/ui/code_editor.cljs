@@ -1,12 +1,12 @@
 (ns cyberleague.client.ui.code-editor
   (:require
-    [reagent.core :as r]
-    ;; https://github.com/cljsjs/packages/tree/master/codemirror
-    [cljsjs.codemirror]
-    [cljsjs.codemirror.mode.clojure]
-    [cljsjs.codemirror.addon.edit.matchbrackets]
-    [zprint.core :as zprint]
-    [cyberleague.client.ui.common :as ui]))
+   [reagent.core :as r]
+   ;; https://github.com/cljsjs/packages/tree/master/codemirror
+   [cljsjs.codemirror]
+   [cljsjs.codemirror.mode.clojure]
+   [cljsjs.codemirror.addon.edit.matchbrackets]
+   [zprint.core :as zprint]
+   [cyberleague.client.ui.common :as ui]))
 
 (defn reformat [s]
   (zprint/zprint-file-str s "reformat" {:width 80
@@ -15,12 +15,12 @@
 (defn code-editor-view
   [{:keys [on-change language value]}]
   (r/with-let
-    [code-mirror-instance (atom nil)
-     code-mirror-value (atom value)]
-    [:div.source {:tw "flex flex-col w-65%"}
-     [:div.wrapper {:tw "grow"
-                    :ref
-                    (fn [el]
+   [code-mirror-instance (atom nil)
+    code-mirror-value (atom value)]
+   [:div.source {:tw "flex flex-col w-65%"}
+    [:div.wrapper {:tw "grow"
+                   :ref
+                   (fn [el]
                      (when (and el (not @code-mirror-instance))
                        (reset! code-mirror-instance
                                (doto (js/CodeMirror el #js {:value value

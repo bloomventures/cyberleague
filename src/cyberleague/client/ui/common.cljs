@@ -21,8 +21,8 @@
 (defn bot-chip [bot]
   [:div {:tw "inline-flex items-center gap-1"}
    [:span (if (= :active (:bot/status bot))
-     "●"
-     "○")]
+            "●"
+            "○")]
    [:span (:user/name (:bot/user bot))
-   "/"
-   (:bot/name bot)]])
+    "/"
+    (:bot/name bot)]])

@@ -1,6 +1,6 @@
 (ns cyberleague.client.ui.test
   (:require
-    [cyberleague.client.ui.match-results :refer [match-results-view]]))
+   [cyberleague.client.ui.match-results :refer [match-results-view]]))
 
 (defn test-view
   [match bot]

@@ -9,8 +9,8 @@
 
 (def Move
   [integer?
-    [:>= 0]
-    [:<= 63]])
+   [:>= 0]
+   [:<= 63]])
 
 (cyberleague.game-registrar/register-game!
  {:game.config/name "othello"

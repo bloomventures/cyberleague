@@ -1,7 +1,6 @@
 (ns cyberleague.games.othello.ui
   (:require
-    [reagent.core :as r]
-    [cyberleague.games.othello.helpers :as othello]))
+   [cyberleague.games.othello.helpers :as othello]))
 
 (defn marker-view [marker]
   [:span {:style {:display "inline-block"

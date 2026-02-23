@@ -51,7 +51,6 @@
      {:border-right (str "1px solid " color)
       :border-left (str "1px solid " color)})))
 
-
 (def p1-color "rgb(0,0,255)")
 (def p2-color "rgb(255,0,0)")
 (def p1-color-bg "rgba(0,0,255,0.1)")
@@ -61,9 +60,8 @@
   [:span {:style {:color (case marker
                            "x" p1-color
                            "o" p2-color
-                           "transparent")
+                           "transparent")}}
 
-                  }}
    (case marker
      "x" "×"
      "o" "○"
@@ -76,7 +74,6 @@
                         (reduce (fn [memo bot]
                                   (assoc memo (bot :bot/id) bot)) {}))]
     [:div
-
 
      [:table.results.ultimate-tic-tac-toe
       (let [meta-board (->> (state :grid)
@@ -121,10 +118,10 @@
      [:div {:style {:display "flex"
                     :justify-content "space-between"}}
       (for [[bot-id marker] (state :marker)]
-         ^{:key bot-id}
-         [:div
-          [:span (:bot/name (bots-by-id bot-id))] " "
-          [:span [marker-view marker]]])]]))
+        ^{:key bot-id}
+        [:div
+         [:span (:bot/name (bots-by-id bot-id))] " "
+         [:span [marker-view marker]]])]]))
 
 ;; have an intermediary view, just so it refreshes nicely with reagent + the game registry
 (defn match-results-view
