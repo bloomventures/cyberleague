@@ -9,14 +9,14 @@
          (if (= variant :wide)
            "min-w-800px"
            "max-w-90vw")]}
-   children])
+   (into [:<>] children)])
 
 (defn header
-  [{:keys [card]} content]
+  [{:keys [card]} & content]
   [:header
    {:tw "bg-#3f51b5 text-white p-4 flex justify-between gap-4 items-center h-6"
     :style {:animation "flash 1s ease 0s 1 normal"}}
-   content
+   (into [:<>] content)
    [:a {:tw "text-white/65 hover:text-white text-center p-2 -m-2"
         :on-click (fn [_]
                     (state/close-card! card))} "×"]])
@@ -29,4 +29,4 @@
            ""
            "p-4 flex-col")]
     :style {:line-height 1.15}}
-   content])
+   (into [:<>] content)])
