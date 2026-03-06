@@ -39,6 +39,11 @@
                                      ;; coordinator
                                      [org.clojure/math.numeric-tower "0.0.4"
                                       :exclusions [org.clojure/clojure]]
+
+                                     ;; bot weight
+                                     [com.aayushatharva.brotli4j/brotli4j "1.20.0"]
+                                     ;[com.aayushatharva.brotli4j/native-linux-x86_64 "1.20.0"]
+                                     ;[com.aayushatharva.brotli4j/native-osx-aarch64 "1.20.0"]
                                      #_[org.clojure/data.json "1.0.0"]
                                      #_[org.babashka/sci "0.12.51"] ;; from omni->commons
                                      ;; if need macos or windows, see:

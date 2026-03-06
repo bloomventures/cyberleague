@@ -1,4 +1,6 @@
-(ns cyberleague.client.ui.common)
+(ns cyberleague.client.ui.common
+  (:require
+   [bloom.commons.fontawesome :as fa]))
 
 (defn button [opts & children]
   (into [:button
@@ -19,10 +21,20 @@
         children))
 
 (defn bot-chip [bot]
-  [:div {:tw "inline-flex items-center gap-1"}
+  [:div {:tw "inline-flex items-center gap-1 justify-between"}
    [:span (if (= :active (:bot/status bot))
             "●"
             "○")]
-   [:span (:user/name (:bot/user bot))
+   [:span
+    (:user/name (:bot/user bot))
     "/"
-    (:bot/name bot)]])
+    (:bot/name bot)]
+
+   [:span {:tw "grow"}]
+
+   [:span {:tw "whitespace-nowrap flex items-center"}
+    " ("
+    (:bot/weight bot)
+    [fa/fa-weight-hanging-solid
+     {:tw "w-0.75em h-0.75em inline ml-0.5"}]
+    ")"]])

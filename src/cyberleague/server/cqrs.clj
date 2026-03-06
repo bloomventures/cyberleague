@@ -16,6 +16,7 @@
    :bot/id
    :bot/rating
    :bot/status
+   :bot/weight
    {:bot/game [:game/id
                :game/name]}])
 
@@ -148,6 +149,7 @@
                 :bot/name
                 :bot/status
                 :bot/history
+                :bot/weight
                 {:bot/game [:game/id
                             :game/name]}
                 {:bot/user [:user/id
