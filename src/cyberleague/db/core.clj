@@ -1,5 +1,6 @@
 (ns cyberleague.db.core
   (:require
+   [bloom.commons.uuid :as uuid]
    [datomic.api :as d]
    [cyberleague.config :as config]
    [cyberleague.db.schema :as schema]))
@@ -35,71 +36,69 @@
   [eid]
   (d/entity (d/db *conn*) eid))
 
-(defn create-entity!
-  "Create a new entity with the given attributes and return the newly-created
-  entity"
-  [attributes]
-  (let [new-id (d/tempid :entities)
-        {:keys [db-after tempids]} @(d/transact *conn*
-                                                [(assoc attributes :db/id new-id)])]
-    (->> (d/resolve-tempid db-after tempids new-id)
-         (d/entity db-after))))
+(defn transact!
+  [txs]
+  (d/transact *conn* txs))
 
-(defn entity-exists? [id-key id]
-  (let [entity (by-id id)]
-   (and (some? id)
-        ((id-key {:user/id :user/name
-                  :bot/id :bot/name
-                  :game/id :game/name
-                  :match/id :match/bots}) entity))))
+(defn entity-exists?
+  [[id-key id]]
+  (boolean (d/q '[:find ?id .
+                  :in $ ?id-key ?id
+                  :where
+                  [_ ?id-key ?id]]
+                (d/db *conn*)
+                id-key
+                id)))
 
 ;; Users
 
-(defn create-user!
-  [github-id uname]
-  (create-entity! {:user/github-id github-id
-                  :user/name uname
-                  :user/cli-token (random-uuid)}))
-
 (defn generate-token [] (random-uuid))
+
+(defn create-user!
+  [{:keys [id github-id name]}]
+  (d/transact
+   *conn*
+   [{:user/id id
+     :user/github-id github-id
+     :user/name name
+     :user/cli-token (generate-token)}]))
 
 (defn reset-cli-token!
   [user-id]
   (let [token (generate-token)]
-    @(d/transact *conn* [[:db/add user-id :user/cli-token token]])
+    (d/transact *conn*
+                [[:db/add user-id :user/cli-token token]])
     token))
 
-(defn token->user-id [token]
-   (d/q '[:find ?e .
-          :in $ ?token
-          :where [?e :user/cli-token ?token]]
-        (d/db *conn*)
-        token))
+(defn token->user-id
+  [token]
+  (d/q '[:find ?e .
+         :in $ ?token
+         :where [?e :user/cli-token ?token]]
+       (d/db *conn*)
+       token))
 
-(defn get-or-create-user
+(defn get-or-create-user!
   [github-id uname]
   (let [db (d/db *conn*)]
-    (if-let [user-id (first (first (d/q '[:find ?e
-                                          :in $ ?github-id
-                                          :where [?e :user/github-id ?github-id]]
-                                        db
-                                        github-id)))]
-      (d/entity db user-id)
-      (create-user! github-id uname))))
+    (if-let [user-id (d/q '[:find ?id .
+                            :in $ ?github-id
+                            :where
+                            [?e :user/github-id ?github-id]
+                            [?e :user/id ?id]]
+                          db
+                          github-id)]
+      user-id
+      (create-user! {:id (uuid/random)
+                     :github-id github-id
+                     :name uname}))))
 
-(defn get-user-bots
-  "Get a list of all bots for a user"
-  [user-id]
-  (let [db (d/db *conn*)]
-    (->> (d/q '[:find ?e
-                :in $ ?p-id
-                :where [?e :bot/user ?p-id]]
-              db
-              user-id)
-         (map (comp (partial d/entity db) first)))))
-
-(defn get-user [id]
-  (by-id id))
+(defn random-user-id
+  []
+  (d/q '[:find ?id .
+         :where
+         [_ :user/id ?id]]
+       (d/db *conn*)))
 
 (defn get-users
   "Get all the user entities"
@@ -111,77 +110,34 @@
               db)
          (map (comp (partial d/entity db) first)))))
 
-(defn get-user-bots [user-id]
-  (let [db (d/db *conn*)]
-    (->> (d/q '[:find ?e
-                :in $ ?p-id
-                :where [?e :bot/user ?p-id]]
-              db
-              user-id)
-         (map (comp (partial d/entity db) first)))))
-;; Games
-
-(defn create-game!
-  [name description]
-  (create-entity! {:game/name name
-                  :game/description description}))
-
-(defn get-game [id]
-  (by-id id))
-
-(defn get-games
-  "Get all the game entities"
-  []
-  (let [db (d/db *conn*)]
-    (->> (d/q '[:find ?e
-                :where
-                [?e :game/name _]]
-              db)
-         (map (comp (partial d/entity db) first)))))
-
-(defn get-game-bots [game-id]
-  (let [db (d/db *conn*)]
-    (->> (d/q '[:find ?e
-                :in $ ?p-id
-                :where [?e :bot/game ?p-id]]
-              db
-              game-id)
-         (map (comp (partial d/entity db) first)))))
 
 ;; Bots
-
 
 (defn gen-bot-name []
   (str (apply str (take 3 (repeatedly #(rand-nth "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))))
        "-"
        (+ 1000 (rand-int 8999))))
 
-(defn create-bot!
-  [user-id game-id]
-  (create-entity! {:bot/user user-id
-                  :bot/game game-id
-                  :bot/name (gen-bot-name)
-                  :bot/rating 1500
-                  :bot/rating-dev 350}))
-
-(defn update-bot-code!
-  ([bot-id code] (update-bot-code! bot-id code "clojure"))
-  ([bot-id code language]
-   (let [bot (by-id bot-id)]
-     (-> @(d/transact *conn*
-                      (if-let [old-code (:bot/code bot)]
-                        [[:db/add (:db/id old-code) :code/code code]
-                         [:db/add (:db/id old-code) :code/language language]]
-                        (let [code-id (d/tempid :entities)]
-                          [{:code/code code :db/id code-id :code/language language}
-                           [:db/add bot-id :bot/code code-id]])))
-         :db-after
-         (d/entity bot-id)))))
-
-(defn update-bot-rating [bot-id rating rating-dev]
+(defn init-code!
+  [bot-id code language]
   @(d/transact *conn*
-               [[:db/add bot-id :bot/rating rating]
-                [:db/add bot-id :bot/rating-dev rating-dev]]))
+               [{:bot/id bot-id
+                 :bot/code
+                 {:code/id (uuid/random)
+                  :code/code code
+                  :code/language language}}]))
+
+(defn update-code!
+  [bot-id code]
+  (let [code-eid (d/q '[:find ?code-eid .
+                        :in $ ?bot-id
+                        :where
+                        [?b :bot/id ?bot-id]
+                        [?b :bot/code ?code-eid]]
+                      (d/db *conn*)
+                      bot-id)]
+    @(d/transact *conn*
+                 [[:db/add code-eid :code/code code]])))
 
 (defn code-history
   [bot-id]
@@ -196,13 +152,15 @@
 
 (defn deploy-bot!
   [bot-id]
-  (let [bot (by-id bot-id)
-        code-timestamp (ffirst (d/q '[:find ?tx
-                                      :in $ ?cid
-                                      :where
-                                      [?cid :code/code _ ?tx]]
-                                    (d/db *conn*) (get-in bot [:bot/code :db/id])))]
-    (-> @(d/transact *conn* [[:db/add bot-id :bot/code-version code-timestamp]])
+  (let [bot (by-id [:bot/id bot-id])
+        code-timestamp (d/q '[:find ?tx .
+                              :in $ ?cid
+                              :where
+                              [?cid :code/code _ ?tx]]
+                            (d/db *conn*)
+                            (get-in bot [:bot/code :db/id]))]
+    (-> @(d/transact *conn*
+                     [[:db/add [:bot/id bot-id] :bot/code-version code-timestamp]])
         :db-after
         (d/entity bot-id))))
 
@@ -225,37 +183,23 @@
           (d/entity code-id)
           (select-keys [:code/code :code/language])))))
 
-(defn get-code [id]
-  (by-id id))
+(defn bot-id [user-id bot-name]
+  (d/q '[:find ?id .
+         :in $ ?user-id ?bot-name
+         :where
+         [?e :bot/user ?user-id]
+         [?e :bot/name ?bot-name]
+         [?e :bot/id ?id]]
+       (d/db *conn*)
+       user-id
+       bot-name))
 
-(defn get-bot-id [user-id bot-name]
-  (let [db (d/db *conn*)]
-    (d/q '[:find ?e .
-           :in $ ?user-id ?bot-name
-           :where
-           [?e :bot/user ?user-id]
-           [?e :bot/name ?bot-name]]
-         db
-         user-id
-         bot-name)))
-
-(defn get-bot [id]
-  (by-id id))
-
-(defn get-bot-matches [bot-id]
-  (let [db (d/db *conn*)]
-    (->> (d/q '[:find ?e
-                :in $ ?p-id
-                :where [?e :match/bots ?p-id]]
-              db
-              bot-id)
-         (map (comp (partial d/entity db) first)))))
-
-(defn get-bot-history
+(defn bot-history
   [bot-id]
   (->> (d/q '[:find ?inst ?attr ?val
-              :in $ ?e
+              :in $ ?id
               :where
+              [?e :bot/id ?id]
               [?e ?a ?val ?tx true]
               [?a :db/ident ?attr]
               [?tx :db/txInstant ?inst]]
@@ -280,9 +224,6 @@
        vec))
 
 ;; Matches
-
-(defn get-match [id]
-  (by-id id))
 
 (defn update-rankings!
   [p1 p1r p1rd p2 p2r p2rd]

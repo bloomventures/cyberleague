@@ -67,9 +67,8 @@
         ;; in development, immediately log a user in (first in db)
         {:status 200
          :headers {"Content-Type" "text/html"}
-         :session {:id (->> (db/with-conn (db/get-users))
-                            first
-                            :db/id)}
+         :session {:id (db/with-conn
+                        (db/random-user-id))}
          :body "<script>window.close();</script>"}
         {:status 302
          :headers {"Location"
@@ -86,10 +85,10 @@
                                             :state state})
                             (fetch-user-data)
                             ((fn [user]
-                               (db/with-conn (db/get-or-create-user (user :id) (user :login))))))]
+                               (db/with-conn (db/get-or-create-user! (user :id) (user :login))))))]
             {:status 200
              :headers {"Content-Type" "text/html"}
-             :session {:id (:db/id user)}
+             :session {:id (:user/id user)}
              :body "<script>window.close();</script>"}
             {:status 400
              :body "Authentication Failed"})

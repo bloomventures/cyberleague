@@ -1,6 +1,7 @@
 (ns cyberleague.coordinator.core
   (:gen-class)
   (:require
+   [bloom.commons.uuid :as uuid]
    [hyperfiddle.rcf :as rcf]
    [cyberleague.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
@@ -61,15 +62,16 @@
           (db/disable-bot! errd-bot))
 
         (db/with-conn
-         (db/create-entity! (merge
-                             {:match/bots [(:db/id player-1) (:db/id player-2)]
-                              :match/state-history (pr-str (:game.result/state-history result))
-                              :match/std-out-history (pr-str (:game.result/std-out-history result))
-                              :match/moves (pr-str (:game.result/history result))}
-                             (when error
-                               {:match/error (pr-str error)})
-                             (when winner-id
-                               {:match/winner winner-id})))
+         (db/transact! [(merge
+                         {:match/id (uuid/random)
+                          :match/bots [(:db/id player-1) (:db/id player-2)]
+                          :match/state-history-edn (pr-str (:game.result/state-history result))
+                          :match/std-out-history-edn (pr-str (:game.result/std-out-history result))
+                          :match/moves-edn (pr-str (:game.result/history result))}
+                         (when error
+                           {:match/error-edn (pr-str error)})
+                         (when winner-id
+                           {:match/winner winner-id}))])
          (ranking/update-rankings! player-1 player-2 winner-id))))))
 
 #_(let [[game bots] (first (db/with-conn (db/active-bots)))]

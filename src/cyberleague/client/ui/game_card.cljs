@@ -21,7 +21,7 @@
            [ui/nav-button {:on-click (fn [_]
                                        (-> (state/tada! [:api/create-bot! {:game-id (:game/id game)}])
                                            (.then (fn [data]
-                                                    (state/nav! :card.type/code (:id data))))))}
+                                                    (state/nav! :card.type/code (:bot/id data))))))}
             "CREATE A BOT"])]]
        [card/body {}
         [:<>

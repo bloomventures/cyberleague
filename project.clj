@@ -34,6 +34,8 @@
                                      [cljsjs/d3 "3.5.5-2"]
                                      #_[zprint "1.2.9"] ;; from omni->commons
 
+                                     [com.github.rafd/dat "0.0.1-20260306-0"]
+
                                      ;; coordinator
                                      [org.clojure/math.numeric-tower "0.0.4"
                                       :exclusions [org.clojure/clojure]]
