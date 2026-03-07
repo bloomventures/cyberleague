@@ -1,15 +1,13 @@
 (ns cyberleague.client.state
   (:require
+   [clojure.edn :as edn]
    [clojure.string :as string]
    [bloom.commons.ajax :as ajax]
-   [cljs.reader :as reader]
-   [goog.events :as events]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
    [cyberleague.client.cqrs :as cqrs]
-   [cyberleague.client.oauth :as oauth])
-  (:import
-   (goog.net EventType XhrIo)))
+   [cyberleague.client.oauth :as oauth]
+   [goog.crypt.base64 :as base64]))
 
 (def tada-events->rest (let [events (cqrs/events)]
                          (zipmap (map :id events)
@@ -51,14 +49,29 @@
 (defn refresh! [rx]
   ((::refresh-fn (meta @rx))))
 
+;; url state
+
+(defn update-card-url-state! [cards]
+  (js/history.replaceState nil "" (str "#" (base64/encodeString (pr-str cards)))))
+
+(defn card-url-state []
+  (let [encoded-code (.-hash js/window.location)]
+    (when (not (string/blank? encoded-code))
+      (edn/read-string (base64/decodeString (.substr encoded-code 1))))))
+
 ;; state
 
 (defonce state
-  (r/atom {:state/cards '()
+  (r/atom {:state/cards (or (card-url-state) '())
            :state/user nil}))
 
 (def cards (r/cursor state [:state/cards]))
 (def user (r/cursor state [:state/user]))
+
+(defonce _listener_
+  @(r/track!
+    (fn []
+      (update-card-url-state! @cards))))
 
 ;; side effect functions
 
@@ -87,11 +100,12 @@
 (defn fetch-user! []
   (-> (tada! [:api/me])
       (.then (fn [user]
-               (if (:user/id user)
-                 (do
-                   (swap! state assoc :state/user user)
-                   (nav! :card.type/user (:user/id user)))
-                 (nav! :card.type/games nil))))))
+               (when (empty? @cards)
+                 (if (:user/id user)
+                   (do
+                     (swap! state assoc :state/user user)
+                     (nav! :card.type/user (:user/id user)))
+                   (nav! :card.type/games nil)))))))
 
 (defn log-in! []
   (oauth/start-auth-flow!
