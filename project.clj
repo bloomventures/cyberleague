@@ -1,8 +1,10 @@
 (defproject cyberleague "0.1.0-SNAPSHOT"
 
-  :plugins [[io.bloomventures/omni "0.34.1"]]
+  :plugins [[io.bloomventures/omni "0.36.2"]]
 
   :omni-config cyberleague.omni-config/omni-config
+
+  :jvm-opts ["--enable-native-access=ALL-UNNAMED"]
 
   :source-paths ["src" "dev-src"]
 
@@ -11,7 +13,7 @@
   :dependencies [[com.hyperfiddle/rcf "20220926-202227"
                   :exclusions [org.clojure/clojure]]]
   :profiles {:server {:dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
-                                     [io.bloomventures/omni "0.35.0"]
+                                     [io.bloomventures/omni "0.36.2"]
                                      [com.datomic/peer "1.0.7491"
                                       :exclusions
                                       [org.apache.httpcomponents/httpclient
