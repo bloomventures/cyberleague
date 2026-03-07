@@ -9,7 +9,7 @@
 
 (defn start! []
   (seed/seed!)
-  (omni/start! omni/system omni-config)
+  (omni/start! omni-config)
   (coordinator/start!))
 
 (defn stop! []
