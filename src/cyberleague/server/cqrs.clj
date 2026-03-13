@@ -121,6 +121,7 @@
                               :game/name]}
                 {:match/bots bot-pattern}
                 {:match/winner [:bot/id]}
+                :match/timestamp
                 :match/error
                 :match/moves
                 :match/std-out-history
@@ -157,6 +158,7 @@
                 {:bot/code [:code/language]}
                 {:bot/matches [:match/id
                                :match/error
+                               :match/timestamp
                                :match/winner
                                {:match/bots bot-pattern}]}]))}
 

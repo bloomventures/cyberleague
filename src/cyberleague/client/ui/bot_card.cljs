@@ -51,12 +51,10 @@
           [:thead]
           [:tbody
            (for [match (->> (:bot/matches bot)
-                            ;; ids are monotically increasing with time
-                            ;; so can use them to order
-                            (sort-by :match/id)
-                            (reverse))]
+                            (sort-by :match/timestamp >))]
              ^{:key (:match/id match)}
              [:tr
+              [:td {:tw "text-gray-400"} (.toLocaleString (:match/timestamp match))]
               [:td {:tw "text-right p-1"}
                [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
                 (cond

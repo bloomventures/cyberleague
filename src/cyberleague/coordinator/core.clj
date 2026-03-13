@@ -65,6 +65,7 @@
          (db/transact! [(merge
                          {:match/id (uuid/random)
                           :match/bots [(:db/id player-1) (:db/id player-2)]
+                          :match/timestamp (java.util.Date.)
                           :match/state-history-edn (pr-str (:game.result/state-history result))
                           :match/std-out-history-edn (pr-str (:game.result/std-out-history result))
                           :match/moves-edn (pr-str (:game.result/history result))}

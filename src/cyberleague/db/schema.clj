@@ -48,6 +48,7 @@
    :entity/match
    {:match/id {:dat/type :db.type/uuid
                :dat/unique :dat.unique/identity}
+    :match/timestamp {:dat/type :db.type/instant}
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/winner {:dat/rel [:dat.rel/one :entity/bot :bot/id]}
     :match/moves-edn {:dat/type :db.type/string
