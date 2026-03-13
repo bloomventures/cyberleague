@@ -58,7 +58,7 @@
               [:td {:tw "text-right p-1"}
                [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
                 (cond
-                  (= (:match/winner match) (:bot/id bot))
+                  (= (:bot/id (:match/winner match)) (:bot/id bot))
                   "won"
                   (nil? (:match/winner match))
                   "tied"
