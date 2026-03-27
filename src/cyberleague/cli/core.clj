@@ -97,13 +97,13 @@
    ["-h" "--help" "show this help"]])
 
 (defn -main [& opts]
-  (let [{:keys [options summary]} (cli/parse-opts opts cli-options)]
+  (let [{:keys [options summary]} (cli/parse-opts opts cli-options)
+        summary (str intro summary)]
     (cond
       (:help options)  (println summary)
       (:watch options) (watch! (:watch options))
       (:auth options)  (auth!)
-      :else            (do (print intro)
-                           (println summary)))))
+      :else            (println summary))))
 
 (comment
 
