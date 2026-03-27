@@ -95,6 +95,7 @@
                    {}
                    [{:entity/game
                      [:game/id
+                      :game/slug
                       :game/name
                       :game/bot-count]}])
                   :entity/game))}

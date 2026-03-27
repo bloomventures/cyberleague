@@ -14,6 +14,7 @@
 
 (cyberleague.game-registrar/register-game!
  {:game.config/name "othello"
+  :game.config/slug "othello"
   :game.config/description
   (str "Othello is a two player game played on an 8x8 board.\n"
        "The game is played with discs that are black on one side and white on the other.\n"

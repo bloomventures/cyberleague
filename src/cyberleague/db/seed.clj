@@ -33,6 +33,7 @@
        (db/transact!
         [{:game/id game-id
           :game/name (:game.config/name game-config)
+          :game/slug (:game.config/slug game-config)
           :game/description (:game.config/description game-config)
           :game/rules (:game.config/rules game-config)}])
 

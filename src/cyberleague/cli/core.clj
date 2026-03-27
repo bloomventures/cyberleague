@@ -99,9 +99,17 @@
     (doseq [env envs]
       (println env))))
 
+(defn list-games! []
+  (let [games (http-request {:path "/api/games"
+                             :method :get
+                             :body nil})]
+    (doseq [game games]
+      (println (:game/slug game)))))
+
 (def cli-options
   [[nil "--auth" "authenticate"]
    [nil "--list-envs" "list available environments"]
+   [nil "--list-games" "list available games"]
    ["-w" "--watch FILE" "watch a bot file"]
    ["-h" "--help" "show this help"]])
 
@@ -109,11 +117,12 @@
   (let [{:keys [options summary]} (cli/parse-opts opts cli-options)
         summary (str intro summary)]
     (cond
-      (:help options)  (println summary)
+      (:help options)       (println summary)
       (:list-envs options)  (list-envs!)
-      (:watch options) (watch! (:watch options))
-      (:auth options)  (auth!)
-      :else            (println summary))))
+      (:list-games options) (list-games!)
+      (:watch options)      (watch! (:watch options))
+      (:auth options)       (auth!)
+      :else                 (println summary))))
 
 (comment
 

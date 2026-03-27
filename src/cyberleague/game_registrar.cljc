@@ -13,6 +13,7 @@
 (def schema
   [:map
    [:game.config/name string?]
+   [:game.config/slug string?] ;; ascii no spaces
    [:game.config/description string?]
    [:game.config/rules string?]
    [:game.config/match-results-view some?] ;; fn that takes a match, returns reagent data

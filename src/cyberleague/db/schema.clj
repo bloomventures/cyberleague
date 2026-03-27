@@ -8,10 +8,15 @@
   [:fn {:error/message {:en "must not be blank"}}
    #(not (clojure.string/blank? %))])
 
+(def Slug
+  [:re #"^[a-z0-9-]$"])
+
 (def dat-schema
   {:entity/game
    {:game/id {:dat/type :db.type/uuid
               :dat/unique :dat.unique/identity}
+    :game/slug {:dat/type :db.type/string
+                :dat/spec Slug}
     :game/name {:dat/type :db.type/string
                 :dat/spec NonBlankString}
     :game/description {:dat/type :db.type/string}
