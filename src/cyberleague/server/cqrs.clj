@@ -81,6 +81,12 @@
                 {:user/bots
                  bot-pattern}]))}
 
+   {:id :api/envs
+    :params {:user-id [:maybe :user/id]}
+    :rest [:get "/api/envs"]
+    :return (fn [_]
+              ["clojure/sci" "javascript/v8"])}
+
    {:id :api/games
     :params {:user-id [:maybe :user/id]}
     :rest [:get "/api/games"]

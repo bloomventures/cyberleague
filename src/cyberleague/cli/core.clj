@@ -23,7 +23,9 @@
   (extract-bot-name "ABC_1234.clj") := "ABC-1234")
 
 (defn get-token []
-  (:token (edn/read-string (slurp "cli.edn"))))
+  (let [f (io/file "cli.edn")]
+    (when (.exists f)
+      (:token (edn/read-string (slurp f))))))
 
 (def token-re
   #"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
@@ -84,15 +86,22 @@
         @(promise))
     (println "File does not exist!")))
 
-
 (def intro
   (str/join "\n"
             ["Cyberleague CLI Tool"
              ""
              ""]))
 
+(defn list-envs! []
+  (let [envs (http-request {:path "/api/envs"
+                            :method :get
+                            :body nil})]
+    (doseq [env envs]
+      (println env))))
+
 (def cli-options
   [[nil "--auth" "authenticate"]
+   [nil "--list-envs" "list available environments"]
    ["-w" "--watch FILE" "watch a bot file"]
    ["-h" "--help" "show this help"]])
 
@@ -101,6 +110,7 @@
         summary (str intro summary)]
     (cond
       (:help options)  (println summary)
+      (:list-envs options)  (list-envs!)
       (:watch options) (watch! (:watch options))
       (:auth options)  (auth!)
       :else            (println summary))))
