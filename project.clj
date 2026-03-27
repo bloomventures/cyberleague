@@ -6,13 +6,12 @@
 
   :jvm-opts ["--enable-native-access=ALL-UNNAMED"]
 
-  :source-paths ["src" "dev-src"]
-
   :test-paths ["test"]
 
   :dependencies [[com.hyperfiddle/rcf "20220926-202227"
                   :exclusions [org.clojure/clojure]]]
-  :profiles {:server {:dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
+  :profiles {:dev {:source-paths ["src" "dev-src"]}
+             :server {:dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
                                      [io.bloomventures/omni "0.36.2"]
                                      [com.datomic/peer "1.0.7491"
                                       :exclusions
