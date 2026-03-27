@@ -11,8 +11,6 @@
   (:import
    (java.io ByteArrayOutputStream)))
 
-#_(rcf/enable!)
-
 (defonce watcher (atom nil))
 
 (def api-root "http://127.0.0.1:3000")
@@ -86,13 +84,26 @@
         @(promise))
     (println "File does not exist!")))
 
+
+(def intro
+  (str/join "\n"
+            ["Cyberleague CLI Tool"
+             ""
+             ""]))
+
+(def cli-options
+  [[nil "--auth" "authenticate"]
+   ["-w" "--watch FILE" "watch a bot file"]
+   ["-h" "--help" "show this help"]])
+
 (defn -main [& opts]
-  (let [{:keys [options]} (cli/parse-opts opts [[nil "--auth" "authenticate"]
-                                                ["-w" "--watch FILE" "watch a bot file"]])]
+  (let [{:keys [options summary]} (cli/parse-opts opts cli-options)]
     (cond
+      (:help options)  (println summary)
       (:watch options) (watch! (:watch options))
       (:auth options)  (auth!)
-      )))
+      :else            (do (print intro)
+                           (println summary)))))
 
 (comment
 
