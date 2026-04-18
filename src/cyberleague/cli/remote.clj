@@ -40,4 +40,4 @@
                             (namespace event-id) "." (name event-id))
                  :method :post
                  :body {:tada.event/id event-id
-                        :tada.event/params params}}))
+                        :tada.event/params (or params {})}}))
