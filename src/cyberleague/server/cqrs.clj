@@ -144,16 +144,6 @@
                 :match/std-out-history
                 :match/state-history]))}
 
-   {:id :api/bot-id-by-name
-    :params {:user-id :user/id
-             :bot-name :bot/name}
-    :rest [:post "/api/bots/get-id"]
-    :conditions (fn [{:keys [user-id]}]
-                  [(entity-exists?-condition :user/id user-id)])
-    :return (fn [{:keys [user-id bot-name]}]
-              (when-let [bot-id (db/bot-id user-id bot-name)]
-                {:bot-id bot-id}))}
-
    {:id :api/bot
     :params {:user-id [:maybe :user/id]
              :bot-id :bot/id}

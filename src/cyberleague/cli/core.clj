@@ -5,6 +5,10 @@
    [cyberleague.cli.subcommands.games :as sc.games]
    [cyberleague.cli.subcommands.envs :as sc.envs]
    [cyberleague.cli.subcommands.bot.new :as sc.bot.new]
+   [cyberleague.cli.subcommands.bot.build :as sc.bot.build]
+   [cyberleague.cli.subcommands.bot.test :as sc.bot.test]
+   [cyberleague.cli.subcommands.bot.upload :as sc.bot.upload]
+   [cyberleague.cli.subcommands.bot.deploy :as sc.bot.deploy]
    [cyberleague.cli.subcommands.bot.watch :as sc.bot.watch]))
 
 (def cli-configuration
@@ -20,23 +24,39 @@
     {:command "games"
      :description "List available games"
      :runs sc.games/exec!}
-    #_{:command "bots"}
     {:command "bot"
-     :subcommands [{:command "new"
-                    :opts [{:option "game"
-                            :type :string
-                            :default :present
-                            :as "Game; run `cyberleague game` to see available games"}
-                           {:option "env"
-                            :type :string
-                            :default :present
-                            :as "Env; run `cyberleague envs` to see available envs"}]
-                    :runs sc.bot.new/exec!}
-                   #_{:command "deploy"}
-                   #_{:command "fetch"}
-                   #_{:command "test"}
-                   #_{:command "watch"
-                      :runs (watch! (:watch options))}]}]})
+     :subcommands (concat [{:command "new"
+                            :description "Create a new bot directory in the current directory. Expects --game and --env."
+                            :opts [{:option "game"
+                                    :type :string
+                                    :default :present
+                                    :as "Game; run `cyberleague game` to see available games"}
+                                   {:option "env"
+                                    :type :string
+                                    :default :present
+                                    :as "Env; run `cyberleague envs` to see available envs"}]
+                            :runs sc.bot.new/exec!}]
+                          (->> [{:command "build"
+                                 :runs sc.bot.build/exec!
+                                 :description "Build an artifact. See bot.edn to adjust build command and artifact location."}
+                                {:command "upload"
+                                 :runs sc.bot.upload/exec!
+                                 :description "Upload a previously built artifact."}
+                                {:command "test"
+                                 :runs sc.bot.test/exec!
+                                 :description "Test a previously uploaded artifact. Returns a URL for viewing results in a browser."}
+                                {:command "deploy"
+                                 :runs sc.bot.deploy/exec!
+                                 :description "Deploy a previously artifact (ie. enter that version of the bot into competition)"}
+                                {:command "watch"
+                                 :runs sc.bot.watch/exec!
+                                 :description "Watches current dir, on changes: builds, uploads, tests"}]
+                               (map (fn [c]
+                                      (assoc c
+                                             :opts [{:option "dir"
+                                                     :as "Alternate directory from which to run this command from"
+                                                     :type :string
+                                                     :default "."}])))))}]})
 
 (defn -main [& args]
   (cli/run-cmd args cli-configuration))

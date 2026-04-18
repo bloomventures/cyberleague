@@ -62,6 +62,7 @@
                        :dependencies [[cli-matic "0.5.4"]
                                       [zprint "1.3.0"]
                                       [com.cognitect/transit-clj "1.0.324"]
+                                      [metosin/malli "0.20.1"]
                                       [org.clojure/clojure "1.11.4"]
                                       [com.taoensso/telemere "1.2.1"]
                                       [http-kit "2.8.0"]
