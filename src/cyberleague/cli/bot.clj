@@ -9,13 +9,18 @@
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]
     (if result
-      (let [dir-name (str game-slug "-" (:bot/name result))
-            path (str dir-name "/bot.edn")]
-        (io/make-parents path)
-        (ednf/write! path
-                     {:bot/id   (:bot/id result)
-                      :bot/name (:bot/name result)
-                      :bot/env  env-slug
-                      :bot/game game-slug})
-        (println "Created" dir-name))
-      (println "Error: failed to create bot" result))))
+      (if-let [bot (r/tada! [:api/bot-code {:bot-id (:bot/id result)}])]
+        (let [dir-name (str game-slug "-" (:bot/name bot))
+              path (str dir-name "/bot.edn")]
+          (io/make-parents path)
+          (ednf/write! path
+                       {:bot/id   (:bot/id bot)
+                        :bot/name (:bot/name bot)
+                        :bot/env  env-slug
+                        :bot/game game-slug})
+          ;; TODO hardcoding clj for now, will have to rethink
+          (spit (str dir-name "/bot.clj")
+                (:code/code (:bot/code bot)))
+          (println "Created" dir-name))
+        (println "Error: bot not found"))
+      (println "Error: failed to create bot"))))

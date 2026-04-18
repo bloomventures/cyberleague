@@ -69,6 +69,19 @@
   [txs]
   (d/transact *conn* txs))
 
+;; Envs and Languages
+
+(defn env-slug->language-slug
+  [env-slug]
+  (d/q '[:find ?language-slug .
+         :in $ ?env-slug
+         :where
+         [?e :env/slug ?env-slug]
+         [?e :env/language ?l]
+         [?l :language/slug ?language-slug]]
+       (d/db *conn*)
+       env-slug))
+
 ;; Users
 
 (defn generate-token [] (random-uuid))

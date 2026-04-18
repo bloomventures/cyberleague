@@ -214,7 +214,8 @@
     :effect (fn [{:keys [user-id game-slug env-slug]}]
               (let [id (uuid/random)
                     bot-name (db/gen-bot-name)
-                    code (get-in @registrar/games [game-slug :game.config/starter-code env-slug] "")]
+                    language-slug (db/env-slug->language-slug env-slug)
+                    code (get-in @registrar/games [game-slug :game.config/starter-code language-slug] "")]
                 (db/transact! [{:bot/id id
                                 :bot/user [:user/id user-id]
                                 :bot/game [:game/slug game-slug]
@@ -224,8 +225,7 @@
                                            :code/env [:env/slug env-slug]}
                                 :bot/rating 1500
                                 :bot/rating-dev 350}])
-                {:bot/id id
-                 :bot/name bot-name}))
+                {:bot/id id}))
     :return (fn [{result :tada/effect-return}]
               result)}
 
