@@ -7,6 +7,7 @@
    [cyberleague.client.ui.games-card :refer [games-card-view]]
    [cyberleague.client.ui.match-card :refer [match-card-view]]
    [cyberleague.client.ui.styles :as styles]
+   [cyberleague.client.ui.new-bot-card :refer [new-bot-card-view]]
    [cyberleague.client.ui.user-card :refer [user-card-view]]
    [cyberleague.client.ui.users-card :refer [users-card-view]]))
 
@@ -67,6 +68,7 @@
                         :card.type/games games-card-view
                         :card.type/match match-card-view
                         :card.type/bot bot-card-view
-                        :card.type/code code-card-view)]
+                        :card.type/code code-card-view
+                        :card.type/new-bot new-bot-card-view)]
         ^{:key card}
         [card-view card]))]])

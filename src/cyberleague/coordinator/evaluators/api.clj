@@ -2,10 +2,10 @@
 
 (defmulti native-code-runner
   ;; inputs
-  ;;   language is one of: "clojurescript"
+  ;;   env-slug is a string
   ;;   code is a string
   ;;   json-state is a json string
   ;; outputs
   ;;   bot's move as a json string
-  (fn [json-state language code]
-    language))
+  (fn [json-state env-slug code]
+    env-slug))

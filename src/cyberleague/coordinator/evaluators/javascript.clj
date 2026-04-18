@@ -31,7 +31,7 @@
     {:result result
      :out @out}))
 
-(defmethod api/native-code-runner "javascript"
+(defmethod api/native-code-runner "javascript-v8"
   [json-state _ code]
   (let [string-to-eval (str "const state = JSON.parse(" (pr-str json-state) ");\n"
                             "const bot = " code ";\n"

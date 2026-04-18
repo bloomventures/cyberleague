@@ -5,11 +5,20 @@
    [cyberleague.client.ui.error-boundary :as eb]
    [cyberleague.game-registrar :as registrar]))
 
+(defn pretty-print
+  [code-string]
+  (when code-string
+    (zprint/zprint-file-str
+     code-string
+     "reformat"
+     {:width 33
+      :style [:community]})))
+
 (defn match-results-view
   [{:keys [message match]}]
   (r/with-let
     [view (get-in @registrar/games
-                  [(get-in match [:match/game :game/name])
+                  [(get-in match [:match/game :game/slug])
                    :game.config/match-results-view])
      state-history (match :match/state-history)
      std-out-history (match :match/std-out-history)
@@ -43,10 +52,12 @@
 
       ;; per game custom view
 
-      [eb/catch
-       [view match
-        (take (inc @move-index) state-history)
-        (:history (get state-history @move-index))]]
+      (if view
+        [eb/catch
+         [view match
+          (take (inc @move-index) state-history)
+          (:history (get state-history @move-index))]]
+        "CUSTOM VIEW NOT FOUND")
 
       ;; generic state inspection view
       [:div.generic {:tw "space-y-2"}
@@ -54,26 +65,23 @@
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
          "Move"]
-        [:code {:tw "block py-1"}
-         (pr-str (:move (last (:history (get state-history @move-index)))))]]
+        [:code {:tw "block py-1 whitespace-pre-wrap"}
+         (pretty-print (pr-str (last (:history (get state-history @move-index)))))]]
 
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
          "Log"]
         [:code {:tw "block py-1 whitespace-pre-wrap"}
-         (get std-out-history @move-index)]]
+         (pretty-print (pr-str (get std-out-history @move-index)))]]
 
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
          "State"]
         [:code {:tw "block whitespace-pre-wrap py-1"}
-         (zprint/zprint-file-str
+         (pretty-print
           (pr-str (-> (get state-history @move-index)
                       ;; the ui scrubber provides history
-                      (assoc :history ["omitted"])))
-          "reformat"
-          {:width 33
-           :style [:community]})]]
+                      (assoc :history ["omitted"]))))]]
 
        (when (and
               (:match/error match)

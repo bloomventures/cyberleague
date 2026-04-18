@@ -31,14 +31,14 @@
                     (:bot/rating p1) (:bot/rating-dev p1)
                     (:bot/rating p2) (:bot/rating-dev p2)
                     (cond
-                      (= winner (:db/id p1)) :win
+                      (= winner (:bot/id p1)) :win
                       (nil? winner) :tie
                       :else :loss))
         [p2r p2rd] (glicko
                     (:bot/rating p2) (:bot/rating-dev p2)
                     (:bot/rating p1) (:bot/rating-dev p1)
                     (cond
-                      (= winner (:db/id p2)) :win
+                      (= winner (:bot/id p2)) :win
                       (nil? winner) :tie
                       :else :loss))]
     (db/update-rankings! p1 p1r p1rd p2 p2r p2rd)))

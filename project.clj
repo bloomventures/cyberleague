@@ -20,6 +20,7 @@
                                        org.clojure/clojure
                                        commons-io]]
 
+                                     [com.taoensso/telemere "1.2.1"]
                                      [com.taoensso/tempel "1.1.0"]
                                      [tada "0.3.0"
                                       :exclusions [org.clojure/clojure
@@ -35,7 +36,7 @@
                                      [cljsjs/d3 "3.5.5-2"]
                                      #_[zprint "1.2.9"] ;; from omni->commons
 
-                                     [com.github.rafd/dat "0.0.1-20260306-0"]
+                                     [com.github.rafd/dat "0.0.1-20260418-0"]
 
                                      ;; coordinator
                                      [org.clojure/math.numeric-tower "0.0.4"
@@ -59,8 +60,10 @@
                       :repl-options {:init-ns cyberleague.core}}
              :cli     {:main         cyberleague.cli.core
                        :dependencies [[org.clojure/tools.cli "1.1.230"]
+                                      [zprint "1.3.0"]
                                       [com.cognitect/transit-clj "1.0.324"]
                                       [org.clojure/clojure "1.11.4"]
+                                      [com.taoensso/telemere "1.2.1"]
                                       [http-kit "2.8.0"]
                                       [com.nextjournal/beholder "1.0.2"]]
                        :repl-options {:init-ns cyberleague.cli.core}}

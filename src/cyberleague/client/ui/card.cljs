@@ -1,5 +1,6 @@
 (ns cyberleague.client.ui.card
   (:require
+   [cyberleague.client.ui.error-boundary :as eb]
    [cyberleague.client.state :as state]))
 
 (defn wrapper
@@ -9,7 +10,8 @@
          (if (= variant :wide)
            "min-w-800px"
            "max-w-90vw")]}
-   (into [:<>] children)])
+   (for [c children]
+     [eb/catch c])])
 
 (defn header
   [{:keys [card]} & content]
@@ -23,10 +25,10 @@
 
 (defn body
   [{:keys [variant]} & content]
-  [:div
-   {:tw ["grow overflow-y-auto overflow-x-hidden flex"
-         (if (= variant :code)
-           ""
-           "p-4 flex-col")]
-    :style {:line-height 1.15}}
-   (into [:<>] content)])
+   [:div
+    {:tw ["grow overflow-y-auto overflow-x-hidden flex"
+          (if (= variant :code)
+            ""
+            "p-4 flex-col")]
+     :style {:line-height 1.15}}
+    (into [:<>] content)])

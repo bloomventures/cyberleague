@@ -19,9 +19,7 @@
          [:div {:tw "grow"}]
          (when @state/user
            [ui/nav-button {:on-click (fn [_]
-                                       (-> (state/tada! [:api/create-bot! {:game-id (:game/id game)}])
-                                           (.then (fn [data]
-                                                    (state/nav! :card.type/code (:bot/id data))))))}
+                                       (state/nav! :card.type/new-bot id))}
             "CREATE A BOT"])]]
        [card/body {}
         [:<>
@@ -48,7 +46,7 @@
                                    (map-indexed vector))]
                ^{:key (:bot/id bot)}
                [:tr
-                [:td {:tw "p-1"} (when (= (:db/id (:bot/user bot)) (:user/id @state/user))
+                [:td {:tw "p-1"} (when (= (:user/id (:bot/user bot)) (:user/id @state/user))
                                    "★")]
                 [:td {:tw "p-1"} (inc rank)]
                 [:td {:tw "p-1"}

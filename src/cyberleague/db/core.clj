@@ -50,6 +50,25 @@
                 id-key
                 id)))
 
+;; base entities
+
+(defn env
+  [{:keys [id slug language]}]
+  {:env/id id
+   :env/slug slug
+   :env/language language})
+
+(defn language
+  [{:keys [id slug]}]
+  {:language/id id
+   :language/slug slug})
+
+;; ---
+
+(defn transact!
+  [txs]
+  (d/transact *conn* txs))
+
 ;; Users
 
 (defn generate-token [] (random-uuid))
@@ -114,18 +133,8 @@
 ;; Bots
 
 (defn gen-bot-name []
-  (str (apply str (take 3 (repeatedly #(rand-nth "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))))
-       "-"
-       (+ 1000 (rand-int 8999))))
+  (apply str (take 3 (shuffle (vec "bcdfghjklmnpqrstvwxz")))))
 
-(defn init-code!
-  [bot-id code language]
-  @(d/transact *conn*
-               [{:bot/id bot-id
-                 :bot/code
-                 {:code/id (uuid/random)
-                  :code/code code
-                  :code/language language}}]))
 
 (defn update-code!
   [bot-id code]
@@ -146,7 +155,7 @@
               :where
               [?cid :code/code ?code ?tx true]]
             (d/history (d/db *conn*))
-            (get-in (by-id bot-id) [:bot/code :db/id]))
+            [:code/id (get-in (by-id bot-id) [:bot/code :code/id])])
        (sort-by second)
        vec))
 
@@ -158,7 +167,7 @@
                               :where
                               [?cid :code/code _ ?tx]]
                             (d/db *conn*)
-                            (get-in bot [:bot/code :db/id]))]
+                            [:code/id (get-in bot [:bot/code :code/id])])]
     (-> @(d/transact *conn*
                      [[:db/add [:bot/id bot-id] :bot/code-version code-timestamp]])
         :db-after
@@ -177,11 +186,11 @@
 (defn deployed-code
   [bot-id]
   (let [bot (by-id bot-id)
-        code-id (get-in bot [:bot/code :db/id])]
+        code-id (get-in bot [:bot/code :code/id])]
     (when-let [vers (:bot/code-version bot)]
       (-> (d/as-of (d/db *conn*) vers)
-          (d/entity code-id)
-          (select-keys [:code/code :code/language])))))
+          (d/entity [:code/id code-id])
+          (select-keys [:code/code :code/env])))))
 
 (defn bot-id [user-id bot-name]
   (d/q '[:find ?id .
@@ -228,19 +237,19 @@
 (defn update-rankings!
   [p1 p1r p1rd p2 p2r p2rd]
   (d/transact *conn*
-              [[:db/add (:db/id p1) :bot/rating (Math/max 0 (Math/round p1r))]
-               [:db/add (:db/id p2) :bot/rating (Math/max 0 (Math/round p2r))]
-               [:db/add (:db/id p1) :bot/rating-dev (Math/max 50 (Math/round p1rd))]
-               [:db/add (:db/id p2) :bot/rating-dev (Math/max 50 (Math/round p2rd))]]))
+              [[:db/add [:bot/id (:bot/id p1)] :bot/rating (Math/max 0 (Math/round p1r))]
+               [:db/add [:bot/id (:bot/id p2)] :bot/rating (Math/max 0 (Math/round p2r))]
+               [:db/add [:bot/id (:bot/id p1)] :bot/rating-dev (Math/max 50 (Math/round p1rd))]
+               [:db/add [:bot/id (:bot/id p2)] :bot/rating-dev (Math/max 50 (Math/round p2rd))]]))
 
 (defn disable-bot!
   [errd-bot]
   (with-conn
     (d/transact *conn*
-                [[:db/retract (:db/id errd-bot) :bot/code-version (:bot/code-version errd-bot)]])))
+                [[:db/retract [:bot/id (:bot/id errd-bot)] :bot/code-version (:bot/code-version errd-bot)]])))
 
 (defn disable-cheater!
   [cheater]
   (d/transact *conn*
-              [[:db/add (:db/id cheater) :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
+              [[:db/add [:bot/id (:bot/id cheater)] :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
               (disable-bot! cheater)]))

@@ -23,6 +23,25 @@
                     :name "bob"}]]
      (db/create-user! params))
 
+   ;; languages
+   (doseq [params [{:id (uuid "clojure")
+                    :slug "clojure"}
+                   {:id (uuid "javascript")
+                    :slug "javascript"}]]
+     (db/transact! [(db/language params)]))
+
+   ;; envs
+   (doseq [params [{:id (uuid "clojure-uberjar")
+                    :slug "clojure-uberjar"
+                    :language [:language/slug "clojure"]}
+                   {:id (uuid "clojure-sci")
+                    :slug "clojure-sci"
+                    :language [:language/slug "clojure"]}
+                   {:id (uuid "javascript-v8")
+                    :slug "javascript-v8"
+                    :language [:language/slug "javascript"]}]]
+     (db/transact! [(db/env params)]))
+
    (let [user-ids (d/q '[:find [?user-id ...]
                          :where
                          [?u :user/id ?user-id]]
@@ -37,24 +56,20 @@
           :game/description (:game.config/description game-config)
           :game/rules (:game.config/rules game-config)}])
 
-       (doseq [[bot-code user-id] (map vector
-                                       (:game.config/seed-bots game-config)
-                                       (cycle user-ids))]
+       (doseq [[{:keys [env-slug code]} user-id] (map vector
+                                                      (:game.config/seed-bots game-config)
+                                                      (cycle user-ids))]
 
          (let [bot-id (:bot/id (tada/do! cqrs/t
                                          :api/create-bot!
                                          {:user-id user-id
-                                          :game-id game-id}))]
-           (tada/do! cqrs/t
-                     :api/set-bot-language!
-                     {:user-id user-id
-                      :bot-id bot-id
-                      :language (:code/language bot-code)})
+                                          :game-slug (:game.config/slug game-config)
+                                          :env-slug env-slug}))]
            (tada/do! cqrs/t
                      :api/set-bot-code!
                      {:user-id user-id
                       :bot-id bot-id
-                      :code (:code/code bot-code)})
+                      :code code})
            (tada/do! cqrs/t
                      :api/deploy-bot!
                      {:user-id user-id

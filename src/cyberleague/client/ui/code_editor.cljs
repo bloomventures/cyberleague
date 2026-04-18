@@ -4,6 +4,7 @@
    [cljsjs.codemirror]
    [cljsjs.codemirror.addon.edit.matchbrackets]
    [cljsjs.codemirror.mode.clojure]
+   [cljsjs.codemirror.mode.javascript]
    [reagent.core :as r]
    [zprint.core :as zprint]
    [cyberleague.client.ui.common :as ui]))

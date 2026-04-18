@@ -18,26 +18,43 @@
          :body "Invalid API token"})
       (handler request))))
 
+(defn make-tada-handler
+  [request->tada-params]
+  (fn [request]
+    (let [{:tada.event/keys [id params]} (request->tada-params request)]
+      (db/with-conn
+       (-> (tada.ring/ring-dispatch-event!
+            cqrs/t
+            id
+            (-> params
+                (assoc :user-id (get-in request [:session :id]))))
+           ; Need to consume lazy sequences before we leave the db/with-conn
+           (update :body (fn [v] (walk/postwalk identity v)))
+           ((fn [response] (if (string? (:body response))
+                             (assoc-in response [:headers "Content-Type"] "text/plain")
+                             response))))))))
+
 (def routes
   (concat
    oauth/routes
+
+   ;; RESTful tada handlers
    (->> cqrs/events
         (map (fn [event]
                [(:rest event)
-                (fn [request]
-                  (db/with-conn
-                    (-> (tada.ring/ring-dispatch-event!
-                         cqrs/t
-                         (:id event)
-                         (-> (:params request)
-                             (merge (:body-params request))
-                             (assoc :user-id (get-in request [:session :id]))))
-                        ; Need to consume lazy sequences before we leave the db/with-conn
-                        (update :body (fn [v] (walk/postwalk identity v)))
-                        ((fn [response] (if (string? (:body response))
-                                          (assoc-in response [:headers "Content-Type"] "text/plain")
-                                          response))))))
+                (make-tada-handler
+                 (fn [request]
+                   {:tada.event/id (:id event)
+                    :tada.event/params (-> (:params request)
+                                           (merge (:body-params request)))}))
                 [wrap-api-token]])))
-   [[[:post "/api/logout"]
+   [
+    ;; generic tada handler
+    [[:post "/api/tada/*"]
+     ;; expects body to have {:event-id _ :event-params _}
+     (make-tada-handler :body-params)
+     [wrap-api-token]]
+
+    [[:post "/api/logout"]
      (fn [_]
        {:session nil})]]))

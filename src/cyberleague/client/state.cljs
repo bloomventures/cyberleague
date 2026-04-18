@@ -100,11 +100,10 @@
 (defn fetch-user! []
   (-> (tada! [:api/me])
       (.then (fn [user]
+               (swap! state assoc :state/user user)
                (when (empty? @cards)
                  (if (:user/id user)
-                   (do
-                     (swap! state assoc :state/user user)
-                     (nav! :card.type/user (:user/id user)))
+                   (nav! :card.type/user (:user/id user))
                    (nav! :card.type/games nil)))))))
 
 (defn log-in! []

@@ -13,10 +13,10 @@
                   {:game/name "ultimate tic-tac-toe"}
                   [{:db/id 56789
                     :bot/code {:code/code random-bot-code
-                               :code/language "clojure"}}
+                               :code/env [:env/slug "clojure"]}}
                    {:db/id 98765
                     :bot/code {:code/code random-bot-code
-                               :code/language "clojure"}}])]
+                               :code/env [:env/slug "clojure"]}}])]
       (is (map? result))
       (is (not (:error result))))))
 

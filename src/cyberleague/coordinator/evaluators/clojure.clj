@@ -21,7 +21,7 @@
         (.stop thread)
         (throw (TimeoutException. "Execution timed out."))))))
 
-(defmethod api/native-code-runner "clojure"
+(defmethod api/native-code-runner "clojure-sci"
   [json-state _ code]
   (let [state (json/read-str json-state :key-fn keyword)
         form-to-eval (list 'let ['state state

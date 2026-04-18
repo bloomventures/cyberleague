@@ -69,13 +69,13 @@
                   {:game/name "goofspiel"}
                   [{:db/id 1234
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
-                               :code/language "clojure"}}
+                               :code/env [:env/slug "clojure-sci"]}}
                    {:db/id 54321
                     :bot/code-version 16
                     :bot/code {:code/code (pr-str '(fn [state] (if (= (state :current-trophy) 1)
                                                                  13
                                                                  (dec (state :current-trophy)))))
-                               :code/language "clojure"}}])]
+                               :code/env [:env/slug "clojure-sci"]}}])]
       (is (map? result))
       (is (not (:error result)))
       (is (= 1234 (:winner result)))
@@ -88,10 +88,10 @@
                   {:game/name "goofspiel"}
                   [{:db/id 1235
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
-                               :code/language "clojure"}}
+                               :code/env [:env/slug "clojure-sci"]}}
                    {:db/id 54322
                     :bot/code {:code/code (pr-str '(fn [state] 15))
-                               :code/language "clojure"}}])]
+                               :code/env [:env/slug "clojure-sci"]}}])]
       (is (= :invalid-move (:error result)))
       (is (= 0 (count (get-in result [:game-state :history]))))
       (is (= {:bot 54322 :move 15}
@@ -102,10 +102,10 @@
                   {:game/name "goofspiel"}
                   [{:db/id 1236
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
-                               :code/language "clojure"}}
+                               :code/env [:env/slug "clojure-sci"]}}
                    {:db/id 54323
                     :bot/code {:code/code (pr-str '(fn [state] 13))
-                               :code/language "clojure"}}])]
+                               :code/env [:env/slug "clojure-sci"]}}])]
       (is (= :illegal-move (:error result)))
       (is (= {:bot 54323 :move 13}
              (:move result)))

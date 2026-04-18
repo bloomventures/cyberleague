@@ -7,16 +7,14 @@
 
 (defn test-bot
   [user-id bot-id bot]
-  ;; TODO: use an appropriate random bot for different games
-  (let [game-name (get-in bot [:bot/game :game/name])
+  (let [game-slug (get-in bot [:bot/game :game/slug])
         random-bot-id 1234
-        random-bot {:db/id random-bot-id
+        random-bot {:bot/id random-bot-id
                     :bot/code-version 5
-                    :bot/code {:code/code (get-in @registrar/games [game-name :game.config/test-bot])
-                               :code/language "clojure"}}
+                    :bot/code {:code/code (get-in @registrar/games [game-slug :game.config/test-bot])
+                               :code/env {:env/slug "clojure-sci"}}}
         coded-bot (-> (into {} bot)
                       (assoc
-                       :db/id (:db/id bot)
                        :bot/code-version (rand-int 10000000)
                        :bot/code (:bot/code bot)))
         result (game-runner/run-game (into {} (:bot/game bot))
@@ -24,10 +22,10 @@
     (when result
       ;; mimicking a match so that we can reuse the same views on the frontend
       {:match/id (uuid/random)
-       :match/game {:game/name game-name}
+       :match/game {:game/slug game-slug}
        :match/state-history (:game.result/state-history result)
        :match/std-out-history (:game.result/std-out-history result)
-       :match/bots [{:bot/id (:db/id bot)
+       :match/bots [{:bot/id (:bot/id bot)
                      :bot/name "You"}
                     {:bot/id random-bot-id
                      :bot/name "Them"}]

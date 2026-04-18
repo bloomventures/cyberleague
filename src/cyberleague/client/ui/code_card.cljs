@@ -21,6 +21,9 @@
                  (.then (fn [_]
                           (reset! status :saved)))))
      debounced-save! (debounce save! 750)
+     on-code-change! (fn [value]
+                       (reset! status :editing)
+                       (debounced-save! value))
      test! (fn []
              (reset! test-match nil)
              (reset! status :testing)
@@ -38,7 +41,7 @@
       [card/wrapper {:variant :wide}
        [card/header {:card card}
         [:<>
-         [:span (:bot/name bot)]
+         [:span [ui/bot-chip bot]]
          [ui/nav-link {:on-click (fn [_] (state/nav! :game (:game/id (:bot/game bot))))} (str "#" (:game/name (:bot/game bot)))]
          (if (:user/id (:bot/user bot))
            ;; "do later"
@@ -47,7 +50,6 @@
          [:div {:tw "grow"}]
          [:div.status
           (case @status
-            :picking-language nil
             :editing ""
             :saving "Saving..."
             :saved [ui/nav-button {:on-click (fn [_] (test!))} "TEST"]
@@ -61,31 +63,12 @@
             :deploying "Deploying..."
             :deployed "Deployed!")]]]
        [card/body {:variant :code}
-        (if (nil? (-> bot :bot/code :code/language))
-          [:div.lang-pick
-           {:tw "p-4"
-            :style {:line-height 1.5}}
-           [:h2 {:tw "font-bold"} "Pick a language:"]
-           (into [:<>]
-                 (->> [{:name "Clojure"
-                        :language "clojure"}
-                       {:name "JavaScript"
-                        :language "javascript"}]
-                      (map (fn [language]
-                             [:a {:tw "block"
-                                  :on-click
-                                  (fn [_]
-                                    (-> (state/tada! [:api/set-bot-language!
-                                                      {:bot-id (:bot/id bot)
-                                                       :language (:language language)}])
-                                        (.then (fn [_data]
-                                                 (state/refresh! data)
-                                                ;; Relying on the card's auto-refresh to move us to the next state
-                                                 ))))}
-                              (:name language)]))))]
-          [code-editor-view {:on-change (fn [value]
-                                          (reset! status :editing)
-                                          (debounced-save! value))
-                             :language (-> bot :bot/code :code/language)
+        (when bot
+          [code-editor-view {;; don't inline a fn here, b/c it breaks editing
+                             ;; if inlined, when parent component re-renders (often)
+                             ;; it passes a new fn to this sub-component,
+                             ;; re-rendering with the *old* code value
+                             :on-change on-code-change!
+                             :language (-> bot :bot/code :code/env :env/language :language/slug)
                              :value (-> bot :bot/code :code/code)}])
         [test-view @test-match bot]]])))

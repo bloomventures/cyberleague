@@ -36,19 +36,17 @@
 
 (defn run-one-game! [game active-bots]
   (when-let [{:keys [player-1 player-2]} (select-players game active-bots)]
-    #_(print "Starting " (:db/id player-1) " vs " (:db/id player-2) "...")
+    #_(print "Starting " (:bot/id player-1) " vs " (:bot/id player-2) "...")
     (let [result (game-runner/run-game
                   (into {} game)
                   (db/with-conn
-                   [(-> (into {} player-1) (assoc :db/id (:db/id player-1)
-                                                  :bot/code (db/deployed-code (:db/id player-1))))
-                    (-> (into {} player-2) (assoc :db/id (:db/id player-2)
-                                                  :bot/code (db/deployed-code (:db/id player-2))))]))]
-      #_(println (str (:db/id player-1) " vs " (:db/id player-2) ": " (:game.result/winner result)))
+                   [(-> (into {} player-1) (assoc :bot/code (db/deployed-code [:bot/id (:bot/id player-1)])))
+                    (-> (into {} player-2) (assoc :bot/code (db/deployed-code [:bot/id (:bot/id player-2)])))]))]
+      #_(println (str (:bot/id player-1) " vs " (:bot/id player-2) ": " (:game.result/winner result)))
       (let [{:move.error/keys [data _type] :as error} (:game.result/error result)
             ;; TODO assuming 2 player games
             [winning-bot errd-bot] (when error
-                                     (if (= (:bot-id data) (:db/id player-1))
+                                     (if (= (:bot-id data) (:bot/id player-1))
                                        [player-2 player-1]
                                        [player-1 player-2]))
             ;; run-game returns game.result/winner only for completed games
@@ -56,15 +54,15 @@
             ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
             ;; (ie. when about to lose, error)
             winner-id (or (:game.result/winner result)
-                          (:db/id winning-bot))]
+                          (:bot/id winning-bot))]
         (when errd-bot
-          (println "Disabling bot:" (:db/id errd-bot) (:message data))
+          (println "Disabling bot:" (:bot/id errd-bot) (:message data))
           (db/disable-bot! errd-bot))
 
         (db/with-conn
          (db/transact! [(merge
                          {:match/id (uuid/random)
-                          :match/bots [(:db/id player-1) (:db/id player-2)]
+                          :match/bots [[:bot/id (:bot/id player-1)] [:bot/id (:bot/id player-2)]]
                           :match/timestamp (java.util.Date.)
                           :match/state-history-edn (pr-str (:game.result/state-history result))
                           :match/std-out-history-edn (pr-str (:game.result/std-out-history result))
@@ -72,15 +70,15 @@
                          (when error
                            {:match/error-edn (pr-str error)})
                          (when winner-id
-                           {:match/winner winner-id}))])
+                           {:match/winner [:bot/id winner-id]}))])
          (ranking/update-rankings! player-1 player-2 winner-id))))))
 
 #_(let [[game bots] (first (db/with-conn (db/active-bots)))]
     (->> bots
          (take 2)
          (map (fn [bot]
-                {:db/id (:db/id bot)
-                 :bot/code (db/with-conn (db/deployed-code (:db/id bot)))}))
+                {:bot/id (:bot/id bot)
+                 :bot/code (db/with-conn (db/deployed-code [:bot/id (:bot/id bot)]))}))
          (game-runner/run-game game)))
 
 

@@ -1,7 +1,9 @@
 (ns cyberleague.client.ui.error-boundary
   (:require
    [clojure.string :as string]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [bloom.omni.reagent :as br]
+   [reagent.impl.protocols :as reagent.p]))
 
 (defn- render-error-component [{:keys [error info]}]
   [:div
@@ -20,11 +22,11 @@
     (r/create-class
      {:component-did-catch
       (fn [_ error info]
-        (reset! error-state (let [max-error-lenght 200]
+        (reset! error-state (let [max-error-length 200]
                               (when-let [err (str error)]
-                                (when (-> err count (< max-error-lenght))
+                                (when (-> err count (< max-error-length))
                                   (-> err
-                                      (subs 0 max-error-lenght)
+                                      (subs 0 max-error-length)
                                       (str " ..."))))))
         (reset! info-state (some->> info
                                     .-componentStack
@@ -38,4 +40,4 @@
                           [*render-error*
                            {:error @error-state :info @info-state}]
                           (when-not (->> body (remove nil?) empty?)
-                           (into [:<>] body))))})))
+                            (reagent.p/as-element (br/modded-reagent-compiler) (into [:<>] body)))))})))

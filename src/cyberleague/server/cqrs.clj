@@ -81,11 +81,19 @@
                 {:user/bots
                  bot-pattern}]))}
 
-   {:id :api/envs
+   {:id :api/languages
     :params {:user-id [:maybe :user/id]}
-    :rest [:get "/api/envs"]
+    :rest [:get "/api/languages"]
     :return (fn [_]
-              ["clojure/sci" "javascript/v8"])}
+              (-> (graph/pull
+                   {}
+                   [{:entity/language
+                     [:language/id
+                      :language/slug
+                      {:language/envs
+                       [:env/id
+                        :env/slug]}]}])
+                  :entity/language))}
 
    {:id :api/games
     :params {:user-id [:maybe :user/id]}
@@ -110,6 +118,7 @@
               (graph/pull
                {:game/id game-id}
                [:game/id
+                :game/slug
                 :game/name
                 :game/description
                 {:game/bots bot-pattern}]))}
@@ -125,7 +134,8 @@
                {:match/id match-id}
                [:match/id
                 {:match/game [:game/id
-                              :game/name]}
+                              :game/name
+                              :game/slug]}
                 {:match/bots bot-pattern}
                 {:match/winner [:bot/id]}
                 :match/timestamp
@@ -161,8 +171,8 @@
                 {:bot/game [:game/id
                             :game/name]}
                 {:bot/user [:user/id
-                             :user/name]}
-                {:bot/code [:code/language]}
+                            :user/name]}
+                {:bot/code [{:code/env [{:env/language [:language/slug]}]}]}
                 {:bot/matches [:match/id
                                :match/error
                                :match/timestamp
@@ -182,8 +192,11 @@
                {:bot/id bot-id}
                [:bot/id
                 :bot/name
+                :bot/weight
                 {:bot/code [:code/code
-                            :code/language]}
+                            {:code/env
+                             [{:env/language
+                               [:language/slug]}]}]}
                 {:bot/user [:user/id
                             :user/name]}
                 {:bot/game [:game/id
@@ -191,38 +204,30 @@
 
    {:id :api/create-bot!
     :params {:user-id :user/id
-             :game-id :game/id}
-    :rest [:post "/api/games/:game-id/bot"]
-    :conditions (fn [{:keys [user-id game-id]}]
+             :game-slug :game/slug
+             :env-slug :env/slug}
+    :rest [:post "/api/bots"]
+    :conditions (fn [{:keys [user-id game-slug env-slug]}]
                   [(entity-exists?-condition :user/id user-id)
-                   (entity-exists?-condition :game/id game-id)])
-    :effect (fn [{:keys [user-id game-id]}]
-              (let [id (uuid/random)]
+                   (entity-exists?-condition :game/slug game-slug)
+                   (entity-exists?-condition :env/slug env-slug)])
+    :effect (fn [{:keys [user-id game-slug env-slug]}]
+              (let [id (uuid/random)
+                    bot-name (db/gen-bot-name)
+                    code (get-in @registrar/games [game-slug :game.config/starter-code env-slug] "")]
                 (db/transact! [{:bot/id id
                                 :bot/user [:user/id user-id]
-                                :bot/game [:game/id game-id]
-                                :bot/name (db/gen-bot-name)
+                                :bot/game [:game/slug game-slug]
+                                :bot/name bot-name
+                                :bot/code {:code/id (uuid/random)
+                                           :code/code code
+                                           :code/env [:env/slug env-slug]}
                                 :bot/rating 1500
                                 :bot/rating-dev 350}])
-                id))
-    :return (fn [{id :tada/effect-return}]
-              {:bot/id id})}
-
-   {:id :api/set-bot-language!
-    :params {:user-id :user/id
-             :bot-id :bot/id
-             :language :code/language}
-    :rest [:put "/api/bots/:bot-id/language/:language"]
-    :conditions (fn [{:keys [user-id bot-id _language]}]
-                  [(entity-exists?-condition :user/id user-id)
-                   (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)
-                   [#(nil? (:code/language (:bot/code (db/by-id [:bot/id bot-id]))))]])
-    :effect (fn [{:keys [_user-id bot-id language]}]
-              (let [bot (db/by-id [:bot/id bot-id])
-                    game-name (get-in bot [:bot/game :game/name])
-                    code (get-in @registrar/games [game-name :game.config/starter-code language] "")]
-                (db/init-code! bot-id code language)))}
+                {:bot/id id
+                 :bot/name bot-name}))
+    :return (fn [{result :tada/effect-return}]
+              result)}
 
    {:id :api/set-bot-code!
     :params {:user-id :user/id
@@ -232,8 +237,7 @@
     :conditions (fn [{:keys [user-id bot-id]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)
-                   [#(:code/language (:bot/code (db/by-id [:bot/id bot-id])))]])
+                   (user-owns-bot?-condition user-id bot-id)])
     :effect (fn [{:keys [_user-id bot-id code]}]
               (db/update-code! bot-id code))}
 
@@ -244,9 +248,7 @@
     :conditions (fn [{:keys [user-id bot-id]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)
-                   [#(let [code (:bot/code (db/by-id [:bot/id bot-id]))]
-                       (and (:code/code code) (:code/language code)))]])
+                   (user-owns-bot?-condition user-id bot-id)])
     :effect (fn [{:keys [user-id bot-id]}]
               (coordinator/test-bot user-id
                                     bot-id
@@ -260,9 +262,7 @@
     :conditions (fn [{:keys [user-id bot-id]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)
-                   [#(let [code (:bot/code (db/by-id [:bot/id bot-id]))]
-                       (and (:code/code code) (:code/language code)))]])
+                   (user-owns-bot?-condition user-id bot-id)])
     :effect (fn [{:keys [_user-id bot-id]}]
               (db/deploy-bot! bot-id))}])
 

@@ -51,6 +51,7 @@
    (alias-resolver :match/_bots :bot/matches)
    (alias-resolver :bot/_game :game/bots)
    (alias-resolver :bot/_user :user/bots)
+   (alias-resolver :env/_language :language/envs)
 
    (transform-resolver :match/moves-edn :match/moves edn/read-string)
    (transform-resolver :match/error-edn :match/error edn/read-string)

@@ -9,13 +9,29 @@
    #(not (clojure.string/blank? %))])
 
 (def Slug
-  [:re #"^[a-z0-9-]$"])
+  [:re #"^[a-z0-9-]+$"])
 
 (def dat-schema
-  {:entity/game
+  {:entity/language
+   {:language/id {:dat/type :db.type/uuid
+                  :dat/unique :dat.unique/identity}
+    :language/slug {:dat/type :db.type/string
+                    :dat/unique :dat.unique/identity
+                    :dat/spec Slug}}
+
+   :entity/env
+   {:env/id {:dat/type :db.type/uuid
+             :dat/unique :dat.unique/identity}
+    :env/slug {:dat/type :db.type/string
+               :dat/unique :dat.unique/identity
+               :dat/spec Slug}
+    :env/language {:dat/rel [:dat.rel/one :entity/language :language/id]}}
+
+   :entity/game
    {:game/id {:dat/type :db.type/uuid
               :dat/unique :dat.unique/identity}
     :game/slug {:dat/type :db.type/string
+                :dat/unique :dat.unique/identity
                 :dat/spec Slug}
     :game/name {:dat/type :db.type/string
                 :dat/spec NonBlankString}
@@ -44,11 +60,8 @@
    :entity/code
    {:code/id {:dat/type :db.type/uuid
               :dat/unique :dat.unique/identity}
-    :code/code {:dat/type :db.type/string}
-    :code/language {:dat/type :db.type/string
-                    :dat/spec [:enum
-                               "javascript"
-                               "clojure"]}}
+    :code/env {:dat/rel [:dat.rel/one :entity/env :env/id]}
+    :code/code {:dat/type :db.type/string}}
 
    :entity/match
    {:match/id {:dat/type :db.type/uuid

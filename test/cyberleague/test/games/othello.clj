@@ -103,9 +103,9 @@
                    {:game/name "othello"}
                    [{:db/id 12345
                      :bot/code {:code/code random-bot-code
-                                :code/language "clojure"}}
+                                :code/env [:env/slug "clojure-sci"]}}
                     {:db/id 56789
                      :bot/code {:code/code first-bot-code
-                                :code/language "clojure"}}])] (is (map? result))
+                                :code/env [:env/slug "clojure-sci"]}}])] (is (map? result))
          (println "Result" result)
       (is (not (:error result))))))
