@@ -59,7 +59,7 @@
                       :main cyberleague.core
                       :repl-options {:init-ns cyberleague.core}}
              :cli     {:main         cyberleague.cli.core
-                       :dependencies [[org.clojure/tools.cli "1.1.230"]
+                       :dependencies [[cli-matic "0.5.4"]
                                       [zprint "1.3.0"]
                                       [com.cognitect/transit-clj "1.0.324"]
                                       [org.clojure/clojure "1.11.4"]

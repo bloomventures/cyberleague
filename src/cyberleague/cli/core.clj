@@ -2,7 +2,7 @@
   (:require
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [clojure.tools.cli :as cli]
+   [cli-matic.core :as cli]
    [hyperfiddle.rcf :as rcf]
    [nextjournal.beholder :as beholder]
    [cyberleague.cli.token :as token]
@@ -55,13 +55,7 @@
         @(promise))
     (println "File does not exist!")))
 
-(def intro
-  (str/join "\n"
-            ["Cyberleague CLI Tool"
-             ""
-             ""]))
-
-(defn list-envs! []
+(defn list-envs! [_]
   (let [languages (r/tada! [:api/languages {}])]
     (doseq [language (->> languages
                            (sort-by :language/slug))]
@@ -69,38 +63,48 @@
       (doseq [env (:language/envs language)]
         (println "  " (:env/slug env))))))
 
-(defn list-games! []
+(defn list-games! [_]
   (let [games (r/tada! [:api/games {}])]
     (doseq [game games]
       (println (:game/slug game)))))
 
-(def cli-options
-  [[nil "--auth" "authenticate"]
-   [nil "--list-envs" "list available environments"]
-   [nil "--list-games" "list available games"]
-   [nil "--new" "create a new bot (requires --game and --env)"]
-   [nil "--game GAME"]
-   [nil "--env ENV"]
-   ["-w" "--watch FILE" "watch a bot file"]
-   ["-h" "--help" "show this help"]])
+(def cli-configuration
+  {:command "cyberleague"
+   :description "cyberleague cli for developing bots"
+   :version "2026-04-18"
+   :subcommands
+   [{:command "login"
+     :runs auth!}
+    {:command "envs"
+     :description "List available languages and environments"
+     :runs list-envs!}
+    {:command "games"
+     :description "List available games"
+     :runs list-games!}
+    #_{:command "bots"}
+    {:command "bot"
+     :subcommands [{:command "new"
+                    :opts [{:option "game"
+                            :type :string
+                            :default :present
+                            :as "Game; run `cyberleague game` to see available games"}
+                           {:option "env"
+                            :type :string
+                            :default :present
+                            :as "Env; run `cyberleague envs` to see available envs"}]
+                    :runs bot/new-bot!}
+                   #_{:command "deploy"}
+                   #_{:command "fetch"}
+                   #_{:command "test"}
+                   #_{:command "watch"
+                      :runs (watch! (:watch options))}]}]})
 
-(defn -main [& opts]
-  (let [{:keys [options summary errors]} (cli/parse-opts opts cli-options)
-        summary (str intro summary)]
-    (cond
-      (:help options)       (println summary)
-      (:list-envs options)  (list-envs!)
-      (:list-games options) (list-games!)
-      (:new options)        (if (and (:game options) (:env options))
-                              (bot/new-bot! (:game options) (:env options))
-                              (println "Error: --new requires --game and --env"))
-      (:watch options)      (watch! (:watch options))
-      (:auth options)       (auth!)
-      :else                 (println summary))))
+(defn -main [& args]
+  (cli/run-cmd args cli-configuration))
 
 (comment
 
-  (-main "--watch" "./cli-demo/")
+  (-main "bot" "watch" "./cli-demo/")
 
   (beholder/stop @watcher)
 

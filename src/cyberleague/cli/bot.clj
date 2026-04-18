@@ -5,7 +5,7 @@
    [cyberleague.cli.ednf :as ednf]))
 
 (defn new-bot!
-  [game-slug env-slug]
+  [{game-slug :game env-slug :env}]
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]
     (if result
