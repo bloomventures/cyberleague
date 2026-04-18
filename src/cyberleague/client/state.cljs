@@ -5,13 +5,8 @@
    [bloom.commons.ajax :as ajax]
    [reagent.core :as r]
    [reagent.ratom :as ratom]
-   [cyberleague.client.cqrs :as cqrs]
    [cyberleague.client.oauth :as oauth]
    [goog.crypt.base64 :as base64]))
-
-(def tada-events->rest (let [events (cqrs/events)]
-                         (zipmap (map :id events)
-                                 (map :rest events))))
 
 (defn ajax-promise! [opts]
   (js/Promise.
@@ -21,13 +16,12 @@
                           :on-error reject)))))
 
 (defn tada! [[event-id params]]
-  (let [[method uri] (tada-events->rest event-id)
-        uri (string/replace uri #":([a-z-]+)" (fn [[_ match]] (params (keyword match))))]
-    ;; NOTE: Sending all params even though that may sometimes unnecessary,
-    ;; but backend just ignores extra params
-    (ajax-promise! {:uri uri
-                    :method method
-                    :params params})))
+  ;; NOTE: Sending all params even though that may sometimes unnecessary,
+  ;; but backend just ignores extra params
+  (ajax-promise! {:uri (str "/api/tada/" (namespace event-id) "." (name event-id))
+                  :method :post
+                  :params {:tada.event/id event-id
+                           :tada.event/params (or params {})}}))
 
 (defn tada-atom
   [[event-id params] & {:keys [refresh-rate]}]
