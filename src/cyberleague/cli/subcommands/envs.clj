@@ -2,7 +2,7 @@
   (:require
    [cyberleague.cli.util.remote :as r]))
 
-(defn list-envs!
+(defn exec!
   [_]
   (let [languages (r/tada! [:api/languages {}])]
     (doseq [language (->> languages

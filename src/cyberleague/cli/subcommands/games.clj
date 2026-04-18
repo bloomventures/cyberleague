@@ -2,7 +2,7 @@
   (:require
    [cyberleague.cli.util.remote :as r]))
 
-(defn list-games!
+(defn exec!
   [_]
   (let [games (r/tada! [:api/games {}])]
     (doseq [game games]

@@ -13,13 +13,13 @@
    :version "2026-04-18"
    :subcommands
    [{:command "login"
-     :runs sc.login/login!}
+     :runs sc.login/exec!}
     {:command "envs"
      :description "List available languages and environments"
-     :runs sc.envs/list-envs!}
+     :runs sc.envs/exec!}
     {:command "games"
      :description "List available games"
-     :runs sc.games/list-games!}
+     :runs sc.games/exec!}
     #_{:command "bots"}
     {:command "bot"
      :subcommands [{:command "new"
@@ -31,7 +31,7 @@
                             :type :string
                             :default :present
                             :as "Env; run `cyberleague envs` to see available envs"}]
-                    :runs sc.bot.new/create-bot!}
+                    :runs sc.bot.new/exec!}
                    #_{:command "deploy"}
                    #_{:command "fetch"}
                    #_{:command "test"}

@@ -3,7 +3,7 @@
    [clojure.string :as string]
    [cyberleague.cli.util.token :as token]))
 
-(defn login! [_]
+(defn exec! [_]
   (println "Enter token: ")
   (flush)
   (let [token (string/trim (read-line))]

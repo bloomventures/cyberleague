@@ -4,7 +4,7 @@
    [cyberleague.cli.util.remote :as r]
    [cyberleague.cli.util.ednf :as ednf]))
 
-(defn create-bot!
+(defn exec!
   [{game-slug :game env-slug :env}]
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]
