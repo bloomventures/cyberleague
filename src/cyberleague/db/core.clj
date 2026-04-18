@@ -91,9 +91,11 @@
 
 (defn token->user-id
   [token]
-  (d/q '[:find ?e .
+  (d/q '[:find ?id .
          :in $ ?token
-         :where [?e :user/cli-token ?token]]
+         :where
+         [?u :user/cli-token ?token]
+         [?u :user/id ?id]]
        (d/db *conn*)
        token))
 
