@@ -22,17 +22,20 @@
   [request->tada-params]
   (fn [request]
     (let [{:tada.event/keys [id params]} (request->tada-params request)]
-      (db/with-conn
-       (-> (tada.ring/ring-dispatch-event!
-            cqrs/t
-            id
-            (-> params
-                (assoc :user-id (get-in request [:session :id]))))
-           ; Need to consume lazy sequences before we leave the db/with-conn
-           (update :body (fn [v] (walk/postwalk identity v)))
-           ((fn [response] (if (string? (:body response))
-                             (assoc-in response [:headers "Content-Type"] "text/plain")
-                             response))))))))
+      (if (and (keyword? id)
+               (map? params))
+        (db/with-conn
+         (-> (tada.ring/ring-dispatch-event!
+              cqrs/t
+              id
+              (-> params
+                  (assoc :user-id (get-in request [:session :id]))))
+             ; Need to consume lazy sequences before we leave the db/with-conn
+             (update :body (fn [v] (walk/postwalk identity v)))
+             ((fn [response] (if (string? (:body response))
+                               (assoc-in response [:headers "Content-Type"] "text/plain")
+                               response)))))
+        (throw (ex-info "Incorrect TADA params" {}))))))
 
 (def routes
   (concat
