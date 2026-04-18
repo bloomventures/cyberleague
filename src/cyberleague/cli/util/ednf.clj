@@ -1,4 +1,4 @@
-(ns cyberleague.cli.ednf
+(ns cyberleague.cli.util.ednf
   (:refer-clojure :exclude [read])
   (:require
    [clojure.edn :as edn]

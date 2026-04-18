@@ -1,7 +1,7 @@
-(ns cyberleague.cli.config-file
+(ns cyberleague.cli.util.config-file
   (:refer-clojure :exclude [read])
   (:require
-   [cyberleague.cli.ednf :as ednf]))
+   [cyberleague.cli.util.ednf :as ednf]))
 
 (def path "cyberleague-token.edn")
 

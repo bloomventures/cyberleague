@@ -1,10 +1,10 @@
-(ns cyberleague.cli.bot
+(ns cyberleague.cli.subcommands.bot.new
   (:require
    [clojure.java.io :as io]
-   [cyberleague.cli.remote :as r]
-   [cyberleague.cli.ednf :as ednf]))
+   [cyberleague.cli.util.remote :as r]
+   [cyberleague.cli.util.ednf :as ednf]))
 
-(defn new-bot!
+(defn create-bot!
   [{game-slug :game env-slug :env}]
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]

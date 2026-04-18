@@ -1,9 +1,9 @@
-(ns cyberleague.cli.remote
+(ns cyberleague.cli.util.remote
   (:require
    [cognitect.transit :as transit]
    [org.httpkit.client :as http]
    [taoensso.telemere :as tel]
-   [cyberleague.cli.token :as token])
+   [cyberleague.cli.util.token :as token])
   (:import
    (java.io ByteArrayOutputStream)))
 
