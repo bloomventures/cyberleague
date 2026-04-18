@@ -1,4 +1,5 @@
 (ns cyberleague.cli.token
+  (:refer-clojure :exclude [read])
   (:require
    [cyberleague.cli.config-file :as config-file]))
 
