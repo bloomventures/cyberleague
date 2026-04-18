@@ -67,7 +67,7 @@
                            (sort-by :language/slug))]
       (println (str (:language/slug language) ":"))
       (doseq [env (:language/envs language)]
-        (println "\t" (:env/slug env))))))
+        (println "  " (:env/slug env))))))
 
 (defn list-games! []
   (let [games (r/tada! [:api/games {}])]
