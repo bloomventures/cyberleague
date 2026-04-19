@@ -36,35 +36,36 @@
 (defn user-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let
-    [data (state/tada-atom [:api/user {:other-user-id id}])]
-    (when-let [user @data]
-      [card/wrapper {}
-       [card/header {:card card}
-        [:<>
-         [:span {:tw "mr-4"} (str "@" (:user/name user))]
-         [:div {:tw "grow"}]]]
-       [card/body {}
-        [:<>
-         [:div.bots
-          {:tw "grow"}
-          [:table
-           {:tw "mx-auto"}
-           [:thead
-            [:tr
-             [:th {:tw "text-left font-bold p-1"} "Bot"]
-             [:th {:tw "text-left font-bold p-1"} "Rating"]
-             [:th {:tw "text-left font-bold p-1"} "Game"]]]
-           [:tbody
-            (for [bot (:user/bots user)]
-              ^{:key (:bot/id bot)}
-              [:tr
-               [:td {:tw "p-1"}
-                [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
-                 [ui/bot-chip bot]]]
-               [:td {:tw "p-1"} (:bot/rating bot)]
-               [:td {:tw "p-1"}
-                [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-                 (str "#" (:game/name (:bot/game bot)))]]])]]]
-         (when (= (:user/id user)
-                  (:user/id @state/user))
-           [token-management-view])]]])))
+   [data (state/tada-atom [:api/user {:other-user-id id}])]
+   (when-let [user @data]
+     [card/wrapper {}
+      [card/header {:card card
+                    :refresh [data]}
+       [:<>
+        [:span {:tw "mr-4"} (str "@" (:user/name user))]
+        [:div {:tw "grow"}]]]
+      [card/body {}
+       [:<>
+        [:div.bots
+         {:tw "grow"}
+         [:table
+          {:tw "mx-auto"}
+          [:thead
+           [:tr
+            [:th {:tw "text-left font-bold p-1"} "Bot"]
+            [:th {:tw "text-left font-bold p-1"} "Rating"]
+            [:th {:tw "text-left font-bold p-1"} "Game"]]]
+          [:tbody
+           (for [bot (:user/bots user)]
+             ^{:key (:bot/id bot)}
+             [:tr
+              [:td {:tw "p-1"}
+               [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
+                [ui/bot-chip bot]]]
+              [:td {:tw "p-1"} (:bot/rating bot)]
+              [:td {:tw "p-1"}
+               [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+                (str "#" (:game/name (:bot/game bot)))]]])]]]
+        (when (= (:user/id user)
+                 (:user/id @state/user))
+          [token-management-view])]]])))

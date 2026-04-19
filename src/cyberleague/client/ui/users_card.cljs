@@ -10,7 +10,8 @@
    [data (state/tada-atom [:api/users])]
    [card/wrapper {}
     [card/header
-     {:card card}
+     {:card card
+      :refresh [data]}
      "USERS"]
     [card/body {}
      (when-let [users @data]

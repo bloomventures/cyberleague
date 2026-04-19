@@ -29,7 +29,8 @@
   (r/with-let
    [data (state/tada-atom [:api/bot {:bot-id id}] {:refresh-rate 2500})]
    [card/wrapper {}
-    [card/header {:card card}
+    [card/header {:card card
+                  :refresh [data]}
      (when-let [bot @data]
        [:<>
         [:span {:tw "whitespace-nowrap"} [ui/bot-chip bot]]
