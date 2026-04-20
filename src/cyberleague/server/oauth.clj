@@ -4,7 +4,7 @@
    [clojure.string :as string]
    [org.httpkit.client :as http]
    [taoensso.tempel :as tempel]
-   [cyberleague.config :refer [config]]
+   [cyberleague.common.config :refer [config]]
    [cyberleague.db.core :as db])
   (:import
    (java.util Base64)))
@@ -20,14 +20,14 @@
    (Base64/getUrlEncoder)
    (tempel/encrypt-with-password
     (byte-array [0])
-    (:oauth-nonce-secret config))))
+    (-> config :server :oauth-nonce-secret))))
 
 (defn nonce-check [encrypted]
   (try (boolean
         (tempel/decrypt-with-password
          (.decode (Base64/getUrlDecoder)
                   (.getBytes encrypted))
-         (:oauth-nonce-secret config)))
+         (-> config :server :oauth-nonce-secret)))
        (catch Exception _e
          nil)))
 
@@ -42,8 +42,8 @@
          :url "https://github.com/login/oauth/access_token"
          :headers {"Accept" "application/json"}
          :query-params
-         {:client_id (config :github-client-id)
-          :client_secret (config :github-client-secret)
+         {:client_id (-> config :server :github-client-id)
+          :client_secret (-> config :server :github-client-secret)
           :state state
           :code code}})
       :body
@@ -63,7 +63,7 @@
 (def routes
   [[[:get "/oauth/pre-auth-redirect"]
     (fn [_]
-      (if (= :dev (config :environment))
+      (if (= :dev (-> config :environment))
         ;; in development, immediately log a user in (first in db)
         {:status 200
          :headers {"Content-Type" "text/html"}
@@ -73,8 +73,8 @@
         {:status 302
          :headers {"Location"
                    (str "https://github.com/login/oauth/authorize"
-                        "?client_id=" (config :github-client-id)
-                        "&redirect_uri=" (config :github-redirect-uri)
+                        "?client_id=" (-> config :server :github-client-id)
+                        "&redirect_uri=" (-> config :server :github-redirect-uri)
                         "&state=" (nonce-generate))}}))]
 
    [[:get "/oauth/post-auth-redirect"]

@@ -2,12 +2,10 @@
   (:require
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.bot-card :refer [bot-card-view]]
-   [cyberleague.client.ui.code-card :refer [code-card-view]]
    [cyberleague.client.ui.game-card :refer [game-card-view]]
    [cyberleague.client.ui.games-card :refer [games-card-view]]
    [cyberleague.client.ui.match-card :refer [match-card-view]]
    [cyberleague.client.ui.styles :as styles]
-   [cyberleague.client.ui.new-bot-card :refer [new-bot-card-view]]
    [cyberleague.client.ui.user-card :refer [user-card-view]]
    [cyberleague.client.ui.users-card :refer [users-card-view]]))
 
@@ -22,10 +20,6 @@
            :href "/reset.css"}]
    [:link {:rel "stylesheet"
            :href "//fonts.googleapis.com/css?family=Inconsolata"}]
-   [:link {:rel "stylesheet"
-           :href "//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"}]
-   [:link {:rel "stylesheet"
-           :href "//cdnjs.cloudflare.com/ajax/libs/codemirror/5.54.0/codemirror.min.css"}]
 
    [:style styles/css]
 
@@ -67,8 +61,6 @@
                         :card.type/game game-card-view
                         :card.type/games games-card-view
                         :card.type/match match-card-view
-                        :card.type/bot bot-card-view
-                        :card.type/code code-card-view
-                        :card.type/new-bot new-bot-card-view)]
+                        :card.type/bot bot-card-view)]
         ^{:key card}
         [card-view card]))]])

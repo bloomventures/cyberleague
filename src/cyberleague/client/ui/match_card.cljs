@@ -20,6 +20,9 @@
          (str "#" (:game/name (:match/game match)))]]]
       [card/body {}
        [:<>
+        [:div {:tw "flex justify-center mb-2"}
+         (when (:match/test? match)
+           [:div {:tw "bg-#3f51b5  text-white px-1 rounded"} "TEST"])]
         (let [[bot1 bot2] (:match/bots match)]
           [:h1 {:tw "flex gap-1 justify-center items-center mb-4"}
            [:a {:tw (when (= (:bot/id (:match/winner match)) (:bot/id bot1)) "bg-#d5daef p-1 rounded")

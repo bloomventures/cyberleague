@@ -2,8 +2,18 @@
   (:require
    [clojure.java.io :as io]
    [clojure.java.shell :as sh]
+   [cyberleague.common.artifact :as artifact]
    [cyberleague.cli.util.remote :as r]
+   [cyberleague.common.transit-client :as http]
    [cyberleague.cli.util.bot-config :as bot-config]))
+
+(defn ->artifact
+  [bot-config]
+  (let [path (:bot.build/artifact (:bot/build bot-config))
+        artifact (io/file (bot-config/dir bot-config) path)]
+    (if (.exists artifact)
+      artifact
+      (throw (ex-info (str "Artifact not found at expected path: " path) {})))))
 
 (defn build!
   [bot-config]
@@ -12,29 +22,47 @@
     (do
       (println ">" cmd)
       (sh/sh cmd)
-      (println "Build succesful."))
+      (when (->artifact bot-config)
+        (println "Build successful.")))
     (println "No build command, skipping.")))
 
 (defn upload!
   [bot-config]
   (println "Uploading...")
-  (let [path (:bot.build/artifact (:bot/build bot-config))
-        artifact (io/file (bot-config/dir bot-config) path)]
-    (if (.exists artifact)
-      (r/tada! [:api/set-bot-code!
-                {:bot-id (:bot/id bot-config)
-                 :code (slurp (.getPath artifact))}])
-      (println "Could not find artifact at " path)))
-  (println "Upload succesful."))
+  (let [artifact (->artifact bot-config)
+        response (r/tada! [:api/artifact-upload-prepare!
+                           {:bot-id (:bot/id bot-config)
+                            :env-slug (:bot/env bot-config)
+                            :digest (artifact/digest artifact)}])]
+    (cond
+      (:skip? response)
+      (println "Artifact already exists. Skipping.")
+
+      (:upload-url response)
+      (let [upload-url (:upload-url response)
+            upload-response (http/file-upload-request
+                             {:url upload-url
+                              :method :post
+                              :body artifact})]
+        (println "Upload successful."))
+
+      :else
+      (throw (ex-info "Error" {})))))
 
 (defn test!
   [bot-config]
   (println "Testing...")
-  (println "(TODO)")
-  #_(println "Test succesful."))
+  (let [artifact (->artifact bot-config)
+        match-id (:match/id (r/tada! [:api/test-bot!
+                                      {:bot-id (:bot/id bot-config)
+                                       :digest (artifact/digest artifact)}]))]
+    (println "Test successful. View it here: TODO" #_match-id)))
 
 (defn deploy!
   [bot-config]
-  (println "Deploy...")
-  (println "(TODO)")
-  #_(println "Deploy succesful."))
+  (println "Deploying...")
+  (let [artifact (->artifact bot-config)]
+    (r/tada! [:api/deploy-bot!
+              {:bot-id (:bot/id bot-config)
+               :digest (artifact/digest artifact)}])
+    (println "Deploy successful.")))

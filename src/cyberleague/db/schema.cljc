@@ -2,14 +2,8 @@
   (:require
    [clojure.string]
    [malli.registry :as mr]
-   [dat.schema :as ds]))
-
-(def NonBlankString
-  [:fn {:error/message {:en "must not be blank"}}
-   #(not (clojure.string/blank? %))])
-
-(def Slug
-  [:re #"^[a-z0-9-]+$"])
+   [dat.schema :as ds]
+   [cyberleague.common.schema :as schema :refer [Slug NonBlankString]]))
 
 (def dat-schema
   {:entity/language
@@ -51,22 +45,29 @@
              :dat/unique :dat.unique/identity}
     :bot/user {:dat/rel [:dat.rel/one :entity/user :user/id]}
     :bot/game {:dat/rel [:dat.rel/one :entity/game :game/id]}
-    :bot/code {:dat/rel [:dat.rel/one :entity/code :code/id]}
-    :bot/code-version {:dat/type :db.type/long}
+
+    :bot/active-artifact {:dat/rel [:dat.rel/one :entity/artifact :artifact/id]}
+
     :bot/rating {:dat/type :db.type/long}
     :bot/rating-dev {:dat/type :db.type/long}
     :bot/name {:dat/type :db.type/string}}
 
-   :entity/code
-   {:code/id {:dat/type :db.type/uuid
-              :dat/unique :dat.unique/identity}
-    :code/env {:dat/rel [:dat.rel/one :entity/env :env/id]}
-    :code/code {:dat/type :db.type/string}}
+   :entity/artifact
+   {:artifact/id {:dat/type :db.type/uuid
+                  :dat/unique :dat.unique/identity}
+    :artifact/bot {:dat/rel [:dat.rel/one :entity/bot :bot/id]}
+    :artifact/env {:dat/rel [:dat.rel/one :entity/env :env/id]}
+    ;; not treating digest as unique/identity
+    ;; high likelihood that digests will collide
+    ;; b/c of starter templates
+    :artifact/digest {:dat/type :db.type/string}
+    :artifact/created-at {:dat/type :db.type/instant}}
 
    :entity/match
    {:match/id {:dat/type :db.type/uuid
                :dat/unique :dat.unique/identity}
     :match/timestamp {:dat/type :db.type/instant}
+    :match/test? {:dat/type :db.type/boolean}
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/winner {:dat/rel [:dat.rel/one :entity/bot :bot/id]}
     :match/moves-edn {:dat/type :db.type/string

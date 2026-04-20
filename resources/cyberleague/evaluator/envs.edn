@@ -1,0 +1,59 @@
+[
+ {:env/slug "clojure-sci"
+  :env/language-slug "clojure"
+  :env/enabled? true
+  :env/files
+  {"bot.clj" (fn [_]
+               "(fn [state]\n  (state :current-trophy))")}
+  :env/build-cmd nil
+  :env/artifact-path "bot.clj"}
+
+ {:env/slug "clojure-lein-uberjar"
+  :env/language-slug "clojure"
+  :env/enabled? false
+  :env/files
+  {"project.clj" (fn [_])
+   "src/bot/core.clj" (fn [_])}
+  :env/build-cmd "lein uberjar"
+  :env/artifact-path "target/bot-0.1.0-SNAPSHOT-standalone.jar"}
+
+ {:env/slug "clojure-deps-uberjar"
+  :env/language-slug "clojure"
+  :env/enabled? false
+  :env/files
+  {"deps.edn" (fn [_])
+   "src/bot/core.clj" (fn [_])
+   "dev-src/bot/build.clj" (fn [_])}
+  :env/build-cmd "clj -T:build uber"
+  :env/artifact-path "target/bot-0.1.0-SNAPSHOT-standalone.jar"}
+
+ {:env/slug "javascript-v8"
+  :env/language-slug "javascript"
+  :env/enabled? false
+  :env/files
+  {"bot.js" (fn [_])}
+  :env/build-cmd nil
+  :env/artifact-path "bot.js"}
+
+ {:env/slug "rust-musl"
+  :env/language-slug "rust"
+  :env/enabled? false
+  :env/files
+  {"Cargo.toml" (fn [_]
+                  "[package]\nname = \"hello\"")
+   "src/main.rs" (fn [_])}
+  :env/build-cmd "cargo build --target x86_64-unknown-linux-musl"
+  :env/artifact-path "target/TODO/bot"}
+
+ {:env/slug "rust-wasm"
+  :env/language-slug "rust"
+  :env/enabled? false
+  :env/files
+  {"Cargo.toml" (fn [_]
+                  "[package]\nname = \"hello\"")
+   "src/main.rs" (fn [_])}
+  :env/build-cmd "cargo build --target wasm64-unknown-unknown"
+  :env/artifact-path "target/TODO/bot"}
+
+
+ ]

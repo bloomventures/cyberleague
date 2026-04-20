@@ -17,11 +17,7 @@
        [:<>
         [:span {:tw "whitespace-nowrap mr-4"}
          (str "#" (:game/name game))]
-        [:div {:tw "grow"}]
-        (when @state/user
-          [ui/nav-button {:on-click (fn [_]
-                                      (state/nav! :card.type/new-bot id))}
-           "CREATE A BOT"])]]
+        [:div {:tw "grow"}]]]
       [card/body {}
        [:<>
         [:div {:tw "max-w-30em"

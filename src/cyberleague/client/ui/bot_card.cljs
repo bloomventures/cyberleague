@@ -38,13 +38,11 @@
          (str "@" (:user/name (:bot/user bot)))]
         [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
          (str "#" (:game/name (:bot/game bot)))]
-        [:div {:tw "grow"}]
-        (when (= (:user/id @state/user) (:user/id (:bot/user bot)))
-          [ui/nav-button {:on-click (fn [_] (state/nav! :card.type/code (:bot/id bot)))} "CODE"])])]
+        [:div {:tw "grow"}]])]
     [card/body {}
      (when-let [bot @data]
        [:<>
-        [:div.env (str (-> bot :bot/code :code/env :env/language :language/slug))]
+        [:div.env (str (-> bot :bot/active-artifact :artifact/env :env/language :language/slug))]
         [graph-view (:bot/history bot)]
         (let [{:keys [wins losses ties]} (record-summary bot)]
           [:p {:tw "text-center"}
@@ -57,8 +55,11 @@
                            (sort-by :match/timestamp >))]
             ^{:key (:match/id match)}
             [:tr
-             [:td {:tw "text-gray-400"} (.toLocaleString (:match/timestamp match))]
-             [:td {:tw "text-right p-1"}
+             [:td {:tw "px-1"}
+              (when (:match/test? match)
+                [:div {:tw "text-xs bg-#3f51b5  text-white px-1 rounded"} "TEST"])]
+             [:td {:tw "px-1 text-gray-400"} (.toLocaleString (:match/timestamp match))]
+             [:td {:tw "text-right px-1"}
               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
                (cond
                  (= (:bot/id (:match/winner match)) (:bot/id bot))

@@ -1,0 +1,14 @@
+{:common
+ {:environment :dev
+  :evaluator-url "http://localhost:3001"}
+ :evaluator
+ {:http-port 3001
+  :signing-secret "secret"}
+ :server
+ {:http-port 3000
+  :coordinator-delay 5000
+  :datomic-uri "datomic:..."
+  :oauth-nonce-secret "secret"
+  :github-client-id "blah"
+  :github-client-secret "Blah"
+  :github-redirect-uri "http://www.blah.com"}}

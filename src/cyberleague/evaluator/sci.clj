@@ -1,9 +1,7 @@
-(ns cyberleague.coordinator.evaluators.clojure
+(ns cyberleague.evaluator.sci
   (:require
    [clojure.data.json :as json]
-   [clojure.string :as str]
-   [sci.core :as sci]
-   [cyberleague.coordinator.evaluators.api :as api])
+   [sci.core :as sci])
   (:import
    (java.io StringWriter)
    (java.util.concurrent FutureTask TimeUnit TimeoutException)))
@@ -21,8 +19,8 @@
         (.stop thread)
         (throw (TimeoutException. "Execution timed out."))))))
 
-(defmethod api/native-code-runner "clojure-sci"
-  [json-state _ code]
+(defn eval!
+  [json-state code]
   (let [state (json/read-str json-state :key-fn keyword)
         form-to-eval (list 'let ['state state
                                  'bot-function (sci/parse-string (sci/init {}) code)]
@@ -38,16 +36,7 @@
     {:eval/return-value (json/write-str move)
      :eval/std-out (str sw)}))
 
-#_(try
-    (test-move
-     (fn []
-       (while true
-         (Thread/sleep 500)
-         (println "1")))
-     5000))
-
 (comment
-  (api/native-code-runner
+  (eval!
    "{\"the-state\": 12345}"
-   "clojure"
    "(fn [x] (get x :the-state))"))

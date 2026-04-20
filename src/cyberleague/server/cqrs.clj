@@ -5,7 +5,8 @@
    [cyberleague.coordinator.test-bot :as coordinator]
    [cyberleague.db.core :as db]
    [cyberleague.game-registrar :as registrar]
-   [cyberleague.common.graph.core :as graph]))
+   [cyberleague.common.graph.core :as graph]
+   [cyberleague.server.evaluator-client :as eval-client]))
 
 (defonce t (tada/init :malli))
 
@@ -25,10 +26,22 @@
    :forbidden
    (str "Entity " id-key " " id " does not exist.")])
 
+(defn entity-not-exists?-condition [id-key id]
+  [#(not (db/entity-exists? [id-key id]))
+   :forbidden
+   (str "Entity " id-key " " id " already exists.")])
+
 (defn user-owns-bot?-condition [user-id bot-id]
   [#(= user-id (:user/id (:bot/user (db/by-id [:bot/id bot-id]))))
    :forbidden
    (str "User " user-id " does not own bot " bot-id ".")])
+
+(defn bot-has-artifact?-condition [bot-id digest]
+  [#(boolean (db/bot-digest->artifact-id
+              {:bot-id bot-id
+               :digest digest}))
+   :forbidden
+   "Bot has no artifact with this digest"])
 
 (def events
   [{:id :api/me
@@ -138,6 +151,7 @@
                               :game/slug]}
                 {:match/bots bot-pattern}
                 {:match/winner [:bot/id]}
+                :match/test?
                 :match/timestamp
                 :match/error
                 :match/moves
@@ -162,35 +176,15 @@
                             :game/name]}
                 {:bot/user [:user/id
                             :user/name]}
-                {:bot/code [{:code/env [{:env/language [:language/slug]}]}]}
+                {:bot/active-artifact [{:artifact/env
+                                        [{:env/language
+                                          [:language/slug]}]}]}
                 {:bot/matches [:match/id
                                :match/error
+                               :match/test?
                                :match/timestamp
                                :match/winner
                                {:match/bots bot-pattern}]}]))}
-
-   {:id :api/bot-code
-    :params {:user-id :user/id
-             :bot-id :bot/id}
-    :rest [:get "/api/bots/:bot-id/code"]
-    :conditions (fn [{:keys [user-id bot-id]}]
-                  [(entity-exists?-condition :user/id user-id)
-                   (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)])
-    :return (fn [{:keys [_user-id bot-id]}]
-              (graph/pull
-               {:bot/id bot-id}
-               [:bot/id
-                :bot/name
-                :bot/weight
-                {:bot/code [:code/code
-                            {:code/env
-                             [{:env/language
-                               [:language/slug]}]}]}
-                {:bot/user [:user/id
-                            :user/name]}
-                {:bot/game [:game/id
-                            :game/name]}]))}
 
    {:id :api/create-bot!
     :params {:user-id :user/id
@@ -210,56 +204,74 @@
                                 :bot/user [:user/id user-id]
                                 :bot/game [:game/slug game-slug]
                                 :bot/name bot-name
-                                :bot/code {:code/id (uuid/random)
-                                           :code/code code
-                                           :code/env [:env/slug env-slug]}
                                 :bot/rating 1500
                                 :bot/rating-dev 350}])
                 {:bot/id id}))
     :return (fn [{result :tada/effect-return}]
               result)}
 
-   {:id :api/set-bot-code!
+   {:id :api/artifact-upload-prepare!
     :params {:user-id :user/id
              :bot-id :bot/id
-             :code :code/code}
-    :rest [:put "/api/bots/:bot-id/code"]
-    :conditions (fn [{:keys [user-id bot-id]}]
+             :env-slug :env/slug
+             :digest :artifact/digest}
+    :rest [:get "/api/bots/artifacts/prepare"]
+    :conditions (fn [{:keys [user-id bot-id env-slug digest]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
+                   (entity-exists?-condition :env/slug env-slug)
                    (user-owns-bot?-condition user-id bot-id)])
-    :effect (fn [{:keys [_user-id bot-id code]}]
-              (db/update-code! bot-id code))}
+    :effect (fn [{:keys [_user-id bot-id env-slug digest]}]
+              (if (db/bot-digest->artifact-id
+                   {:bot-id bot-id
+                    :digest digest})
+                {:skip? true}
+                (do
+                  (db/transact!
+                   [(db/artifact
+                     {:bot-id bot-id
+                      :env-slug env-slug
+                      :digest digest})])
+                  (eval-client/prepare {:digest digest}))))
+    :return :tada/effect-return}
 
    {:id :api/test-bot!
     :params {:user-id :user/id
-             :bot-id :bot/id}
+             :bot-id :bot/id
+             :digest :artifact/digest}
     :rest [:post "/api/bots/:bot-id/test"]
-    :conditions (fn [{:keys [user-id bot-id]}]
+    :conditions (fn [{:keys [user-id bot-id digest]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)])
-    :effect (fn [{:keys [user-id bot-id]}]
-              (coordinator/test-bot user-id
-                                    bot-id
-                                    (db/by-id [:bot/id bot-id])))
+                   (user-owns-bot?-condition user-id bot-id)
+                   (bot-has-artifact?-condition bot-id digest)])
+    :effect (fn [{:keys [user-id bot-id digest]}]
+              (let [artifact-id (db/bot-digest->artifact-id
+                                 {:bot-id bot-id
+                                  :digest digest})]
+                (coordinator/test-bot
+                 {:bot-id bot-id
+                  :artifact-id artifact-id})))
     :return :tada/effect-return}
 
    {:id :api/deploy-bot!
     :params {:user-id :user/id
-             :bot-id :bot/id}
+             :bot-id :bot/id
+             :digest :artifact/digest}
     :rest [:post "/api/bots/:bot-id/deploy"]
-    :conditions (fn [{:keys [user-id bot-id]}]
+    :conditions (fn [{:keys [user-id bot-id digest]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
-                   (user-owns-bot?-condition user-id bot-id)])
-    :effect (fn [{:keys [_user-id bot-id]}]
-              (db/deploy-bot! bot-id))}])
+                   (user-owns-bot?-condition user-id bot-id)
+                   (bot-has-artifact?-condition bot-id digest)])
+    :effect (fn [{:keys [_user-id bot-id digest]}]
+              (db/transact!
+               [(db/deploy-bot-tx bot-id digest)]))}])
 
 (tada/register! t events)
 
 #_(tada/do! t :api/user {:user-id 5})
 
 ;; NOTE: Also need to reload routes when changing this file.
-#_(when (= :dev (cyberleague.config/config :environment))
+#_(when (= :dev (-> cyberleague.common.config/config :common :environment))
     (require '[cyberleague.server.routes] :reload))

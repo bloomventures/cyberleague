@@ -2,12 +2,15 @@
   (:require
    [bloom.commons.uuid :as uuid]
    [datomic.api :as d]
-   [cyberleague.config :as config]
-   [cyberleague.db.schema :as schema]))
+   [cyberleague.common.config :as config]
+   [cyberleague.db.schema :as schema]
+   [dat.api :as dat]))
 
 (def ^:dynamic *uri*
   "URI for the datomic database"
-  (or (config/config :datomic-uri)
+  (or (-> config/config
+          :server
+          :datomic-uri)
       (do (println "WARNING: Using in memory database. You're fine.")
           "datomic:mem://cyberleague"))
   #_"datomic:free://localhost:4334/cldev"
@@ -63,11 +66,34 @@
   {:language/id id
    :language/slug slug})
 
+(defn artifact
+  [{:keys [bot-id env-slug digest]}]
+  {:artifact/id (dat/uuid)
+   :artifact/bot [:bot/id bot-id]
+   :artifact/env [:env/slug env-slug]
+   :artifact/digest digest
+   :artifact/created-at (java.util.Date.)})
+
 ;; ---
 
 (defn transact!
   [txs]
   (d/transact *conn* txs))
+
+;; Artifacts
+
+(defn bot-digest->artifact-id
+  [{:keys [bot-id digest]}]
+  (d/q '[:find ?artifact-id .
+         :in $ ?bot-id ?digest
+         :where
+         [?b :bot/id ?bot-id]
+         [?a :artifact/digest ?digest]
+         [?a :artifact/bot ?b]
+         [?a :artifact/id ?artifact-id]]
+       (d/db *conn*)
+       bot-id
+       digest))
 
 ;; Envs and Languages
 
@@ -150,73 +176,37 @@
 (defn gen-bot-name []
   (apply str (take 3 (shuffle (vec "bcdfghjklmnpqrstvwxz")))))
 
+(defn deploy-bot-tx
+  [bot-id digest]
+  (let [artifact-id (bot-digest->artifact-id {:bot-id bot-id
+                                              :digest digest})]
+    {:bot/id bot-id
+     :bot/active-artifact [:artifact/id artifact-id]}))
 
-(defn update-code!
-  [bot-id code]
-  (let [code-eid (d/q '[:find ?code-eid .
-                        :in $ ?bot-id
-                        :where
-                        [?b :bot/id ?bot-id]
-                        [?b :bot/code ?code-eid]]
-                      (d/db *conn*)
-                      bot-id)]
-    @(d/transact *conn*
-                 [[:db/add code-eid :code/code code]])))
-
-(defn code-history
-  [bot-id]
-  (->> (d/q '[:find ?code ?tx
-              :in $ ?cid
-              :where
-              [?cid :code/code ?code ?tx true]]
-            (d/history (d/db *conn*))
-            [:code/id (get-in (by-id bot-id) [:bot/code :code/id])])
-       (sort-by second)
-       vec))
-
-(defn deploy-bot!
-  [bot-id]
-  (let [bot (by-id [:bot/id bot-id])
-        code-timestamp (d/q '[:find ?tx .
-                              :in $ ?cid
-                              :where
-                              [?cid :code/code _ ?tx]]
-                            (d/db *conn*)
-                            [:code/id (get-in bot [:bot/code :code/id])])]
-    (-> @(d/transact *conn*
-                     [[:db/add [:bot/id bot-id] :bot/code-version code-timestamp]])
-        :db-after
-        (d/entity bot-id))))
+(defn dummy-bot
+  [game-slug]
+  (first (d/q '[:find ?b ?a
+                :in $ ?game-slug ?admin-id
+                :where
+                [?u :user/id ?admin-id]
+                [?g :game/slug ?game-slug]
+                [?b :bot/user ?u]
+                [?b :bot/game ?g]
+                [?a :artifact/bot ?b]]
+              (d/db *conn*)
+              game-slug
+              ;; special admin user-id
+              #uuid "21232f29-7a57-35a7-8389-4a0e4a801fc3")))
 
 (defn active-bots
   "Get all bots with deployed code"
   []
   (->> (d/q '[:find ?e
               :where
-              [?e :bot/code-version _]]
+              [?e :bot/active-artifact _]]
             (d/db *conn*))
        (map (comp by-id first))
        (group-by :bot/game)))
-
-(defn deployed-code
-  [bot-id]
-  (let [bot (by-id bot-id)
-        code-id (get-in bot [:bot/code :code/id])]
-    (when-let [vers (:bot/code-version bot)]
-      (-> (d/as-of (d/db *conn*) vers)
-          (d/entity [:code/id code-id])
-          (select-keys [:code/code :code/env])))))
-
-(defn bot-id [user-id bot-name]
-  (d/q '[:find ?id .
-         :in $ ?user-id ?bot-name
-         :where
-         [?e :bot/user ?user-id]
-         [?e :bot/name ?bot-name]
-         [?e :bot/id ?id]]
-       (d/db *conn*)
-       user-id
-       bot-name))
 
 (defn bot-history
   [bot-id]
@@ -261,7 +251,7 @@
   [errd-bot]
   (with-conn
     (d/transact *conn*
-                [[:db/retract [:bot/id (:bot/id errd-bot)] :bot/code-version (:bot/code-version errd-bot)]])))
+                [[:db/retract [:bot/id (:bot/id errd-bot)] :bot/active-artifact (:bot/active-artifact errd-bot)]])))
 
 (defn disable-cheater!
   [cheater]

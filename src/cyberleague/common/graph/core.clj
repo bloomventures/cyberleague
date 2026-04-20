@@ -20,18 +20,19 @@
 
 (def dynamic-resolvers
   [{:dat.resolver/id :bot/status
-    :dat.resolver/in [:bot/code-version]
+    :dat.resolver/in [:bot/active-artifact]
     :dat.resolver/out [:bot/status]
-    :dat.resolver/f (fn [{:keys [bot/code-version]}]
-                      {:bot/status (if code-version
+    :dat.resolver/f (fn [{:keys [bot/active-artifact]}]
+                      {:bot/status (if active-artifact
                                      :active
                                      :inactive)})}
 
    {:dat.resolver/id :bot/weight
-    :dat.resolver/in [{:bot/code [:code/code]}]
+    :dat.resolver/in [:bot/id]
     :dat.resolver/out [:bot/weight]
-    :dat.resolver/f (fn [{:keys [bot/code]}]
-                      {:bot/weight (bw/code-weight (:code/code code))})}
+    :dat.resolver/f (fn [{:keys [bot/id]}]
+                      ;; TODO temporary placeholder
+                      {:bot/weight 1234 #_(bw/code-weight (:code/code code))})}
 
    {:dat.resolver/id :match/game
     :dat.resolver/in [{:match/bots [:bot/game]}]

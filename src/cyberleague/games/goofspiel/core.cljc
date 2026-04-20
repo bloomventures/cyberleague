@@ -65,12 +65,13 @@
   :game.config/move-spec Card
   :game.config/match-results-view ui/match-results-view
   :game.config/starter-code starter-code/starter-code
-  :game.config/test-bot (pr-str bots/random-bot)
-  :game.config/seed-bots [{:env-slug "clojure-sci"
-                           :code (pr-str bots/random-bot)}
-                          {:env-slug "clojure-sci"
-                           :code (pr-str bots/current-trophy-bot)}
-                          {:env-slug "clojure-sci"
-                           :code (pr-str bots/other-bot)}
-                          {:env-slug "javascript-v8"
-                           :code bots/js-random-bot}]})
+  :game.config/test-bot {:blueprint/env-slug "clojure-sci"
+                         :blueprint/code (pr-str bots/random-bot)}
+  :game.config/seed-bots [{:blueprint/env-slug "clojure-sci"
+                           :blueprint/code (pr-str bots/random-bot)}
+                          {:blueprint/env-slug "clojure-sci"
+                           :blueprint/code (pr-str bots/current-trophy-bot)}
+                          {:blueprint/env-slug "clojure-sci"
+                           :blueprint/code (pr-str bots/other-bot)}
+                          #_{:blueprint/env-slug "javascript-v8"
+                             :blueprint/code bots/js-random-bot}]})

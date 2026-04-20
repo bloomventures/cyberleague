@@ -1,10 +1,11 @@
 (ns cyberleague.omni-config
   (:require
-   [cyberleague.config :refer [config]]
+   [cyberleague.common.config :refer [config]]
    [cyberleague.server.routes :refer [routes]]))
 
 (def omni-config
-  {:omni/http-port (config :http-port)
+  {:omni/http-port (-> config :server :http-port)
+   :omni/environment (-> config :common :environment)
    :omni/title "Cyberleague"
    :omni/cljs {:main "cyberleague.client.core"}
    :omni/js-scripts [{:src "/graph.js"}]

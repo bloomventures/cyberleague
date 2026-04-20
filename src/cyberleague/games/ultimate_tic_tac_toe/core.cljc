@@ -64,8 +64,9 @@
                                      [:move Move]]]]]
   :game.config/move-spec Move
   :game.config/starter-code starter-code/starter-code
-  :game.config/test-bot (pr-str bots/random-valid-bot)
-  :game.config/seed-bots [{:env-slug "clojure-sci"
-                           :code (pr-str bots/random-valid-bot)}
-                          {:env-slug "clojure-sci"
-                           :code (pr-str bots/first-valid-bot)}]})
+  :game.config/test-bot {:blueprint/env-slug "clojure-sci"
+                         :blueprint/code (pr-str bots/random-valid-bot)}
+  :game.config/seed-bots [{:blueprint/env-slug "clojure-sci"
+                           :blueprint/code (pr-str bots/random-valid-bot)}
+                          {:blueprint/env-slug "clojure-sci"
+                           :blueprint/code (pr-str bots/first-valid-bot)}]})

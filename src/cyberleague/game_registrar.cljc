@@ -11,6 +11,11 @@
 (def MalliSchema
   some?)
 
+(def BotBlueprint
+  [:map
+   [:blueprint/code string?]
+   [:blueprint/env-slug :env/slug]])
+
 (def schema
   [:map
    [:game.config/name string?]
@@ -22,12 +27,9 @@
     [:map-of
      :env/slug
      string?]]
-   [:game.config/test-bot string?]
+   [:game.config/test-bot BotBlueprint]
    [:game.config/seed-bots
-    [:vector
-     [:map
-      [:code string?]
-      [:env-slug :env/slug]]]]
+    [:vector BotBlueprint]]
    [:game.config/public-state-example some?]
    [:game.config/move-example some?]
    [:game.config/public-state-spec MalliSchema]

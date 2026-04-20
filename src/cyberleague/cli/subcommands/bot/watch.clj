@@ -1,4 +1,5 @@
 (ns cyberleague.cli.subcommands.bot.watch
+  (:refer-clojure :exclude [run!])
   (:require
    [clojure.java.io :as io]
    [nextjournal.beholder :as beholder]
@@ -14,6 +15,7 @@
 (defn run! []
   (let [bot-config (bot-config/read! (::dir @state))]
     (do
+      (println "---")
       (bot-dev/build! bot-config)
       (bot-dev/upload! bot-config)
       (bot-dev/test! bot-config))))

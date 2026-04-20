@@ -1,0 +1,103 @@
+(ns cyberleague.evaluator.core
+  "The 'evaluator' exposes an http API to run executables in various environments"
+  (:require
+   [muuntaja.middleware :as mj]
+   [bloom.commons.muuntaja :as bloom.mj]
+   [clojure.java.io :as io]
+   [org.httpkit.server :as http]
+   [tada.events.core :as tada]
+   [tada.events.ring :as tada.ring]
+   [ring.middleware.defaults :as rmd]
+   [cyberleague.evaluator.artifacts :as artifacts]
+   [cyberleague.evaluator.eval :as eval]
+   [cyberleague.common.config :as config]
+   [cyberleague.common.envs :as envs]
+   [cyberleague.common.artifact :as artifact]
+   [cyberleague.common.schema :as s]
+   [cyberleague.evaluator.sigs :as sigs]))
+
+(defonce t (tada/init :malli))
+
+(def commands
+  [{:id :evaluator/prepare!
+    :rest [:post "/prepare"]
+    :params {:digest s/Digest}
+    :return
+    (fn [{:keys [digest]}]
+      (if (artifacts/exists? digest)
+        {:skip? true}
+        {:upload-url (sigs/create-url {:digest digest})}))}
+
+   {:id :evaluator/upload!
+    :rest [:post "/upload"]
+    :params {:token :string
+             :file :any ;; file
+             }
+    :conditions
+    (fn [{:keys [token file]}]
+      (let [{:keys [digest]} (sigs/read-token token)]
+        [[#(not (artifacts/exists? digest))
+          "Artifact already exists"]
+         [#(= (artifact/digest (io/input-stream file)) digest)
+          "Digest does not match artifact"]]))
+    :effect
+    (fn [{:keys [file]}]
+      (artifacts/store! file))}
+
+   {:id :evaluator/run!
+    :rest [:post "/run"]
+    :params {:digest :string
+             :env-slug :string
+             :input :string}
+    :conditions
+    (fn [{:keys [digest env-slug _input]}]
+      [[#(contains? (envs/all) env-slug) "Unknown env"]
+       [#(artifacts/exists? digest) "An artifact with this digest does not exist."]])
+    :effect
+    (fn [{:keys [digest env-slug input]}]
+      (eval/eval! digest env-slug input))
+    :return :tada/effect-return}])
+
+(tada/register! t commands)
+
+#_(tada/do! t :evaluator/prepare! {:digest "a6213fe8321a5ce0e65e3560ba0eda5d169352dbd2e02e653b10d109eeff56d0"})
+
+(def rest->event-id
+  (zipmap (map :rest commands)
+          (map :id commands)))
+
+(defn handler [request]
+  (when-let [event-id (rest->event-id
+                       [(:request-method request)
+                        (:uri request)])]
+    (tada.ring/ring-dispatch-event!
+     t
+     event-id
+     (-> (:params request)
+         (merge (:body-params request))
+         (merge (when (= (:content-type request)
+                         "application/octet-stream")
+                  {:file (.readAllBytes (:body request))}))))))
+
+#_(handler {:request-method :post
+            :uri "/prepare"
+            :body-params {:digest "xays"}})
+
+(def app
+  (-> handler
+      (mj/wrap-format bloom.mj/options)
+      (rmd/wrap-defaults rmd/api-defaults)))
+
+(defonce server
+  (atom nil))
+
+(defn start! []
+  (reset! server (http/run-server #'app {:port (-> config/config :evaluator :http-port)})))
+
+(defn stop! []
+  (when @server
+    (@server)))
+
+#_(start!)
+
+
