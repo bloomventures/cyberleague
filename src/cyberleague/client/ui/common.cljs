@@ -32,9 +32,11 @@
 
    [:span {:tw "grow"}]
 
-   [:span {:tw "whitespace-nowrap flex items-center"}
-    " ("
-    (:bot/weight bot)
-    [fa/fa-weight-hanging-solid
-     {:tw "w-0.75em h-0.75em inline ml-0.5"}]
-    ")"]])
+   ;; only active bots have weights
+   (when-let [weight (:bot/weight bot)]
+     [:span {:tw "whitespace-nowrap flex items-center"}
+      " ("
+      weight
+      [fa/fa-weight-hanging-solid
+       {:tw "w-0.75em h-0.75em inline ml-0.5"}]
+      ")"])])

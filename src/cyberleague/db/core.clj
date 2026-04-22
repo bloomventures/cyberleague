@@ -67,11 +67,12 @@
    :language/slug slug})
 
 (defn artifact
-  [{:keys [bot-id env-slug digest]}]
+  [{:keys [bot-id env-slug digest weight]}]
   {:artifact/id (dat/uuid)
    :artifact/bot [:bot/id bot-id]
    :artifact/env [:env/slug env-slug]
    :artifact/digest digest
+   :artifact/weight weight
    :artifact/created-at (java.util.Date.)})
 
 ;; ---

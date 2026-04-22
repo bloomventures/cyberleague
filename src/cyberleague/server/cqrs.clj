@@ -214,14 +214,15 @@
     :params {:user-id :user/id
              :bot-id :bot/id
              :env-slug :env/slug
-             :digest :artifact/digest}
+             :digest :artifact/digest
+             :weight :artifact/weight}
     :rest [:get "/api/bots/artifacts/prepare"]
-    :conditions (fn [{:keys [user-id bot-id env-slug digest]}]
+    :conditions (fn [{:keys [user-id bot-id env-slug]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (entity-exists?-condition :env/slug env-slug)
                    (user-owns-bot?-condition user-id bot-id)])
-    :effect (fn [{:keys [_user-id bot-id env-slug digest]}]
+    :effect (fn [{:keys [_user-id bot-id env-slug digest weight]}]
               (if (db/bot-digest->artifact-id
                    {:bot-id bot-id
                     :digest digest})
@@ -231,7 +232,8 @@
                    [(db/artifact
                      {:bot-id bot-id
                       :env-slug env-slug
-                      :digest digest})])
+                      :digest digest
+                      :weight weight})])
                   (eval-client/prepare {:digest digest}))))
     :return :tada/effect-return}
 

@@ -33,6 +33,7 @@
                                             {:user-id user-id
                                              :bot-id bot-id
                                              :env-slug env-slug
+                                             :weight 0
                                              :digest (artifact/digest code)}))]
                   (when upload-url
                     (http/file-upload-request
@@ -154,6 +155,7 @@
                                      {:user-id user-id
                                       :bot-id bot-id
                                       :env-slug env-slug
+                                      :weight 0
                                       :digest (artifact/digest code)}))]
            (when upload-url
              (http/file-upload-request

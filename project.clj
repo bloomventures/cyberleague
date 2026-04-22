@@ -60,8 +60,6 @@
 
                                       ;; bot weight
                                       [com.aayushatharva.brotli4j/brotli4j "1.20.0"]
-                                      ;[com.aayushatharva.brotli4j/native-linux-x86_64 "1.20.0"]
-                                      ;[com.aayushatharva.brotli4j/native-osx-aarch64 "1.20.0"]
                                       #_[org.clojure/data.json "1.0.0"]
 
                                       ;; registrar
@@ -77,6 +75,8 @@
                                    [com.cognitect/transit-clj "1.0.324"]
                                    [metosin/malli "0.20.1"]
                                    [org.clojure/clojure "1.11.4"]
+                                   ;; bot weight
+                                   [org.tukaani/xz "1.12"]
 
                                    [http-kit "2.8.0"]
                                    [com.nextjournal/beholder "1.0.2"]]

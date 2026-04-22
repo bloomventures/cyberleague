@@ -3,7 +3,6 @@
    [clojure.edn :as edn]
    [datomic.api :as d]
    [dat.graph]
-   [cyberleague.common.bot-weight :as bw]
    [cyberleague.db.schema :as schema]
    [cyberleague.db.core :as db]))
 
@@ -28,11 +27,10 @@
                                      :inactive)})}
 
    {:dat.resolver/id :bot/weight
-    :dat.resolver/in [:bot/id]
+    :dat.resolver/in [{:bot/active-artifact [:artifact/weight]}]
     :dat.resolver/out [:bot/weight]
-    :dat.resolver/f (fn [{:keys [bot/id]}]
-                      ;; TODO temporary placeholder
-                      {:bot/weight 1234 #_(bw/code-weight (:code/code code))})}
+    :dat.resolver/f (fn [{:keys [bot/active-artifact]}]
+                      {:bot/weight (:artifact/weight active-artifact)})}
 
    {:dat.resolver/id :match/game
     :dat.resolver/in [{:match/bots [:bot/game]}]

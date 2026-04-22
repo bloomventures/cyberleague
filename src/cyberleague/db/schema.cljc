@@ -61,6 +61,7 @@
     ;; high likelihood that digests will collide
     ;; b/c of starter templates
     :artifact/digest {:dat/type :db.type/string}
+    :artifact/weight {:dat/type :db.type/long}
     :artifact/created-at {:dat/type :db.type/instant}}
 
    :entity/match
