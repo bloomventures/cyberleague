@@ -1,0 +1,70 @@
+@startuml
+participant CLI
+participant App
+participant DB
+participant Coordinator
+participant Evaluator
+participant Firecracker
+
+'[#blue] for HTTP
+
+legend
+  <color blue>blue - HTTP</color>
+endlegend
+
+== Upload ==
+
+CLI -[#blue]> App : prepare(digest)
+App -> App : check ACL
+App -> DB : create new artifact
+activate CLI
+App -[#blue]> Evaluator : prepare(digest)
+Evaluator -[#blue]> App : url+jwt(digest)
+App -[#blue]> CLI : jwt(digest)
+CLI -[#blue]> Evaluator : url+jwt(digest) + binary
+
+Evaluator -> Evaluator : store binary
+Evaluator -[#blue]> CLI : ok
+deactivate CLI
+
+== Test ==
+
+CLI -[#blue]> App : test(digest)
+App -> DB : query bot, game
+DB -> App: bot, game
+App -> Coordinator: run_game(bot,game)
+Coordinator -> DB : get game info, etc
+DB -> Coordinator : game info, etc.
+Coordinator -[#blue]> Evaluator : eval(digest,env,input)
+Evaluator -[#blue]> Firecracker : restore snapshot + vsock
+create participant VM
+Firecracker -> VM : create
+activate VM
+create participant VSOCK
+Firecracker -> VSOCK : create
+activate VSOCK
+create participant Guest
+VM -> Guest : start
+activate Guest
+Guest -> VSOCK : ready
+VSOCK -> Evaluator : ready
+Firecracker -[#blue]> Evaluator: ok
+Evaluator -> VSOCK : binary + input + env_instructions
+VSOCK -> Guest : binary + input + env_instructions
+Guest -> Guest : parse, execute
+Guest -> VSOCK : output
+VSOCK -> Evaluator : output
+Evaluator -[#blue]> Firecracker : kill
+Firecracker -> VM : kill
+deactivate VSOCK
+deactivate Guest
+deactivate VM
+Evaluator -[#blue]> Coordinator : eval result
+Coordinator -[#blue]> App : eval result
+App -> DB : store match
+DB -> App : match id
+App -[#blue]> CLI : match URL
+
+
+
+@enduml

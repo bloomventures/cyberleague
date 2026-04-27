@@ -23,6 +23,7 @@
                           :bot/build {:bot.build/cmd build-cmd
                                       :bot.build/artifact artifact-path}})
             (doseq [[path f-content] files]
+              (.mkdirs (io/file (.getParent (io/file (str dir-name "/" path)))))
               (spit (str dir-name "/" path)
                     ((eval f-content) nil)))
             (println "Created" dir-name))

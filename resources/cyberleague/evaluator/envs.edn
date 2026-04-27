@@ -41,7 +41,8 @@
   :env/files
   {"Cargo.toml" (fn [_]
                   "[package]\nname = \"hello\"")
-   "src/main.rs" (fn [_])}
+   "src/main.rs" (fn [_]
+                   "")}
   :env/build-cmd "cargo build --target x86_64-unknown-linux-musl"
   :env/artifact-path "target/TODO/bot"}
 
@@ -55,5 +56,12 @@
   :env/build-cmd "cargo build --target wasm64-unknown-unknown"
   :env/artifact-path "target/TODO/bot"}
 
+
+ ;; chicory - for wasm
+ ;; graal - for python, js, wasm, ruby, java
+ ;; js-v8
+ ;; js-node
+ ;; js-llrt
+ ;; js-graal
 
  ]

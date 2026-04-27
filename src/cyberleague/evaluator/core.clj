@@ -1,13 +1,13 @@
 (ns cyberleague.evaluator.core
   "The 'evaluator' exposes an http API to run executables in various environments"
   (:require
-   [muuntaja.middleware :as mj]
-   [bloom.commons.muuntaja :as bloom.mj]
    [clojure.java.io :as io]
    [org.httpkit.server :as http]
+   [muuntaja.middleware :as mj]
+   [ring.middleware.defaults :as rmd]
    [tada.events.core :as tada]
    [tada.events.ring :as tada.ring]
-   [ring.middleware.defaults :as rmd]
+   [taoensso.telemere :as tel]
    [cyberleague.evaluator.artifacts :as artifacts]
    [cyberleague.evaluator.eval :as eval]
    [cyberleague.common.config :as config]
@@ -85,14 +85,17 @@
 
 (def app
   (-> handler
-      (mj/wrap-format bloom.mj/options)
+      mj/wrap-format
       (rmd/wrap-defaults rmd/api-defaults)))
 
 (defonce server
   (atom nil))
 
 (defn start! []
-  (reset! server (http/run-server #'app {:port (-> config/config :evaluator :http-port)})))
+  (let [port (-> config/config :evaluator :http-port)]
+    (tel/event! ::start-server {:level :info
+                                :port port})
+    (reset! server (http/run-server #'app {:port port}))))
 
 (defn stop! []
   (when @server

@@ -18,6 +18,12 @@
              :*evaluator {:dependencies [[org.clojure/clojure "1.12.4"]
                                          [http-kit "2.8.0"]
                                          [io.bloomventures/commons "0.17.1"]
+                                         [com.rpl/specter "1.1.6"]
+                                         #_[ring/ring-defaults "0.7.0"]
+                                         #_[metosin/muuntaja "0.6.11"]
+                                         #_[org.clojure/data.json "2.5.2"]
+
+                                         [mvxcvi/clj-cbor "1.1.1"]
 
                                          [tada "0.3.0"]
                                          [buddy/buddy-sign "3.6.1-359"]

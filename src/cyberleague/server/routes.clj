@@ -15,7 +15,7 @@
       (if-let [user-id (db/with-conn (db/token->user-id api-token))]
         (handler (assoc-in request [:session :id] user-id))
         {:status 400
-         :body "Invalid API token"})
+         :body "Invalid API token; run login"})
       (handler request))))
 
 (defn make-tada-handler

@@ -16,3 +16,4 @@ Session.vim
 /resources/precompiled.js
 /out
 config.edn
+/sandbox/includes/relay-x86
