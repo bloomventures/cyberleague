@@ -238,18 +238,18 @@
                    (entity-exists?-condition :env/slug env-slug)
                    (user-owns-bot?-condition user-id bot-id)])
     :effect (fn [{:keys [_user-id bot-id env-slug digest weight]}]
-              (if (db/bot-digest->artifact-id
-                   {:bot-id bot-id
-                    :digest digest})
-                {:skip? true}
-                (let [result (eval-client/prepare {:digest digest})]
-                  (db/transact!
-                   [(db/artifact
-                     {:bot-id bot-id
-                      :env-slug env-slug
-                      :digest digest
-                      :weight weight})])
-                  result)))
+              (if-let [result (eval-client/prepare {:digest digest})]
+                (do (when-not (db/bot-digest->artifact-id
+                               {:bot-id bot-id
+                                :digest digest})
+                      (db/transact!
+                       [(db/artifact
+                         {:bot-id bot-id
+                          :env-slug env-slug
+                          :digest digest
+                          :weight weight})]))
+                    result)
+                (throw (ex-info "Upload failed, try again" {}))))
     :return :tada/effect-return}
 
    {:id :api/test-bot!
