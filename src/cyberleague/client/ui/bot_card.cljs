@@ -24,6 +24,24 @@
        frequencies
        (merge {:wins 0 :losses 0 :ties 0})))
 
+(defn result-status
+  [{:keys [match bot-id]}]
+  (cond
+    (contains? (:match/errors match) bot-id)
+    "errored"
+
+    (= (:bot/id (:match/winner match)) bot-id)
+    "won"
+
+    (nil? (:match/winner match))
+    "tied"
+
+    (:match/winner match)
+    "lost"
+
+    :else
+    "other"))
+
 (defn bot-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let
@@ -61,15 +79,8 @@
              [:td {:tw "px-1 text-gray-400"} (.toLocaleString (:match/timestamp match))]
              [:td {:tw "text-right px-1"}
               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
-               (cond
-                 (= (:bot/id (:match/winner match)) (:bot/id bot))
-                 "won"
-                 (nil? (:match/winner match))
-                 "tied"
-                 (:match/errors match)
-                 "errored"
-                 :else
-                 "lost")]]
+               (result-status {:match match
+                               :bot-id (:bot/id bot)})]]
              [:td {:tw "p-1"}
               [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
                " vs "
