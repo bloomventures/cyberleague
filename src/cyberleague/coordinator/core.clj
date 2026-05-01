@@ -6,7 +6,8 @@
    [cyberleague.common.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
    [cyberleague.coordinator.ranking :as ranking]
-   [cyberleague.db.core :as db]))
+   [cyberleague.db.core :as db]
+   [cyberleague.common.transit :as t]))
 
 (defn run-game!
   [{:keys [game bots artifacts test?]}]
@@ -43,11 +44,11 @@
                         :match/bots [[:bot/id (:bot/id player-1)]
                                      [:bot/id (:bot/id player-2)]]
                         :match/timestamp (java.util.Date.)
-                        :match/state-history-edn (pr-str (:game.result/state-history result))
-                        :match/std-out-history-edn (pr-str (:game.result/std-out-history result))
-                        :match/moves-edn (pr-str (:game.result/history result))}
+                            :match/state-history-transit (t/write-str (:game.result/state-history result))
+                            :match/std-out-history-transit (t/write-str (:game.result/std-out-history result))
+                            :match/moves-transit (t/write-str (:game.result/history result))}
                        (when error
-                         {:match/error-edn (pr-str error)})
+                             {:match/error-transit (t/write-str error)})
                        (when winner-id
                          {:match/winner [:bot/id winner-id]}))])
 

@@ -11,7 +11,8 @@
   :dependencies [[com.hyperfiddle/rcf "20220926-202227"
                   :exclusions [org.clojure/clojure]]]
   :profiles {:common {:dependencies [[com.taoensso/telemere "1.2.1"]
-                                     [org.clj-commons/digest "1.4.100"]]}
+                                     [org.clj-commons/digest "1.4.100"]
+                                     [com.cognitect/transit-clj "1.1.357"]]}
              :dev {:source-paths ["src" "dev-src"]}
              ;; leingen complains about mixing keywords and maps
              ;; hence the :*foo profiles
@@ -40,8 +41,6 @@
                                         joda-time
                                         org.clojure/clojure
                                         commons-io]]
-
-
 
                                       [com.taoensso/tempel "1.1.0"]
                                       [tada "0.3.0"
@@ -78,7 +77,6 @@
              :*cli {:main         cyberleague.cli.core
                     :dependencies [[cli-matic "0.5.4"]
                                    [zprint "1.3.0"]
-                                   [com.cognitect/transit-clj "1.0.324"]
                                    [metosin/malli "0.20.1"]
                                    [org.clojure/clojure "1.11.4"]
                                    ;; bot weight

@@ -1,10 +1,8 @@
 (ns cyberleague.common.transit-client
   (:require
-   [cognitect.transit :as transit]
    [org.httpkit.client :as http]
-   [taoensso.telemere :as tel])
-  (:import
-   (java.io ByteArrayOutputStream)))
+   [taoensso.telemere :as tel]
+   [cyberleague.common.transit :as t]))
 
 (defn file-upload-request
   [{:keys [url method body]}]
@@ -14,7 +12,7 @@
      :headers {"Content-Type" "application/octet-stream"}
      :body body}
     (fn [{:keys [status body] :as response}]
-      (if (<= 200 status 299)
+      (if (and status (<= 200 status 299))
         nil
         (println "ERROR: " (slurp body))))))
 
@@ -28,17 +26,14 @@
      :oauth-token oauth-token
      :headers {"Accept" "application/transit+json"
                "Content-Type" "application/transit+json"}
-     :body (let [out (ByteArrayOutputStream. 4096)
-                 writer (transit/writer out :json)]
-             (transit/write writer body)
-             (.toString out))
+     :body (t/write-str body)
      :as :stream}
     (fn [{:keys [status body] :as response}]
       (tel/event! ::http-response {:level :debug
                                    :data response})
-      (if (<= 200 status 299)
+      (if (and status (<= 200 status 299))
         (when (pos? (.getCount body))
-          (let [b (transit/read (transit/reader body :json))]
+          (let [b (t/read body)]
             (tel/event! ::http-body {:level :debug
                                      :data b})
             b))

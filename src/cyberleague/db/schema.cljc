@@ -71,14 +71,14 @@
     :match/test? {:dat/type :db.type/boolean}
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/winner {:dat/rel [:dat.rel/one :entity/bot :bot/id]}
-    :match/moves-edn {:dat/type :db.type/string
-                      :dat/doc "Stored as edn vector"}
-    :match/state-history-edn {:dat/type :db.type/string
-                              :dat/doc "Stored as edn vector"}
-    :match/std-out-history-edn {:dat/type :db.type/string
-                                :dat/doc "Stored as edn vector"}
-    :match/error-edn {:dat/type :db.type/string
-                      :dat/doc "Stored as edn vector"}}})
+    :match/moves-transit {:dat/type :db.type/string
+                          :dat/doc "Stored as transit"}
+    :match/state-history-transit {:dat/type :db.type/string
+                                  :dat/doc "Stored as transit"}
+    :match/std-out-history-transit {:dat/type :db.type/string
+                                    :dat/doc "Stored as transit"}
+    :match/error-transit {:dat/type :db.type/string
+                          :dat/doc "Stored as transit"}}})
 
 (def schema
   (cons {:db/ident :entities

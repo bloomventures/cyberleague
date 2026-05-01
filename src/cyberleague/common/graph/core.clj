@@ -3,6 +3,8 @@
    [clojure.edn :as edn]
    [datomic.api :as d]
    [dat.graph]
+   [cyberleague.common.envs :as envs]
+   [cyberleague.common.transit :as t]
    [cyberleague.db.schema :as schema]
    [cyberleague.db.core :as db]))
 
@@ -52,10 +54,28 @@
    (alias-resolver :bot/_user :user/bots)
    (alias-resolver :env/_language :language/envs)
 
-   (transform-resolver :match/moves-edn :match/moves edn/read-string)
-   (transform-resolver :match/error-edn :match/error edn/read-string)
-   (transform-resolver :match/state-history-edn :match/state-history edn/read-string)
-   (transform-resolver :match/std-out-history-edn :match/std-out-history edn/read-string)
+   (transform-resolver :match/moves-transit :match/moves t/read-str)
+   (transform-resolver :match/error-transit :match/error t/read-str)
+   (transform-resolver :match/state-history-transit :match/state-history t/read-str)
+   (transform-resolver :match/std-out-history-transit :match/std-out-history t/read-str)
+
+   {:dat.resolver/id :env/starter-files
+    :dat.resolver/in [:env/slug]
+    :dat.resolver/out [:env/starter-files]
+    :dat.resolver/f (fn [{:keys [env/slug]}]
+                      {:env/starter-files (envs/files-for slug)})}
+
+   {:dat.resolver/id :env/from-edn-configs
+    :dat.resolver/in [:env/slug]
+    :dat.resolver/out [:env/language-slug
+                       :env/enabled?
+                       :env/run-cmd
+                       :env/build-cmd
+                       :env/artifact-path
+                       :env/argv
+                       :env/note]
+    :dat.resolver/f (fn [{:keys [env/slug]}]
+                      (envs/by-slug slug))}
 
    ])
 
