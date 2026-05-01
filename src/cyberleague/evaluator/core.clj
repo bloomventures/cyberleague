@@ -51,11 +51,13 @@
              :input :string}
     :conditions
     (fn [{:keys [digest env-slug _input]}]
-      [[#(contains? (envs/all) env-slug) "Unknown env"]
+      [[#(envs/enabled? env-slug) "Unknown env"]
        [#(artifacts/exists? digest) "An artifact with this digest does not exist."]])
     :effect
     (fn [{:keys [digest env-slug input]}]
-      (eval/eval! digest env-slug input))
+      (eval/eval! {:input input
+                   :digest digest
+                   :env-slug env-slug}))
     :return :tada/effect-return}])
 
 (tada/register! t commands)

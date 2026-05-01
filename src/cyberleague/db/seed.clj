@@ -85,10 +85,11 @@
                      :github-id 0
                      :name "admin"})
 
-   (let [envs (vals (envs/all))]
+   (let [envs (envs/all)]
      ;; languages
      (doseq [language-slug (->> envs
-                                (map :env/language-slug))]
+                                (map :env/language-slug)
+                                set)]
        (db/transact! [(db/language {:id (uuid language-slug)
                                     :slug language-slug})]))
 

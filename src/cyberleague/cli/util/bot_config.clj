@@ -12,6 +12,7 @@
    [:bot/game :string]
    [:bot/id :uuid]
    [:bot/name :string]
+   [:bot/run-cmd :string]
    [:bot/build
     [:map
      [:bot.build/cmd [:maybe :string]]

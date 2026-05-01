@@ -10,6 +10,10 @@
 
 (defonce t (tada/init :malli))
 
+(def Pattern
+  ;; TODO flesh this out
+  [:vector :any])
+
 (def bot-pattern
   [:bot/name
    {:bot/user [:user/id
@@ -108,6 +112,19 @@
                         :env/slug]}]}])
                   :entity/language))}
 
+   {:id :api/env
+    :params {:user-id [:maybe :user/id]
+             :env-slug :env/slug
+             :pull-pattern [:maybe Pattern]}
+    :rest [:get "/api/envs/starter-files"]
+    :conditions (fn [{:keys [user-id env-slug]}]
+                  [(entity-exists?-condition :user/id user-id)
+                   (entity-exists?-condition :env/slug env-slug)])
+    :return (fn [{:keys [env-slug pull-pattern]}]
+              (graph/pull
+               {:env/slug env-slug}
+               pull-pattern))}
+
    {:id :api/games
     :params {:user-id [:maybe :user/id]}
     :rest [:get "/api/games"]
@@ -143,7 +160,7 @@
     :conditions (fn [{:keys [match-id]}]
                   [(entity-exists?-condition :match/id match-id)])
     :return (fn [{:keys [match-id]}]
-             (graph/pull
+              (graph/pull
                {:match/id match-id}
                [:match/id
                 {:match/game [:game/id
