@@ -15,6 +15,7 @@
 (defn record-summary
   [{:bot/keys [id matches]}]
   (->> matches
+       (remove :match/test?)
        (map :match/winner)
        (map (fn [winning-bot-id]
               (cond
