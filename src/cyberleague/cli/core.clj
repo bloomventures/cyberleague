@@ -9,6 +9,7 @@
    [cyberleague.cli.subcommands.bot.test :as sc.bot.test]
    [cyberleague.cli.subcommands.bot.upload :as sc.bot.upload]
    [cyberleague.cli.subcommands.bot.deploy :as sc.bot.deploy]
+   [cyberleague.cli.subcommands.bot.stage :as sc.bot.stage]
    [cyberleague.cli.subcommands.bot.watch :as sc.bot.watch]))
 
 (def cli-configuration
@@ -45,6 +46,9 @@
                                 {:command "test"
                                  :runs sc.bot.test/exec!
                                  :description "Test a previously uploaded artifact. Returns a URL for viewing results in a browser."}
+                                {:command "stage"
+                                 :runs sc.bot.stage/exec!
+                                 :description "Build, upload, and test a bot artifact."}
                                 {:command "deploy"
                                  :runs sc.bot.deploy/exec!
                                  :description "Deploy a previously artifact (ie. enter that version of the bot into competition)"}

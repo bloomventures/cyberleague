@@ -74,6 +74,12 @@
                                        :digest (artifact/digest artifact)}]))]
     (println "Test successful. View it here: TODO" #_match-id)))
 
+(defn stage!
+  [bot-config]
+  (build! bot-config)
+  (upload! bot-config)
+  (test! bot-config))
+
 (defn deploy!
   [bot-config]
   (println (colorize :color/yellow "Deploying..."))

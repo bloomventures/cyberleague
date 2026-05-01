@@ -21,9 +21,7 @@
         (reset! dirty? false)
         (let [bot-config (bot-config/read! (::dir @state))]
           (println "-----------------")
-          (bot-dev/build! bot-config)
-          (bot-dev/upload! bot-config)
-          (bot-dev/test! bot-config))
+          (bot-dev/stage! bot-config))
         (when @dirty?
           (recur)))
       (finally
