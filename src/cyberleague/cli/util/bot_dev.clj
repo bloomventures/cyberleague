@@ -8,6 +8,12 @@
    [cyberleague.common.transit-client :as http]
    [cyberleague.cli.util.bot-config :as bot-config]))
 
+(defn colorize [color s]
+  (str "\u001b"
+      (case color
+        :color/yellow "[33m")
+        s "\u001b[0m"))
+
 (defn ->artifact
   [bot-config]
   (let [path (:bot.build/artifact (:bot/build bot-config))
@@ -18,7 +24,7 @@
 
 (defn build!
   [bot-config]
-  (println "Building...")
+  (println (colorize :color/yellow "Building..."))
   (if-let [cmd (:bot.build/cmd (:bot/build bot-config))]
     (do
       (println ">" cmd)
@@ -29,7 +35,7 @@
 
 (defn upload!
   [bot-config]
-  (println "Uploading...")
+  (println (colorize :color/yellow "Uploading..."))
   (let [artifact (->artifact bot-config)
         ;; by having this in the CLI,
         ;; we are effectively letting bots "self report" their weight
@@ -61,7 +67,7 @@
 
 (defn test!
   [bot-config]
-  (println "Testing...")
+  (println (colorize :color/yellow "Testing..."))
   (let [artifact (->artifact bot-config)
         match-id (:match/id (r/tada! [:api/test-bot!
                                       {:bot-id (:bot/id bot-config)
@@ -70,7 +76,7 @@
 
 (defn deploy!
   [bot-config]
-  (println "Deploying...")
+  (println (colorize :color/yellow "Deploying..."))
   (let [artifact (->artifact bot-config)]
     (r/tada! [:api/deploy-bot!
               {:bot-id (:bot/id bot-config)
