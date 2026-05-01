@@ -26,10 +26,9 @@ func logf(format string, args ...any) {
 }
 
 type request struct {
-	Artifact     []byte   `cbor:"artifact"`
-	Stdin        []byte   `cbor:"stdin"`
-	Args         []string `cbor:"args"`
-	Command      string   `cbor:"command"`
+	Artifact []byte   `cbor:"artifact"`
+	Stdin    []byte   `cbor:"stdin"`
+	Argv     []string `cbor:"argv"`
 }
 
 type response struct {
@@ -75,15 +74,27 @@ func handleConn(conn net.Conn) {
 	}
 
 	logf("preparing command")
-	cmd := exec.Command("/bin/sh", append([]string{"-c", req.Command + ` "$@"`, "--"}, req.Args...)...)
-	cmd.Env = append(os.Environ(), "ARTIFACT="+tmp.Name())
+	if len(req.Argv) == 0 {
+		sendErr(conn, "empty argv")
+		return
+	}
+	argv := make([]string, len(req.Argv))
+	for i, s := range req.Argv {
+		if s == "$ARTIFACT" {
+			argv[i] = tmp.Name()
+		} else {
+			argv[i] = s
+		}
+	}
+	cmd := exec.Command(argv[0], argv[1:]...)
+	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewReader(req.Stdin)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	logf("executing: %s args=%v", req.Command, req.Args)
+	logf("executing: %v", argv)
 	if err = cmd.Start(); err != nil {
 		sendErr(conn, "start: "+err.Error())
 		return

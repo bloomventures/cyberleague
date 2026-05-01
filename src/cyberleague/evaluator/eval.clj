@@ -7,16 +7,15 @@
    [cyberleague.evaluator.vm :as vm]
    [taoensso.telemere :as tel]))
 
-(def env->command
-  {"clojure-jvm" "java -jar $ARTIFACT"
-   "rust-musl" "$ARTIFACT"})
+(def env->argv
+  {"clojure-jvm" ["java" "-jar" "$ARTIFACT"]
+   "rust-musl"   ["$ARTIFACT"]})
 
 (defn vm-eval! [{:keys [input digest env-slug]}]
   (let [result (vm/eval!
                 {:eval.request/artifact (artifacts/load-bytes digest)
                  :eval.request/stdin    (.getBytes input "UTF-8")
-                 :eval.request/args     []
-                 :eval.request/command  (env->command env-slug)})]
+                 :eval.request/argv     (env->argv env-slug)})]
     {:eval/return-value (clojure.string/trim (:eval.response/stdout result))
      :eval/std-out ""}))
 

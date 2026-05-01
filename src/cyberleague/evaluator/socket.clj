@@ -16,8 +16,7 @@
                         (x/transform [x/MAP-KEYS] name m))}
    [:eval.request/artifact bytes?]
    [:eval.request/stdin    bytes?]
-   [:eval.request/args     [:vector :string]]
-   [:eval.request/command  :string]])
+   [:eval.request/argv     [:vector :string]]])
 
 #_(m/encode EvalRequest {:eval.request/artifact nil} (mt/transformer {:name :cbor}))
 

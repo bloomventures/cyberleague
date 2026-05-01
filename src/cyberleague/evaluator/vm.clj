@@ -260,19 +260,11 @@
     (shutdown! fc)
 
     (eval!
-     {:eval.request/artifact (byte-array [])
-      :eval.request/stdin    (.getBytes "{}" "UTF-8")
-      :eval.request/args     []
-      :eval.request/command  "cat"})
-
-    (eval!
      {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
       :eval.request/stdin    (byte-array 0)
-      :eval.request/args     ["Rust"]
-      :eval.request/command  "$ARTIFACT"})
+      :eval.request/argv     ["$ARTIFACT" "Rust"]})
 
     (eval!
      {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/Users/rafal/Code/cyberleague-runtime-maker/samples/hello.jar")
       :eval.request/stdin    (byte-array 0)
-      :eval.request/args     ["Java"]
-      :eval.request/command  "java -jar $ARTIFACT"}))
+      :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]}))
