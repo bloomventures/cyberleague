@@ -4,7 +4,6 @@
    [cyberleague.games.othello.bots :as bots]
    [cyberleague.games.othello.engine] ;; so it gets registered
    [cyberleague.games.othello.helpers]
-   [cyberleague.games.othello.starter-code :as starter-code]
    [cyberleague.games.othello.ui :as ui]))
 
 (def Move
@@ -23,7 +22,6 @@
        "The player with the most discs showing their color on the board wins.")
   :game.config/rules ""
   :game.config/match-results-view ui/match-results-view
-  :game.config/starter-code starter-code/starter-code
   :game.config/test-bot {:blueprint/env-slug "clojure-sci"
                          :blueprint/code (pr-str bots/random-valid-bot)}
   :game.config/seed-bots [{:blueprint/env-slug "clojure-sci"

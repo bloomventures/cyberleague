@@ -3,7 +3,6 @@
    [cyberleague.game-registrar]
    [cyberleague.games.goofspiel.bots :as bots]
    [cyberleague.games.goofspiel.engine] ;; so it gets registered
-   [cyberleague.games.goofspiel.starter-code :as starter-code]
    [cyberleague.games.goofspiel.ui :as ui]))
 
 (def UserId
@@ -64,7 +63,6 @@
                                      [:trophy Card]]]]]
   :game.config/move-spec Card
   :game.config/match-results-view ui/match-results-view
-  :game.config/starter-code starter-code/starter-code
   :game.config/test-bot {:blueprint/env-slug "clojure-sci"
                          :blueprint/code (pr-str bots/random-bot)}
   :game.config/seed-bots [{:blueprint/env-slug "clojure-sci"

@@ -14,7 +14,6 @@ Each game is defined by two parts: a config map registered via `game-registrar/r
 - `:game.config/public-state-example` — example public state value
 - `:game.config/internal-state-spec` — malli spec for the full internal game state
 - `:game.config/match-results-view` — hiccup/reagent component to render match results
-- `:game.config/starter-code` — starter bot code shown to new users
 - `:game.config/test-bot` — bot used for basic upload validation
 - `:game.config/seed-bots` — list of `{:code/language :code/code}` bots seeded for matchmaking
 

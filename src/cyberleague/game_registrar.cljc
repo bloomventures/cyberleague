@@ -23,10 +23,6 @@
    [:game.config/description string?]
    [:game.config/rules string?]
    [:game.config/match-results-view some?] ;; fn that takes a match, returns reagent data
-   [:game.config/starter-code
-    [:map-of
-     :env/slug
-     string?]]
    [:game.config/test-bot BotBlueprint]
    [:game.config/seed-bots
     [:vector BotBlueprint]]

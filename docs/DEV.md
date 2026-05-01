@@ -46,7 +46,6 @@ Games are defined in Clojure:
 
   - in a data map, including:
      - name, slug, description, rules documentation
-     - starter code, example moves and states
      - specs for moves, state
   - in a protocol, including various functions, including:
      - valid-move?, next-state, game-over?, winner

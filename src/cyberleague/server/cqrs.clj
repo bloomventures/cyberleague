@@ -214,9 +214,7 @@
                    (entity-exists?-condition :env/slug env-slug)])
     :effect (fn [{:keys [user-id game-slug env-slug]}]
               (let [id (uuid/random)
-                    bot-name (db/gen-bot-name)
-                    language-slug (db/env-slug->language-slug env-slug)
-                    code (get-in @registrar/games [game-slug :game.config/starter-code language-slug] "")]
+                    bot-name (db/gen-bot-name)]
                 (db/transact! [{:bot/id id
                                 :bot/user [:user/id user-id]
                                 :bot/game [:game/slug game-slug]

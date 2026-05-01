@@ -3,7 +3,6 @@
    [cyberleague.game-registrar]
    [cyberleague.games.ultimate-tic-tac-toe.bots :as bots]
    [cyberleague.games.ultimate-tic-tac-toe.engine] ;; so it gets registered
-   [cyberleague.games.ultimate-tic-tac-toe.starter-code :as starter-code]
    [cyberleague.games.ultimate-tic-tac-toe.ui :as ui]))
 
 (def Move
@@ -63,7 +62,6 @@
                                      [:player integer?]
                                      [:move Move]]]]]
   :game.config/move-spec Move
-  :game.config/starter-code starter-code/starter-code
   :game.config/test-bot {:blueprint/env-slug "clojure-sci"
                          :blueprint/code (pr-str bots/random-valid-bot)}
   :game.config/seed-bots [{:blueprint/env-slug "clojure-sci"
