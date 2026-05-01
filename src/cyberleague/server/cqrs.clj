@@ -227,14 +227,14 @@
                    {:bot-id bot-id
                     :digest digest})
                 {:skip? true}
-                (do
+                (let [result (eval-client/prepare {:digest digest})]
                   (db/transact!
                    [(db/artifact
                      {:bot-id bot-id
                       :env-slug env-slug
                       :digest digest
                       :weight weight})])
-                  (eval-client/prepare {:digest digest}))))
+                  result)))
     :return :tada/effect-return}
 
    {:id :api/test-bot!
