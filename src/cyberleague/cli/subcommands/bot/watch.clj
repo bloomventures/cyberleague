@@ -7,22 +7,32 @@
    [cyberleague.cli.util.bot-dev :as bot-dev]))
 
 (defonce state (atom nil))
+(defonce running? (atom false))
+(defonce dirty? (atom false))
 
 (defn stop-watcher!
   []
   (beholder/stop (::watcher @state)))
 
 (defn run! []
-  (let [bot-config (bot-config/read! (::dir @state))]
-    (do
-      (println "---")
-      (bot-dev/build! bot-config)
-      (bot-dev/upload! bot-config)
-      (bot-dev/test! bot-config))))
+  (when (compare-and-set! running? false true)
+    (try
+      (loop []
+        (reset! dirty? false)
+        (let [bot-config (bot-config/read! (::dir @state))]
+          (println "-----------------")
+          (bot-dev/build! bot-config)
+          (bot-dev/upload! bot-config)
+          (bot-dev/test! bot-config))
+        (when @dirty?
+          (recur)))
+      (finally
+        (reset! running? false)))))
 
 (defn watch-fn [{:keys [type path]}]
   (println "Change:" type (.toString path))
   (when (#{:modify :create} type)
+    (reset! dirty? true)
     (run!)))
 
 (defn exec!
