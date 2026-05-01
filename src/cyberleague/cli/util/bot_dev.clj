@@ -72,7 +72,7 @@
         match-id (:match/id (r/tada! [:api/test-bot!
                                       {:bot-id (:bot/id bot-config)
                                        :digest (artifact/digest artifact)}]))]
-    (println "Test successful. View it here: TODO" #_match-id)))
+    (println "Test successful. View it online." #_match-id)))
 
 (defn stage!
   [bot-config]
