@@ -2,6 +2,7 @@
   (:require
    [reagent.core :as r]
    [zprint.core :as zprint]
+   [cyberleague.client.ui.common :as ui]
    [cyberleague.client.ui.error-boundary :as eb]
    [cyberleague.game-registrar :as registrar]))
 
@@ -20,8 +21,8 @@
     [view (get-in @registrar/games
                   [(get-in match [:match/game :game/slug])
                    :game.config/match-results-view])
-     state-history (match :match/state-history)
-     std-out-history (match :match/std-out-history)
+     state-history (:match/state-history match)
+     std-out-history (:match/std-out-history match)
      max-value (dec (count state-history))
      move-index (r/atom max-value)]
     [:div.match-results
@@ -33,7 +34,7 @@
        [:button {:on-click (fn [] (swap! move-index dec))
                  :disabled (= 0 @move-index)}
         "<"]
-       (str "Turn " @move-index "/" max-value)
+       (str "Turn " (inc @move-index) "/" (inc max-value))
        [:button {:on-click (fn [] (swap! move-index inc))
                  :disabled (= max-value @move-index)} ">"]]
       [:input {:type "range"
@@ -65,14 +66,31 @@
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
          "Move"]
-        [:code {:tw "block py-1 whitespace-pre-wrap"}
-         (pretty-print (pr-str (last (:history (get state-history @move-index)))))]]
+        (for [[bot-id move] (last (:history (get state-history @move-index)))
+              :let [bot (->> (:match/bots match)
+                             (filter (fn [b]
+                                       (= bot-id (:bot/id b))))
+                             first)]
+              :when bot]
+          [:div
+           [:div {:tw "py-1 font-bold"}
+            [ui/bot-chip bot]]
+           [:code {:tw "block py-1 whitespace-pre-wrap"}
+            (pretty-print (pr-str move))]])]
 
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
          "Log"]
-        [:code {:tw "block py-1 whitespace-pre-wrap"}
-         (pretty-print (pr-str (get std-out-history @move-index)))]]
+        [:div {:tw "pl-2"}
+         (for [[bot-id log] (get std-out-history @move-index)]
+           [:div
+            [:div {:tw "py-1 font-bold"}
+             [ui/bot-chip (->> (:match/bots match)
+                               (filter (fn [b]
+                                         (= bot-id (:bot/id b))))
+                               first)]]
+            [:code {:tw "block py-1 whitespace-pre-wrap"}
+             (pretty-print (pr-str log))]])]]
 
        [:div
         [:div {:tw "font-bold border-black border-solid border-b"}
@@ -84,20 +102,24 @@
                       (assoc :history ["omitted"]))))]]
 
        (when (and
-              (:match/error match)
+              (seq (:match/errors match))
               (= @move-index max-value))
-         (for [error
-               ;; in parallel games, :match/error is a collection
-               (if (sequential? (:match/error match))
-                 (:match/error match)
-                 [(:match/error match)])]
-           [:div
-            [:div {:tw "font-bold border-black border-solid border-b"}
-             "Error" " (" (:move.error/type error) ")"]
-            [:code {:tw "block whitespace-pre-wrap py-1"}
-             (zprint/zprint-file-str
-              (pr-str (:move.error/data error))
-              "reformat"
-              {:width 33
-               :style [:community]})]]))]]]))
+         [:div
+          [:div {:tw "font-bold border-black border-solid border-b"}
+           "Errors"]
+          [:div {:tw "pl-2"}
+           (for [[bot-id error] (:match/errors match)]
+             [:div
+              [:div {:tw "py-1 font-bold"}
+               [ui/bot-chip (->> (:match/bots match)
+                                 (filter (fn [b]
+                                           (= bot-id (:bot/id b))))
+                                 first)]
+               "(" (:move.error/type error) ")"]
+              [:code {:tw "block whitespace-pre-wrap py-1"}
+               (zprint/zprint-file-str
+                (pr-str (:move.error/data error))
+                "reformat"
+                {:width 33
+                 :style [:community]})]])]])]]]))
 

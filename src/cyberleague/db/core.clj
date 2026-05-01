@@ -249,13 +249,16 @@
                [:db/add [:bot/id (:bot/id p2)] :bot/rating-dev (Math/max 50 (Math/round p2rd))]]))
 
 (defn disable-bot!
-  [errd-bot]
-  (with-conn
-    (d/transact *conn*
-                [[:db/retract [:bot/id (:bot/id errd-bot)] :bot/active-artifact (:bot/active-artifact errd-bot)]])))
+  [bot-id artifact]
+  (d/transact *conn*
+              [[:db/retract
+                [:bot/id bot-id]
+                :bot/active-artifact
+                artifact]]))
 
 (defn disable-cheater!
   [cheater]
   (d/transact *conn*
               [[:db/add [:bot/id (:bot/id cheater)] :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
-              (disable-bot! cheater)]))
+              (disable-bot! (:bot/id cheater)
+                            (:bot/active-artifact cheater))]))

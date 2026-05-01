@@ -9,8 +9,11 @@
      ^{:key (:match/id match)} ;; to force re-render
      [match-results-view
       {:message (cond
-                  (:match/error match)
-                  "Bot Error"
+                  (contains? (:match/errors match) (:bot/id bot))
+                  "Bot Errored"
+
+                  (seq (disj (:match/errors match) (:bot/id bot)))
+                  "Other Bot Errored"
 
                   (nil? (:winner match))
                   "Tie!"

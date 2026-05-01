@@ -19,22 +19,19 @@
                     (eval-move artifact))
                (catch Exception e
                  {:eval/error {:move.error/type :move.error.type/invalid-code
-                               :move.error/data {:message (str e)
-                                                 :bot-id bot-id}}}))
+                               :move.error/data {:message (str e)}}}))
         return-value (:eval/return-value eval)]
     (cond
       (:eval/error eval)
-      eval
+      (:eval/return-value eval)
 
       (not (game-engine.protocol/valid-move? game-engine return-value))
       {:eval/error {:move.error/type :move.error.type/invalid-move
-                    :move.error/data {:bot-id bot-id
-                                      :move eval}}}
+                    :move.error/data {:move (:eval/return-value eval)}}}
 
       (not (game-engine.protocol/legal-move? game-engine state bot-id return-value))
       {:eval/error {:move.error/type :move.error.type/illegal-move
-                    :move.error/data {:bot-id bot-id
-                                      :move eval}}}
+                    :move.error/data {:move (:eval/return-value eval)}}}
 
       :else
       eval)))
@@ -52,7 +49,7 @@
            player-indexes (cycle (range (count bot-ids)))]
       (let [state (last states)]
         (if (game-engine.protocol/game-over? game-engine state)
-          {:game.result/error nil
+          {:game.result/errors {}
            :game.result/winner (game-engine.protocol/winner game-engine state)
            :game.result/std-out-history std-outs
            :game.result/state-history states
@@ -66,9 +63,13 @@
                                       [bot-id
                                        (run-move bot-id artifact state game-engine)])))
                              (into {}))
-                  errors (keep #(:eval/error (second %)) evals)]
+                  errors (->> evals
+                              (keep (fn [[bot-id result]]
+                                        (when (:eval/error result)
+                                          [bot-id (:eval/error result)])))
+                              (into {}))]
               (if (seq errors)
-                {:game.result/error errors
+                {:game.result/errors errors
                  :game.result/winner nil
                  :game.result/std-out-history std-outs
                  :game.result/state-history states
@@ -82,7 +83,7 @@
                   artifact (get artifacts player-index)
                   eval (run-move bot-id artifact state game-engine)]
               (if (:eval/error eval)
-                {:game.result/error (:eval/error eval)
+                {:game.result/errors {bot-id (:eval/error eval)}
                  :game.result/winner nil
                  :game.result/std-out-history std-outs
                  :game.result/state-history states

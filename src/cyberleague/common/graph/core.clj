@@ -55,7 +55,7 @@
    (alias-resolver :env/_language :language/envs)
 
    (transform-resolver :match/moves-transit :match/moves t/read-str)
-   (transform-resolver :match/error-transit :match/error t/read-str)
+   (transform-resolver :match/errors-transit :match/errors t/read-str)
    (transform-resolver :match/state-history-transit :match/state-history t/read-str)
    (transform-resolver :match/std-out-history-transit :match/std-out-history t/read-str)
 

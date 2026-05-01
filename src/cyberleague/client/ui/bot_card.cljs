@@ -66,7 +66,7 @@
                  "won"
                  (nil? (:match/winner match))
                  "tied"
-                 (:match/error match)
+                 (:match/errors match)
                  "errored"
                  :else
                  "lost")]]

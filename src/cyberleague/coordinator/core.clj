@@ -9,53 +9,84 @@
    [cyberleague.db.core :as db]
    [cyberleague.common.transit :as t]))
 
+(defn ping-pong!
+  "Evals bots for ping/pong; returns {bot-id move-error}"
+  [bots artifacts]
+  (->> (map vector bots artifacts)
+       (keep (fn [[bot artifact]]
+               (let [nonce (str (uuid/random))
+                     result (game-runner/eval-move
+                             artifact
+                             {:ping nonce})]
+                 (when (not= nonce (:pong (:eval/return-value result)))
+                   [(:bot/id bot) {:move.error/type :move.error.type/failed-ping-pong
+                                   :move.error/data {:output (:eval/return-value result)}}]))))
+       (into {})))
+
 (defn run-game!
   [{:keys [game bots artifacts test?]}]
   #_(print "Starting " (:bot/id player-1) " vs " (:bot/id player-2) "...")
-  (db/with-conn
-   (let [result (game-runner/run-game
-                 {:game (into {} game)
-                  :bot-ids (mapv :bot/id bots)
-                  :artifacts artifacts})
-         [player-1 player-2] bots]
-     #_(println (str (:bot/id player-1) " vs " (:bot/id player-2) ": " (:game.result/winner result)))
-     (let [{:move.error/keys [data _type] :as error} (:game.result/error result)
-           ;; assuming 2 player games
-           [winning-bot errd-bot] (when error
-                                    (if (= (:bot-id data)
-                                           (:bot/id player-1))
-                                      [player-2 player-1]
-                                      [player-1 player-2]))
-           ;; run-game returns game.result/winner only for completed games
-           ;; but for tournament purposes, if a bot errors
-           ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
-           ;; (ie. when about to lose, error)
-           winner-id (or (:game.result/winner result)
-                         (:bot/id winning-bot))
-           match-id (uuid/random)]
-       (when (not test?)
-         (when errd-bot
-           (println "Disabling bot:" (:bot/id errd-bot) (:message data))
-           (db/disable-bot! errd-bot)))
+  (let [match-id (uuid/random)
+        [player-1 player-2] bots]
+    (db/with-conn
+     (let [ping-pong-errors (ping-pong! bots artifacts)]
+       (if (seq ping-pong-errors)
+         (do
+           (db/transact! [{:match/id match-id
+                           :match/test? test?
+                           :match/bots [[:bot/id (:bot/id player-1)]
+                                        [:bot/id (:bot/id player-2)]]
+                           :match/timestamp (java.util.Date.)
+                           :match/errors-transit (t/write-str ping-pong-errors)}])
+           (when (not test?)
+             (doseq [errd-bot-id (keys ping-pong-errors)]
+               (println "Disabling bot (ping-pong fail):" errd-bot-id)
+               (db/disable-bot! errd-bot-id (->> (map vector bots artifacts)
+                                                 (some (fn [[bot artifact]]
+                                                         (when (= (:bot/id bot) errd-bot-id)
+                                                           artifact))))))))
 
-       (db/transact! [(merge
-                       {:match/id match-id
-                        :match/test? test?
-                        :match/bots [[:bot/id (:bot/id player-1)]
-                                     [:bot/id (:bot/id player-2)]]
-                        :match/timestamp (java.util.Date.)
-                            :match/state-history-transit (t/write-str (:game.result/state-history result))
-                            :match/std-out-history-transit (t/write-str (:game.result/std-out-history result))
-                            :match/moves-transit (t/write-str (:game.result/history result))}
-                       (when error
-                             {:match/error-transit (t/write-str error)})
-                       (when winner-id
-                         {:match/winner [:bot/id winner-id]}))])
+         (let [result (game-runner/run-game
+                       {:game (into {} game)
+                        :bot-ids (mapv :bot/id bots)
+                        :artifacts artifacts})]
+           #_(println (str (:bot/id player-1) " vs " (:bot/id player-2) ": " (:game.result/winner result)))
+           (let [errors (:game.result/errors result)
+                 bots-by-status (->> bots
+                                     (group-by (fn [b]
+                                                 (if (contains? errors (:bot/id b))
+                                                   ::errored
+                                                   ::ok))))
+                 ;; run-game returns game.result/winner only for completed games
+                 ;; but for tournament purposes, if a bot errors
+                 ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
+                 ;; (ie. when about to lose, error)
+                 winner-id (or (:game.result/winner result)
+                               ;; assuming 2 player games
+                               (:bot/id (first (::ok bots-by-status))))]
+             (when (not test?)
+               (doseq [errd-bot (::errored bots-by-status)]
+                 (println "Disabling bot:" (:bot/id errd-bot) errors)
+                 (db/disable-bot! (:bot/id errd-bot) (:bot/active-artifact errd-bot))))
 
-       (when (not test?)
-         (ranking/update-rankings! player-1 player-2 winner-id))
+             (db/transact! [(merge
+                             {:match/id match-id
+                              :match/test? test?
+                              :match/bots [[:bot/id (:bot/id player-1)]
+                                           [:bot/id (:bot/id player-2)]]
+                              :match/timestamp (java.util.Date.)
+                              :match/state-history-transit (t/write-str (:game.result/state-history result))
+                              :match/std-out-history-transit (t/write-str (:game.result/std-out-history result))
+                              :match/moves-transit (t/write-str (:game.result/history result))}
+                             (when errors
+                               {:match/errors-transit (t/write-str errors)})
+                             (when winner-id
+                               {:match/winner [:bot/id winner-id]}))])
 
-       {:match/id match-id}))))
+             (when (not test?)
+               (ranking/update-rankings! player-1 player-2 winner-id)))))))
+    {:match/id match-id}))
+
 
 (defn select-players
   [active-bots]

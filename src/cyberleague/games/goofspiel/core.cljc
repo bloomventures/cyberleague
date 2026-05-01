@@ -72,6 +72,4 @@
                           {:blueprint/env-slug "clojure-sci"
                            :blueprint/code (pr-str bots/current-trophy-bot)}
                           {:blueprint/env-slug "clojure-sci"
-                           :blueprint/code (pr-str bots/other-bot)}
-                          #_{:blueprint/env-slug "javascript-v8"
-                             :blueprint/code bots/js-random-bot}]})
+                           :blueprint/code (pr-str bots/other-bot)}]})

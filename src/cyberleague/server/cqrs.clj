@@ -170,7 +170,7 @@
                 {:match/winner [:bot/id]}
                 :match/test?
                 :match/timestamp
-                :match/error
+                :match/errors
                 :match/moves
                 :match/std-out-history
                 :match/state-history]))}
@@ -197,7 +197,7 @@
                                         [{:env/language
                                           [:language/slug]}]}]}
                 {:bot/matches [:match/id
-                               :match/error
+                               :match/errors
                                :match/test?
                                :match/timestamp
                                :match/winner

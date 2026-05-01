@@ -77,8 +77,8 @@
                                   :dat/doc "Stored as transit"}
     :match/std-out-history-transit {:dat/type :db.type/string
                                     :dat/doc "Stored as transit"}
-    :match/error-transit {:dat/type :db.type/string
-                          :dat/doc "Stored as transit"}}})
+    :match/errors-transit {:dat/type :db.type/string
+                           :dat/doc "Stored as transit"}}})
 
 (def schema
   (cons {:db/ident :entities
