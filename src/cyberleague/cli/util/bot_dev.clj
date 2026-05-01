@@ -18,12 +18,11 @@
 
 (defn build!
   [bot-config]
-
   (println "Building...")
   (if-let [cmd (:bot.build/cmd (:bot/build bot-config))]
     (do
       (println ">" cmd)
-      (sh/sh cmd)
+      (println (:out (sh/sh "/bin/sh" "-c" cmd :dir (bot-config/dir bot-config))))
       (when (->artifact bot-config)
         (println "Build successful.")))
     (println "No build command, skipping.")))
