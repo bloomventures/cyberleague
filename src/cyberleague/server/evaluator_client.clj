@@ -11,7 +11,10 @@
                   :common
                   :evaluator-url)
               "/prepare")
-    :body {:digest digest}}))
+    :body {:auth-secret (-> config/config
+                            :common
+                            :evaluator-auth-secret)
+           :digest digest}}))
 
 #_(prepare {:digest "a6213fe8321a5ce0e65e3560ba0eda5d169352dbd2e02e653b10d109eeff56d0"})
 
@@ -23,7 +26,10 @@
                   :common
                   :evaluator-url)
               "/run")
-    :body {:digest digest
+    :body {:auth-secret (-> config/config
+                            :common
+                            :evaluator-auth-secret)
+           :digest digest
            :env-slug env-slug
            :input input}}))
 

@@ -2,6 +2,7 @@
   "The 'evaluator' exposes an http API to run executables in various environments"
   (:require
    [clojure.java.io :as io]
+   [bloom.commons.crypto :as crypto]
    [org.httpkit.server :as http]
    [muuntaja.middleware :as mj]
    [ring.middleware.defaults :as rmd]
@@ -16,18 +17,28 @@
    [cyberleague.common.schema :as s]
    [cyberleague.evaluator.sigs :as sigs]))
 
+(defn allowed? [secret]
+  (crypto/slow= secret (-> config/config
+                           :common
+                           :evaluator-auth-secret)))
+
 (defonce t (tada/init :malli))
 
 (def commands
   [{:id :evaluator/prepare!
     :rest [:post "/prepare"]
-    :params {:digest s/Digest}
+    :params {:auth-secret :string
+             :digest s/Digest}
+    :conditions
+    (fn [{:keys [auth-secret]}]
+      [[#(allowed? auth-secret)]])
     :return
     (fn [{:keys [digest]}]
       (if (artifacts/exists? digest)
         {:skip? true}
         {:upload-url (sigs/create-url {:digest digest})}))}
 
+   ;; this route is directly accessed by CLI
    {:id :evaluator/upload!
     :rest [:post "/upload"]
     :params {:token :string
@@ -46,12 +57,14 @@
 
    {:id :evaluator/run!
     :rest [:post "/run"]
-    :params {:digest :string
+    :params {:auth-secret :string
+             :digest :string
              :env-slug :string
              :input :string}
     :conditions
-    (fn [{:keys [digest env-slug _input]}]
-      [[#(envs/enabled? env-slug) "Unknown env"]
+    (fn [{:keys [auth-secret digest env-slug _input]}]
+      [[#(allowed? auth-secret)]
+       [#(envs/enabled? env-slug) "Unknown env"]
        [#(artifacts/exists? digest) "An artifact with this digest does not exist."]])
     :effect
     (fn [{:keys [digest env-slug input]}]

@@ -9,6 +9,7 @@
     [:common
      [:map
       [:evaluator-url :string]
+      [:evaluator-auth-secret :string]
       [:environment [:enum :prod :dev]]] ]
     [:evaluator
      [:map
