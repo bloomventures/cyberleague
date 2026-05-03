@@ -1,4 +1,5 @@
 (ns cyberleague.common.transit
+  (:refer-clojure :exclude [read])
   (:require
    [cognitect.transit :as transit])
   (:import
