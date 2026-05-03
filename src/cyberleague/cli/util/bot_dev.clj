@@ -63,16 +63,17 @@
         (println "Upload successful."))
 
       :else
-      (throw (ex-info "Error" {})))))
+      (throw (ex-info "Error uploading" {})))))
 
 (defn test!
   [bot-config]
   (println (colorize :color/yellow "Testing..."))
-  (let [artifact (->artifact bot-config)
-        match-id (:match/id (r/tada! [:api/test-bot!
+  (let [artifact (->artifact bot-config)]
+    (if-let [match-id (:match/id (r/tada! [:api/test-bot!
                                       {:bot-id (:bot/id bot-config)
                                        :digest (artifact/digest artifact)}]))]
-    (println "Test successful. View it online." #_match-id)))
+      (println "Test successful. Match: " match-id ". View it online.")
+      (println "Error running test."))))
 
 (defn stage!
   [bot-config]

@@ -37,4 +37,5 @@
             (tel/event! ::http-body {:level :debug
                                      :data b})
             b))
-        (println "ERROR: " (slurp body))))))
+        (tel/event! ::http-error {:level :error
+                                  :data {:body (slurp body)}})))))

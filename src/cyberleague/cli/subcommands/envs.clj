@@ -4,7 +4,7 @@
 
 (defn exec!
   [_]
-  (let [languages (r/tada! [:api/languages {}])]
+  (when-let [languages (r/tada! [:api/languages {}])]
     (doseq [language (->> languages
                           (sort-by :language/slug))]
       (println (str (:language/slug language) ":"))

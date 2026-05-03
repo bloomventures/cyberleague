@@ -4,6 +4,6 @@
 
 (defn exec!
   [_]
-  (let [games (r/tada! [:api/games {}])]
+  (when-let [games (r/tada! [:api/games {}])]
     (doseq [game games]
       (println (:game/slug game)))))
