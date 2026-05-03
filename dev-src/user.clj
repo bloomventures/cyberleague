@@ -4,6 +4,8 @@
    [clojure.pprint]
    [taoensso.telemere :as tel]))
 
+(set! *warn-on-reflection* true)
+
 (tel/add-handler!
  ::tap
  (fn
