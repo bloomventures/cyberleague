@@ -1,11 +1,13 @@
 (ns cyberleague.cli.subcommands.bot.new
   (:require
    [clojure.java.io :as io]
+   [cyberleague.cli.util.format :as f]
    [cyberleague.cli.util.remote :as r]
    [cyberleague.cli.util.ednf :as ednf]))
 
 (defn exec!
   [{game-slug :game env-slug :env}]
+  (println (f/color :color/yellow "Creating bot..."))
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]
     (if result

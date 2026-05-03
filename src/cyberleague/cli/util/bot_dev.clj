@@ -6,13 +6,8 @@
    [cyberleague.cli.util.weight :as weight]
    [cyberleague.cli.util.remote :as r]
    [cyberleague.common.transit-client :as http]
+   [cyberleague.cli.util.format :as f]
    [cyberleague.cli.util.bot-config :as bot-config]))
-
-(defn colorize [color s]
-  (str "\u001b"
-      (case color
-        :color/yellow "[33m")
-        s "\u001b[0m"))
 
 (defn ->artifact
   [bot-config]
@@ -24,7 +19,7 @@
 
 (defn build!
   [bot-config]
-  (println (colorize :color/yellow "Building..."))
+  (println (f/color :color/yellow "Building..."))
   (if-let [cmd (:bot.build/cmd (:bot/build bot-config))]
     (do
       (println ">" cmd)
@@ -35,7 +30,7 @@
 
 (defn upload!
   [bot-config]
-  (println (colorize :color/yellow "Uploading..."))
+  (println (f/color :color/yellow "Uploading..."))
   (let [artifact (->artifact bot-config)
         ;; by having this in the CLI,
         ;; we are effectively letting bots "self report" their weight
@@ -67,11 +62,11 @@
 
 (defn test!
   [bot-config]
-  (println (colorize :color/yellow "Testing..."))
+  (println (f/color :color/yellow "Testing..."))
   (let [artifact (->artifact bot-config)]
     (if-let [match-id (:match/id (r/tada! [:api/test-bot!
-                                      {:bot-id (:bot/id bot-config)
-                                       :digest (artifact/digest artifact)}]))]
+                                           {:bot-id (:bot/id bot-config)
+                                            :digest (artifact/digest artifact)}]))]
       (println "Test successful. Match: " match-id ". View it online.")
       (println "Error running test."))))
 
@@ -83,7 +78,7 @@
 
 (defn deploy!
   [bot-config]
-  (println (colorize :color/yellow "Deploying..."))
+  (println (f/color :color/yellow "Deploying..."))
   (let [artifact (->artifact bot-config)]
     (r/tada! [:api/deploy-bot!
               {:bot-id (:bot/id bot-config)
