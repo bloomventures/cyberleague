@@ -4,7 +4,6 @@
    [tada.events.core :as tada]
    [cyberleague.coordinator.test-bot :as coordinator]
    [cyberleague.db.core :as db]
-   [cyberleague.game-registrar :as registrar]
    [cyberleague.common.graph.core :as graph]
    [cyberleague.server.evaluator-client :as eval-client]))
 
