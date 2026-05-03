@@ -10,8 +10,7 @@
    [cyberleague.cli.subcommands.bot.test :as sc.bot.test]
    [cyberleague.cli.subcommands.bot.upload :as sc.bot.upload]
    [cyberleague.cli.subcommands.bot.deploy :as sc.bot.deploy]
-   [cyberleague.cli.subcommands.bot.stage :as sc.bot.stage]
-   [cyberleague.cli.subcommands.bot.watch :as sc.bot.watch]))
+   [cyberleague.cli.subcommands.bot.stage :as sc.bot.stage]))
 
 (def cli-configuration
   {:command "cyberleague"
@@ -52,10 +51,7 @@
                                  :description "Build, upload, and test a bot artifact."}
                                 {:command "deploy"
                                  :runs sc.bot.deploy/exec!
-                                 :description "Deploy a previously artifact (ie. enter that version of the bot into competition)"}
-                                {:command "watch"
-                                 :runs sc.bot.watch/exec!
-                                 :description "Watches current dir, on changes: builds, uploads, tests"}]
+                                 :description "Deploy a previously artifact (ie. enter that version of the bot into competition)"}]
                                (map (fn [c]
                                       (assoc c
                                              :opts [{:option "dir"
