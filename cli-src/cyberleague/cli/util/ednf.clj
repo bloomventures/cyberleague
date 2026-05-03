@@ -19,7 +19,7 @@
                :force-nl? true}}))
 
 (defn read [path]
-  (let [f (io/file path)]
+  (let [^java.io.File f (io/file path)]
     (when (.exists f)
       (edn/read-string (slurp f)))))
 

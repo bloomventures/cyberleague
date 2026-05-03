@@ -1,4 +1,5 @@
 (ns cyberleague.cli.core
+  (:gen-class)
   (:require
    [cli-matic.core :as cli]
    [cyberleague.cli.subcommands.login :as sc.login]

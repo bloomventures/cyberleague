@@ -32,7 +32,7 @@
       (tel/event! ::http-response {:level :debug
                                    :data response})
       (if (and status (<= 200 status 299))
-        (when (pos? (.getCount body))
+        (when (pos? (.getCount ^org.httpkit.BytesInputStream body))
           (let [b (t/read body)]
             (tel/event! ::http-body {:level :debug
                                      :data b})

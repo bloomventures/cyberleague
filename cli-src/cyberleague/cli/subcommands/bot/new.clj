@@ -31,7 +31,7 @@
                           :bot/build   {:bot.build/cmd build-cmd
                                         :bot.build/artifact artifact-path}})
             (doseq [[path f-content] starter-files]
-              (.mkdirs (io/file (.getParent (io/file (str dir-name "/" path)))))
+              (.mkdirs ^java.io.File (io/file (.getParent ^java.io.File (io/file (str dir-name "/" path)))))
               (spit (str dir-name "/" path) f-content))
             (println "Created" dir-name))
           (println "Error: bot not found")))

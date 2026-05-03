@@ -28,7 +28,7 @@
       (finally
         (reset! running? false)))))
 
-(defn watch-fn [{:keys [type path]}]
+(defn watch-fn [{:keys [type ^java.nio.file.Path path]}]
   (println "Change:" type (.toString path))
   (when (#{:modify :create} type)
     (reset! dirty? true)
@@ -36,8 +36,8 @@
 
 (defn exec!
   [{:keys [dir]}]
-  (let [dir (io/file dir)]
-    (when (bot-config/read! (io/file dir))
+  (let [^java.io.File dir (io/file dir)]
+    (when (bot-config/read! dir)
       (do (reset! state {::watcher (beholder/watch #'watch-fn (.getPath dir))
                          ::dir dir})
 

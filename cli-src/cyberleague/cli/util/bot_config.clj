@@ -20,7 +20,7 @@
 
 (defn read!
   [dir]
-  (let [f (io/file dir "bot.edn")]
+  (let [^java.io.File f (io/file dir "bot.edn")]
     (if (.exists f)
       (let [v (ednf/read f)]
         (if (m/validate BotConfig v)
@@ -29,4 +29,4 @@
       (throw (ex-info "bot.edn was not found in this directory." {})))))
 
 (defn dir [bot-config]
-  (.getParent (::file (meta bot-config))))
+  (.getParent ^java.io.File (::file (meta bot-config))))

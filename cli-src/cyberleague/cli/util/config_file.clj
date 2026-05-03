@@ -12,17 +12,17 @@
        (iterate (fn [dir] (.getParentFile dir)))
        (take-while some?)
        (map (fn [dir] (io/file dir filename)))
-       (filter (fn [f] (.exists f)))
+       (filter (fn [^java.io.File f] (.exists f)))
        first))
 
 (defn read
   []
-  (when-let [f (find-path)]
+  (when-let [^java.io.File f (find-path)]
     (ednf/read (.getPath f))))
 
 (defn set-kv!
   [k v]
-  (let [p (or (some-> (find-path) .getPath)
+  (let [p (or (when-let [^java.io.File f (find-path)] (.getPath f))
               filename)]
     (-> (read)
         (assoc k v)

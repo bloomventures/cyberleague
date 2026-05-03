@@ -14,16 +14,16 @@
 
 (def skip-files #{"bot.edn"})
 
-(defn skip-file? [f]
+(defn skip-file? [^java.io.File f]
   (contains? skip-files (.getName f)))
 
 (defn dir-weight [dir]
   (->> (file-seq (io/file dir))
-       (filter (fn [f]
+       (filter (fn [^java.io.File f]
                  (and (.isFile f)
                       (not (skip-file? f)))))
-       (map (fn [f]
-              (compress-bytes (.readAllBytes (io/input-stream f)))))
+       (map (fn [^java.io.File f]
+              (compress-bytes (.readAllBytes ^java.io.InputStream (io/input-stream f)))))
        (reduce +)))
 
 #_(dir-weight "path/to/bot/dir")

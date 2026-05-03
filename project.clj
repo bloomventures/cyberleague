@@ -1,6 +1,7 @@
 (defproject cyberleague "0.1.0-SNAPSHOT"
 
-  :plugins [[io.bloomventures/omni "0.36.2"]]
+  :plugins [[io.bloomventures/omni "0.36.2"]
+            [io.taylorwood/lein-native-image "0.3.1"]]
 
   :omni-config cyberleague.omni-config/omni-config
 
@@ -74,7 +75,8 @@
                        :main cyberleague.core
                        :repl-options {:init-ns cyberleague.core}}
              :server [:common :*server]
-             :*cli {:main         cyberleague.cli.core
+             :*cli {:source-paths ["cli-src"]
+                    :main         cyberleague.cli.core
                     :dependencies [[cli-matic "0.5.4"]
                                    [zprint "1.3.0"]
                                    [metosin/malli "0.20.1"]
@@ -83,9 +85,17 @@
                                    [org.tukaani/xz "1.12"]
 
                                    [http-kit "2.8.0"]
-                                   [com.nextjournal/beholder "1.0.2"]]
+                                   [com.nextjournal/beholder "1.0.3"]]
                     :repl-options {:init-ns cyberleague.cli.core}}
              :cli [:common :*cli]
+             ;; GRAALVM_HOME="/" lein with-profile native-image native-image
+             :*native-image {:source-paths ^:replace ["cli-src"]
+                             :dependencies [[com.github.clj-easy/graal-build-time "1.0.5"]]
+                             :native-image {:name "cyber"
+                                            :opts ["--features=clj_easy.graal_build_time.InitClojureClasses"
+                                                   "--enable-url-protocols=http,https"
+                                                   "--verbose"]}}
+             :native-image [:cli :*native-image]
              :*uberjar {:aot :all
                         :dependencies
                         [[org.postgresql/postgresql "42.2.2"]]

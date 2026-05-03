@@ -1,0 +1,1 @@
+../../../src/cyberleague/common/artifact.clj

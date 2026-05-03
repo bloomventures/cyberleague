@@ -12,7 +12,7 @@
 (defn ->artifact
   [bot-config]
   (let [path (:bot.build/artifact (:bot/build bot-config))
-        artifact (io/file (bot-config/dir bot-config) path)]
+        ^java.io.File artifact (io/file (bot-config/dir bot-config) path)]
     (if (.exists artifact)
       artifact
       (throw (ex-info (str "Artifact not found at expected path: " path) {})))))
