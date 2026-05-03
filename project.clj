@@ -90,6 +90,7 @@
              :cli [:common :*cli]
              ;; GRAALVM_HOME="/" lein with-profile native-image native-image
              :*native-image {:source-paths ^:replace ["cli-src"]
+                             :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
                              :dependencies [[com.github.clj-easy/graal-build-time "1.0.5"]]
                              :native-image {:name "cyber"
                                             :opts ["--features=clj_easy.graal_build_time.InitClojureClasses"
