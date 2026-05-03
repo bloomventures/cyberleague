@@ -28,8 +28,8 @@
                           :bot/env     env-slug
                           :bot/game    game-slug
                           :bot/run-cmd run-cmd
-                          :bot/build   {:bot.build/cmd build-cmd
-                                        :bot.build/artifact artifact-path}})
+                          :bot/build-cmd      build-cmd
+                          :bot/build-artifact artifact-path})
             (doseq [[path f-content] starter-files]
               (.mkdirs ^java.io.File (io/file (.getParent ^java.io.File (io/file (str dir-name "/" path)))))
               (spit (str dir-name "/" path) f-content))

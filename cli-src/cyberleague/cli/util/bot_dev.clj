@@ -11,7 +11,7 @@
 
 (defn ->artifact
   [bot-config]
-  (let [path (:bot.build/artifact (:bot/build bot-config))
+  (let [path (:bot/build-artifact bot-config)
         ^java.io.File artifact (io/file (bot-config/dir bot-config) path)]
     (if (.exists artifact)
       artifact
@@ -20,7 +20,7 @@
 (defn build!
   [bot-config]
   (println (f/color :color/yellow "Building..."))
-  (if-let [cmd (:bot.build/cmd (:bot/build bot-config))]
+  (if-let [cmd (:bot/build-cmd bot-config)]
     (do
       (println ">" cmd)
       (println (:out (sh/sh "/bin/sh" "-c" cmd :dir (bot-config/dir bot-config))))

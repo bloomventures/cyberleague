@@ -13,10 +13,8 @@
    [:bot/id :uuid]
    [:bot/name :string]
    [:bot/run-cmd :string]
-   [:bot/build
-    [:map
-     [:bot.build/cmd [:maybe :string]]
-     [:bot.build/artifact :string]]]])
+   [:bot/build-cmd [:maybe :string]]
+   [:bot/build-artifact :string]])
 
 (defn read!
   [dir]
