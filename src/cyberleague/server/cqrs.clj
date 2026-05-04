@@ -197,7 +197,8 @@
                 {:bot/user [:user/id
                             :user/name]}
                 {:bot/active-artifact [{:artifact/env
-                                        [{:env/language
+                                        [:env/slug
+                                         {:env/language
                                           [:language/slug]}]}]}
                 {:bot/matches [:match/id
                                :match/test?

@@ -62,7 +62,23 @@
     [card/body {}
      (when-let [bot @data]
        [:<>
-        [:div.env (str (-> bot :bot/active-artifact :artifact/env :env/language :language/slug))]
+        [:table
+         [:tbody
+          [:tr
+           [:td "Status"]
+           (if (= :active (:bot/status bot))
+             "active"
+             "inactive")]
+          [:tr
+           [:td "Language"]
+           [:td [:div.env (str (-> bot :bot/active-artifact :artifact/env :env/language :language/slug))]]]
+          [:tr
+           [:td "Env"]
+           [:td [:div.env (str (-> bot :bot/active-artifact :artifact/env :env/slug))]]]
+          [:tr
+           [:td "Weight"]
+           [:td (:bot/weight bot)]]]]
+
         [graph-view (:bot/history bot)]
         (let [{:keys [wins losses ties]} (record-summary bot)]
           [:p {:tw "text-center"}
