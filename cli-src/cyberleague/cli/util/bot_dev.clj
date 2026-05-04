@@ -40,6 +40,8 @@
         ;; for now, this is fine; one day maybe we'll do the builds
         ;; on our own servers
         weight (weight/dir-weight (io/file (bot-config/dir bot-config)))
+        _ (println "Digest:" (artifact/digest artifact))
+        _ (println "Weight:" weight)
         response (r/tada! [:api/artifact-upload-prepare!
                            {:bot-id (:bot/id bot-config)
                             :env-slug (:bot/env bot-config)
