@@ -14,7 +14,7 @@
     [:td {:tw (str "text-center p-1 " (winner-tw (< (move p1-id) (move p2-id))))} (move p2-id)]]])
 
 (defn match-results-view
-  [{:match/keys [bots winner] :as match} states moves]
+  [{:match/keys [bots winner] :as match} _state moves]
   (let [[p1-id p2-id] (map :bot/id bots)]
     [:div.results.goofspiel
      [:table

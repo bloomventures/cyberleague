@@ -5,7 +5,7 @@
    [malli.error :as malli.error]
    [malli.util :as malli.util]))
 
-(def *games (atom {}))
+(defonce *games (atom {}))
 
 (defn all []
   (vals @*games))
@@ -19,12 +19,12 @@
 (def BotBlueprint
   [:map
    [:blueprint/code :string]
-   [:blueprint/env-slug :env/slug]])
+   [:blueprint/env-slug :string]])
 
 (def schema
   [:map
    [:game.config/name :string]
-   [:game.config/slug :game/slug] ;; ascii no spaces
+   [:game.config/slug :string] ;; ascii no spaces
    [:game.config/description :string]
    [:game.config/rules :string]
    [:game.config/match-results-view :any] ;; fn that takes a match, returns reagent data

@@ -44,9 +44,10 @@
 
        (if view
          [eb/catch
-          [view match
-           (take (inc @move-index) log)
-           (:history (get log @move-index))]]
+          [view
+           match
+           (map :log-entry/state (take (inc @move-index) log))
+           (:history (:log-entry/state (get log @move-index)))]]
          "CUSTOM VIEW NOT FOUND")
 
        ;; generic state inspection view

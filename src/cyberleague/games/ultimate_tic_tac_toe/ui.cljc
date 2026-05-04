@@ -68,7 +68,7 @@
      nil "\u00a0")])
 
 (defn match-results-view*
-  [match states _]
+  [match states _moves]
   (let [state (last states)
         bots-by-id (->> (match :match/bots)
                         (reduce (fn [memo bot]
@@ -125,6 +125,6 @@
 
 ;; have an intermediary view, just so it refreshes nicely with reagent + the game registry
 (defn match-results-view
-  [match state move]
-  [match-results-view* match state move])
+  [match states moves]
+  [match-results-view* match states moves])
 

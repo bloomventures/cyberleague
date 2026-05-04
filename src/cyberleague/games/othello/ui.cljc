@@ -17,7 +17,7 @@
                   :border-radius "50%"}}])
 
 (defn match-results-view*
-  [match states _]
+  [match states _moves]
   (let [state (last states)
         bots-by-id (->> (match :match/bots)
                         (reduce (fn [memo bot]
@@ -55,7 +55,7 @@
          [:span (othello/stone-count (:board state) marker)]])]]))
 
 (defn match-results-view
-  [match state move]
-  [match-results-view* match state move])
+  [match states moves]
+  [match-results-view* match states moves])
 
 
