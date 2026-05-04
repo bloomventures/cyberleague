@@ -13,4 +13,4 @@
   (game-over? [_ state] "Is the game in a finished state?")
   (winner [_ state] "If the game is over, return the winner of the game"))
 
-(defmulti make-engine :game/name)
+(defmulti make-engine :game/slug)

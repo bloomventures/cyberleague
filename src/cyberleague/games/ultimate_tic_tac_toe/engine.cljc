@@ -36,7 +36,7 @@
   [board]
   (or (won-subboard board) (not-any? nil? board)))
 
-(defmethod protocol/make-engine "ultimate tic-tac-toe"
+(defmethod protocol/make-engine "ultimate-tic-tac-toe"
   [_]
   (reify
     protocol/IGameEngine
