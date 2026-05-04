@@ -10,36 +10,6 @@ Components:
 - CLI - create bots locally, build, test, deploy
 - Evaluator - server that runs bots in sandboxed environments
 
-
-## Bot Dev Experience
-
-- dev creates an account on cyberleague website (github auth)
-- dev downloads cli tool
-- dev authenticates cli (`./cl login`)
-- dev lists games available (`./cl games`)
-- dev lists envs available (`./cl envs`)
-- dev creates a new bot (`./cl bot new --game goofspiel --env clojure`)
-  - this creates:
-      ./goofspiel-xyz
-         bot.edn
-           {:bot/id #uuid "..."
-            :bot/game "goofspiel"
-            :bot/env "clojure"
-            :bot/build
-            ;; run by ./cli bot build
-            {:build/cmd "if [ -f project.clj ]; then lein uberjar; elif [ -f deps.edn ]; then clj -T:build uber; fi"
-            ;; path to artefact created by build step
-            ;; (uploaded to server)
-            :build/artifact "target/bot.jar"}}
-
-- dev develops bot & builds `./cl bot build` (from bot directory)
-  - runs the build and uploads the bot
-- dev tests bot via `./cl bot test` (from bot directory)
-  - runs a test game, and returns a link to view the results
-- dev deploys bot `./cl bot deploy` (from bot directory) (uses the last succesful run)
-  - this enters the last passing bot build into general play
-
-
 ## Games
 
 Games are defined in Clojure:

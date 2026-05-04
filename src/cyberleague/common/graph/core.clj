@@ -1,8 +1,10 @@
 (ns cyberleague.common.graph.core
   (:require
-   [clojure.edn :as edn]
+   [cheshire.core :as json]
+   [clojure.set :as set]
    [datomic.api :as d]
    [dat.graph]
+   [cyberleague.game-registrar :as games]
    [cyberleague.common.envs :as envs]
    [cyberleague.common.transit :as t]
    [cyberleague.db.schema :as schema]
@@ -59,13 +61,13 @@
    (transform-resolver :match/state-history-transit :match/state-history t/read-str)
    (transform-resolver :match/std-out-history-transit :match/std-out-history t/read-str)
 
-   {:dat.resolver/id :env/starter-files
+   {:dat.resolver/id ::env-starter-files
     :dat.resolver/in [:env/slug]
     :dat.resolver/out [:env/starter-files]
     :dat.resolver/f (fn [{:keys [env/slug]}]
                       {:env/starter-files (envs/files-for slug)})}
 
-   {:dat.resolver/id :env/from-edn-configs
+   {:dat.resolver/id ::env-from-edn-configs
     :dat.resolver/in [:env/slug]
     :dat.resolver/out [:env/language-slug
                        :env/enabled?
@@ -77,7 +79,33 @@
     :dat.resolver/f (fn [{:keys [env/slug]}]
                       (envs/by-slug slug))}
 
-   ])
+   {:dat.resolver/id ::game-config
+    :dat.resolver/in [:game/slug]
+    :dat.resolver/out [:game/name
+                       :game/description
+                       :game/rules
+                       :game/technical-notes
+                       :game/context-spec
+                       :game/context-example
+                       :game/move-spec
+                       :game/move-example]
+    :dat.resolver/f (fn [{:keys [game/slug]}]
+                      (-> (games/by-slug slug)
+                          (dissoc
+                           :game.config/slug
+                           :game.config/state-spec
+                           :game.config/match-results-view)
+                          (set/rename-keys
+                           {:game.config/name :game/name
+                            :game.config/description :game/description
+                            :game.config/rules :game/rules
+                            :game.config/technical-notes :game/technical-notes
+                            :game.config/context-spec :game/context-spec
+                            :game.config/context-example :game/context-example
+                            :game.config/move-spec :game/move-spec
+                            :game.config/move-example :game/move-example})
+                          (update :game/move-example json/generate-string)
+                          (update :game/context-example json/generate-string)))}])
 
 #_(require 'dat.schema :reload)
 #_(require 'dat.graph :reload)

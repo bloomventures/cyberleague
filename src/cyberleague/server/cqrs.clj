@@ -150,6 +150,12 @@
                 :game/slug
                 :game/name
                 :game/description
+                :game/rules
+                :game/technical-notes
+                :game/context-spec
+                :game/context-example
+                :game/move-spec
+                :game/move-example
                 {:game/bots bot-pattern}]))}
 
    {:id :api/match

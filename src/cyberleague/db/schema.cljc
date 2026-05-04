@@ -26,11 +26,7 @@
               :dat/unique :dat.unique/identity}
     :game/slug {:dat/type :db.type/string
                 :dat/unique :dat.unique/identity
-                :dat/spec Slug}
-    :game/name {:dat/type :db.type/string
-                :dat/spec NonBlankString}
-    :game/description {:dat/type :db.type/string}
-    :game/rules {:dat/type :db.type/string}}
+                :dat/spec Slug}}
 
    :entity/user
    {:user/id {:dat/type :db.type/uuid

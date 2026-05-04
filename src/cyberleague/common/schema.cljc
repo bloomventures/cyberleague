@@ -11,3 +11,6 @@
 
 (def Digest ;; sha-256
   [:re #"^[a-f0-9]{64}$"])
+
+(def BotId
+  :uuid)

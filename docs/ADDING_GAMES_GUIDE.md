@@ -6,16 +6,17 @@ Each game is defined by two parts: a config map registered via `game-registrar/r
 
 - `:game.config/name` — display name (e.g. `"goofspiel"`)
 - `:game.config/slug` — URL-safe identifier (e.g. `"ultimate-tic-tac-toe"`)
-- `:game.config/description` — human-readable description shown in the UI
-- `:game.config/rules` — detailed rules / bot interface docs (input/output format)
+- `:game.config/description` — brief human-readable description of the game (markdown)
+- `:game.config/rules` — rules of the game, typically as a bulleted list (markdown)
+- `:game.config/technical-notes` - clarifications of rules for how they were converted to digital play
+- `:game.config/context-spec` — malli spec for the context passed to bots as input
+- `:game.config/context-example` — example context value
 - `:game.config/move-spec` — malli spec for a valid move
 - `:game.config/move-example` — example move value
-- `:game.config/public-state-spec` — malli spec for the state passed to bots
-- `:game.config/public-state-example` — example public state value
-- `:game.config/internal-state-spec` — malli spec for the full internal game state
+- `:game.config/state-spec` — malli spec for the full internal game state
 - `:game.config/match-results-view` — hiccup/reagent component to render match results
 - `:game.config/test-bot` — bot used for basic upload validation
-- `:game.config/seed-bots` — list of `{:code/language :code/code}` bots seeded for matchmaking
+- `:game.config/seed-bots` — map of bot blueprints seeded for testing `{:blueprint/env-slug "clojure-sci" :blueprint/code (pr-str '(fn [context] ,,,))}`
 
 ### Engine (`IGameEngine` protocol)
 

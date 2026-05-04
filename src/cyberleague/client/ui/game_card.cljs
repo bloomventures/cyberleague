@@ -1,10 +1,13 @@
 (ns cyberleague.client.ui.game-card
   (:require
-   [markdown.core :as markdown]
    [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]))
+
+(defn subheading [s]
+  [:div {:tw "border-b border-solid text-#3f51b5 border-#3f51b5"}
+   s])
 
 (defn game-card-view
   [[_ {:keys [id]} :as card]]
@@ -19,10 +22,9 @@
          (str "#" (:game/name game))]
         [:div {:tw "grow"}]]]
       [card/body {}
-       [:<>
-        [:div {:tw "max-w-30em"
-               :dangerouslySetInnerHTML
-               (r/unsafe-html (markdown/md->html (:game/description game)))}]
+       [:div {:tw "max-w-45vw space-y-4"}
+        [:div
+         [ui/markdown (:game/description game)]]
         [:table
          {:tw "mx-auto"}
          [:thead
@@ -54,4 +56,43 @@
                [:td {:tw "p-1 align-middle"}
                 [:div {:tw "bg-#6877ca"
                        :style {:width (str (->width (:bot/rating bot)) "px")
-                               :height "0.5em"}}]]]))]]]]])))
+                               :height "0.5em"}}]]]))]]
+        [:div
+         [subheading "Rules"]
+         [:div {:tw "py-2"}
+          [ui/markdown (:game/rules game)]]]
+
+        [:div
+         [subheading "Technical Notes"]
+         [:div {:tw "py-2"}
+          [ui/markdown (:game/technical-notes game)]]]
+
+        [:div
+         [subheading "Context (Bot Input) Example"]
+         [:div {:tw "py-2"}
+          [:code {:tw "whitespace-pre-wrap"}
+           (js/JSON.stringify
+            (js/JSON.parse
+             (str (:game/context-example game)))
+            nil
+            2)]]]
+
+        [:div
+         [subheading "Context Schema"]
+         [:div {:tw "py-2"}
+          [:code {:tw "whitespace-pre-wrap"}
+           (ui/pretty-print
+            (str (:game/context-spec game)))]]]
+
+        [:div
+         [subheading "Move (Bot Output) Example"]
+         [:div {:tw "py-2"}
+          [:code {:tw "whitespace-pre-wrap"}
+           (str (:game/move-example game))]]]
+
+        [:div
+         [subheading "Move Schema"]
+         [:div {:tw "py-2"}
+          [:code {:tw "whitespace-pre-wrap"}
+           (ui/pretty-print (str (:game/move-spec game)))]]]
+        ]]])))

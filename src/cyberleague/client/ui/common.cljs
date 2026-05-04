@@ -1,6 +1,24 @@
 (ns cyberleague.client.ui.common
   (:require
-   [bloom.commons.fontawesome :as fa]))
+   [bloom.commons.fontawesome :as fa]
+   [markdown.core :as markdown]
+   [reagent.core :as r]
+   [zprint.core :as zprint]))
+
+(defn markdown
+  [s]
+  [:div.prose
+   {:dangerouslySetInnerHTML
+    (r/unsafe-html (markdown/md->html s))}])
+
+(defn pretty-print
+  [code-string]
+  (when code-string
+    (zprint/zprint-file-str
+     code-string
+     "reformat"
+     {:width 45
+      :style [:community]})))
 
 (defn button [opts & children]
   (into [:button

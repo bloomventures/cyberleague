@@ -14,6 +14,14 @@
 (def styles
   [:body
 
+   [:.prose
+    [:ul
+     {:list-style-type "disc"
+      :padding-inline-start "1.625em"}
+     [:li
+      {:margin-top "0.5em"
+       :margin-bottom "0.5em"}]]]
+
    [:a
     {:cursor "pointer"
      :color colors/blue

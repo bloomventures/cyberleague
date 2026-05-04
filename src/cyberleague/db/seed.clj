@@ -9,7 +9,7 @@
    [cyberleague.common.artifact :as artifact]
    [cyberleague.common.envs :as envs]
    [cyberleague.server.evaluator-client :as eval-client]
-   [cyberleague.game-registrar :as registrar]))
+   [cyberleague.game-registrar :as games]))
 
 (defn uuid [x]
   (uuid/from-email (str x)))
@@ -17,8 +17,7 @@
 (defn initialize-test-bots!
   []
   (let [user-id (uuid "admin")]
-    (->> @registrar/games
-         vals
+    (->> (games/all)
          (map (fn [game-config]
                 (let [{:blueprint/keys [env-slug code]}
                       (:game.config/test-bot game-config)
@@ -40,29 +39,13 @@
                      {:url upload-url
                       :method :post
                       :body code})))))
-         doall
-
-         #_(->> @registrar/games
-                vals
-                (map :game.config/test-bot)
-                (map (fn [{:blueprint/keys [_env-slug code]}]
-                       (let [result (eval-client/prepare {:digest (artifact/digest code)})]
-                         (if (:skip? result)
-                           (println "Skipping")
-                           (do
-                             (println "Uploading")
-                             (http/file-upload-request
-                              {:url (:upload-url result)
-                               :method :post
-                               :body code}))))))
-                doall))))
+         doall)))
 
 #_(initialize-test-bots!)
 
 (defn check-test-bots!
   []
-  (->> @registrar/games
-       vals
+  (->> (games/all)
        (take 1)
        (map (fn [game-config]
               (let [game-engine (cyberleague.games.protocol/make-engine
@@ -104,14 +87,11 @@
                                :language [:language/slug language-slug]})])))
 
    ;; games
-   (doseq [[_ game-config] @registrar/games
-           :let [game-id (uuid (:game.config/name game-config))]]
+   (doseq [game-config (games/all)
+           :let [game-id (uuid (:game.config/slug game-config))]]
      (db/transact!
       [{:game/id game-id
-        :game/name (:game.config/name game-config)
-        :game/slug (:game.config/slug game-config)
-        :game/description (:game.config/description game-config)
-        :game/rules (:game.config/rules game-config)}]))
+        :game/slug (:game.config/slug game-config)}]))
 
    ;; test-bots
    (initialize-test-bots!)))
@@ -139,7 +119,7 @@
                        (d/db db/*conn*)
                        (uuid "admin"))]
 
-     (doseq [[_ game-config] @registrar/games]
+     (doseq [game-config (games/all)]
        (doseq [[{:blueprint/keys [env-slug code]} user-id]
                (map vector
                     (:game.config/seed-bots game-config)
