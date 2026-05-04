@@ -18,9 +18,10 @@
                      result (game-runner/eval-move
                              artifact
                              {:ping nonce})]
-                 (when (not= nonce (:pong (:eval/return-value result)))
-                   [(:bot/id bot) {:move.error/type :move.error.type/failed-ping-pong
-                                   :move.error/data {:output (:eval/return-value result)}}]))))
+                 [(:bot/id bot)
+                  (merge result
+                         (when (not= nonce (:pong (:eval/return-value result)))
+                           {:eval/error {:move.error/type :move.error.type/failed-ping-pong}}))])))
        (into {})))
 
 (defn run-game!
@@ -29,7 +30,11 @@
   (let [match-id (uuid/random)
         [player-1 player-2] bots]
     (db/with-conn
-     (let [ping-pong-errors (ping-pong! bots artifacts)]
+     (let [ping-pong-evals (ping-pong! bots artifacts)
+           ping-pong-errors (->> ping-pong-evals
+                                 (map (fn [[_ eval]]
+                                        (:eval/error eval)))
+                                 (into {}))]
        (if (seq ping-pong-errors)
          (do
            (db/transact! [{:match/id match-id
@@ -37,7 +42,7 @@
                            :match/bots [[:bot/id (:bot/id player-1)]
                                         [:bot/id (:bot/id player-2)]]
                            :match/timestamp (java.util.Date.)
-                           :match/errors-transit (t/write-str ping-pong-errors)}])
+                           :match/log-transit (t/write-str [{:log-entry/evals ping-pong-evals}])}])
            (when (not test?)
              (doseq [errd-bot-id (keys ping-pong-errors)]
                (println "Disabling bot (ping-pong fail):" errd-bot-id)
@@ -75,11 +80,7 @@
                               :match/bots [[:bot/id (:bot/id player-1)]
                                            [:bot/id (:bot/id player-2)]]
                               :match/timestamp (java.util.Date.)
-                              :match/state-history-transit (t/write-str (:game.result/state-history result))
-                              :match/std-out-history-transit (t/write-str (:game.result/std-out-history result))
-                              :match/moves-transit (t/write-str (:game.result/history result))}
-                             (when errors
-                               {:match/errors-transit (t/write-str errors)})
+                              :match/log-transit (t/write-str (:game.result/log result))}
                              (when winner-id
                                {:match/winner [:bot/id winner-id]}))])
 

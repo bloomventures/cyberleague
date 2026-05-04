@@ -10,31 +10,66 @@
                 {:digest (:artifact/digest artifact)
                  :env-slug (:env/slug (:artifact/env artifact))
                  :input (json/write-str state)})]
-    (update result :eval/return-value json/read-str :key-fn keyword)))
+    (assoc result :eval/return-value
+           (json/read-str (:eval/stdout result) :key-fn keyword))))
+
+#_(eval-move
+   {:artifact/digest "878a289fd4cb8db5320e10fc9285a9ffd9a337e4e06468e7273385fa1e171c43"
+    :artifact/env {:env/slug "clojure-sci"}}
+   {:ping 551})
 
 (defn run-move
-  [bot-id artifact state game-engine]
+  [bot-id artifact state context game-engine]
   (let [eval (try
-               (->> (game-engine.protocol/anonymize-state-for game-engine bot-id state)
-                    (eval-move artifact))
+               (eval-move artifact context)
+               ;; TODO this may fail for our reasons, not the bot's
+               ;; ex. network failure; should handle it differently
                (catch Exception e
                  {:eval/error {:move.error/type :move.error.type/invalid-code
                                :move.error/data {:message (str e)}}}))
         return-value (:eval/return-value eval)]
     (cond
+      ;; for the above try/catch
       (:eval/error eval)
-      (:eval/return-value eval)
+      eval
 
       (not (game-engine.protocol/valid-move? game-engine return-value))
-      {:eval/error {:move.error/type :move.error.type/invalid-move
-                    :move.error/data {:move (:eval/return-value eval)}}}
+      (merge
+       eval
+       {:eval/error {:move.error/type :move.error.type/invalid-move}})
 
       (not (game-engine.protocol/legal-move? game-engine state bot-id return-value))
-      {:eval/error {:move.error/type :move.error.type/illegal-move
-                    :move.error/data {:move (:eval/return-value eval)}}}
+      (merge
+       eval
+       {:eval/error {:move.error/type :move.error.type/illegal-move}})
 
       :else
       eval)))
+
+(def Eval
+  [:map
+   [:eval/stdout :string]
+   [:eval/stderr :string]
+   ;; stdout json->edn, "move"
+   [:eval/return-value :any]
+   [:eval/error {:optional true}
+    [:map
+     [:move.error/type [:enum
+                        :move.error.type/invalid-code
+                        :move.error.type/invalid-move
+                        :move.error.type/illegal-move]]]]])
+
+(def PlayerId
+  :uuid) ;; TODO anonymize bots with an int
+
+(def LogEntry
+  [:map
+   ;; state prior to moves
+   [:log-entry/state :any]
+   [:log-entry/contexts
+    [:map-of PlayerId :any]]
+   [:log-entry/evals
+    [:map-of PlayerId Eval]]])
 
 (defn run-game
   "Bots: [bot ...]
@@ -44,51 +79,49 @@
         nplayers (game-engine.protocol/number-of-players game-engine)]
     (assert (= nplayers (count bot-ids))
             (str "Wrong number of players (" (count bot-ids) ") for " (:game/name game)))
-    (loop [states [(game-engine.protocol/init-state game-engine bot-ids)]
-           std-outs [""]
+    (loop [state (game-engine.protocol/init-state game-engine bot-ids)
+           log []
            player-indexes (cycle (range (count bot-ids)))]
-      (let [state (last states)]
-        (if (game-engine.protocol/game-over? game-engine state)
-          {:game.result/errors {}
-           :game.result/winner (game-engine.protocol/winner game-engine state)
-           :game.result/std-out-history std-outs
-           :game.result/state-history states
-           :game.result/history (state :history)}
-          (if (game-engine.protocol/simultaneous-turns? game-engine)
-            ;; For simultaneous turns, get all the moves
-            (let [evals (->> (take nplayers player-indexes)
-                             (map (fn [player-index]
-                                    (let [bot-id (get bot-ids player-index)
-                                          artifact (get artifacts player-index)]
-                                      [bot-id
-                                       (run-move bot-id artifact state game-engine)])))
-                             (into {}))
-                  errors (->> evals
-                              (keep (fn [[bot-id result]]
-                                        (when (:eval/error result)
-                                          [bot-id (:eval/error result)])))
-                              (into {}))]
-              (if (seq errors)
-                {:game.result/errors errors
-                 :game.result/winner nil
-                 :game.result/std-out-history std-outs
-                 :game.result/state-history states
-                 :game.result/history (:history state)}
-                (recur (conj states (game-engine.protocol/next-state game-engine state (update-vals evals :eval/return-value)))
-                       (conj std-outs (update-vals evals :eval/std-out))
-                       player-indexes)))
-            ;; For one-at-a-time, just get the next player's move
-            (let [player-index (first player-indexes)
-                  bot-id (get bot-ids player-index)
-                  artifact (get artifacts player-index)
-                  eval (run-move bot-id artifact state game-engine)]
-              (if (:eval/error eval)
-                {:game.result/errors {bot-id (:eval/error eval)}
-                 :game.result/winner nil
-                 :game.result/std-out-history std-outs
-                 :game.result/state-history states
-                 :game.result/history (:history state)}
-                (recur (conj states
-                             (game-engine.protocol/next-state game-engine state {bot-id (:eval/return-value eval)}))
-                       (conj std-outs (:eval/std-out eval))
-                       (next player-indexes))))))))))
+      (if (game-engine.protocol/game-over? game-engine state)
+        {:game.result/errors {}
+         :game.result/winner (game-engine.protocol/winner game-engine state)
+         :game.result/log (conj log
+                                {:log-entry/state state})}
+        (let [[player-indexes
+               next-player-indexes]
+              (if (game-engine.protocol/simultaneous-turns? game-engine)
+                [player-indexes
+                 player-indexes]
+                [(take 1 player-indexes)
+                 (next player-indexes)])
+              contexts (->> (take nplayers player-indexes)
+                            (map (fn [player-index]
+                                   (let [bot-id (get bot-ids player-index)]
+                                     [bot-id
+                                      (game-engine.protocol/anonymize-state-for game-engine bot-id state)])))
+                            (into {}))
+              evals (->> (take nplayers player-indexes)
+                         (map (fn [player-index]
+                                (let [bot-id (get bot-ids player-index)
+                                      artifact (get artifacts player-index)
+                                      context (get contexts bot-id)]
+                                  [bot-id
+                                   (run-move bot-id artifact state context game-engine)])))
+                         (into {}))
+              errors (->> evals
+                          (keep (fn [[bot-id result]]
+                                  (when (:eval/error result)
+                                    [bot-id (:eval/error result)])))
+                          (into {}))
+              moves (update-vals evals :eval/return-value)
+              next-log (conj log
+                             {:log-entry/state state
+                              :log-entry/contexts contexts
+                              :log-entry/evals evals})]
+          (if (seq errors)
+            {:game.result/errors errors
+             :game.result/winner nil
+             :game.result/log next-log}
+            (recur (game-engine.protocol/next-state game-engine state moves)
+                   next-log
+                   next-player-indexes)))))))

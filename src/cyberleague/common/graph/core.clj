@@ -56,16 +56,9 @@
    (alias-resolver :bot/_user :user/bots)
    (alias-resolver :env/_language :language/envs)
 
-   (transform-resolver :match/moves-transit :match/moves t/read-str)
-   (transform-resolver :match/errors-transit :match/errors t/read-str)
-   (transform-resolver :match/state-history-transit :match/state-history t/read-str)
-   (transform-resolver :match/std-out-history-transit :match/std-out-history t/read-str)
+   (transform-resolver :match/log-transit :match/log t/read-str)
 
-   {:dat.resolver/id ::env-starter-files
-    :dat.resolver/in [:env/slug]
-    :dat.resolver/out [:env/starter-files]
-    :dat.resolver/f (fn [{:keys [env/slug]}]
-                      {:env/starter-files (envs/files-for slug)})}
+   (transform-resolver :env/slug :env/starter-files envs/files-for)
 
    {:dat.resolver/id ::env-from-edn-configs
     :dat.resolver/in [:env/slug]

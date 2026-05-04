@@ -33,8 +33,8 @@
                         (sci/init {:realize-max 10})
                         form-to-eval)))
               500)]
-    {:eval/return-value (json/write-str move)
-     :eval/std-out (str sw)}))
+    {:eval/stdout (json/write-str move)
+     :eval/stderr (str sw)}))
 
 (comment
   (eval!

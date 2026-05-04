@@ -14,8 +14,8 @@
                  :eval.request/stdin    (.getBytes input "UTF-8")
                  :eval.request/argv     (-> (envs/by-slug env-slug)
                                             :env/argv)})]
-    {:eval/return-value (string/trim (:eval.response/stdout result))
-     :eval/std-out ""}))
+    {:eval/stdout (:eval.response/stdout result)
+     :eval/stderr (:eval.response/stderr result)}))
 
 #_(vm-eval! {:input "{}"
              :digest "9aa91c49c58ee8d7d1e5827034c32c323bc38c4fdba742082488c39cbbb5bc52"

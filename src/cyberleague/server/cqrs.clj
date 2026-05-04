@@ -175,10 +175,7 @@
                 {:match/winner [:bot/id]}
                 :match/test?
                 :match/timestamp
-                :match/errors
-                :match/moves
-                :match/std-out-history
-                :match/state-history]))}
+                :match/log]))}
 
    {:id :api/bot
     :params {:user-id [:maybe :user/id]
@@ -202,7 +199,6 @@
                                         [{:env/language
                                           [:language/slug]}]}]}
                 {:bot/matches [:match/id
-                               :match/errors
                                :match/test?
                                :match/timestamp
                                :match/winner

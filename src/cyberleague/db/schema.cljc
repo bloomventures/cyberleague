@@ -67,14 +67,8 @@
     :match/test? {:dat/type :db.type/boolean}
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/winner {:dat/rel [:dat.rel/one :entity/bot :bot/id]}
-    :match/moves-transit {:dat/type :db.type/string
-                          :dat/doc "Stored as transit"}
-    :match/state-history-transit {:dat/type :db.type/string
-                                  :dat/doc "Stored as transit"}
-    :match/std-out-history-transit {:dat/type :db.type/string
-                                    :dat/doc "Stored as transit"}
-    :match/errors-transit {:dat/type :db.type/string
-                           :dat/doc "Stored as transit"}}})
+    :match/log-transit {:dat/type :db.type/string
+                        :dat/doc "Stored as transit"}}})
 
 (def schema
   (cons {:db/ident :entities
