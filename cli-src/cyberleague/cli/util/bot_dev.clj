@@ -69,7 +69,7 @@
     (if-let [match-id (:match/id (r/tada! [:api/test-bot!
                                            {:bot-id (:bot/id bot-config)
                                             :digest (artifact/digest artifact)}]))]
-      (println "Test successful. Match: " match-id ". View it online.")
+      (println "Test completed. Match:" match-id ". View it online.")
       (println "Error running test."))))
 
 (defn stage!
