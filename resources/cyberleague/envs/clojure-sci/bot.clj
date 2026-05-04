@@ -1,2 +1,2 @@
 (fn [input]
-  (:pong (:ping input)))
+  {:pong (:ping input)})
