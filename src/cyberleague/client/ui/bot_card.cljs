@@ -16,11 +16,11 @@
   [{:bot/keys [id matches]}]
   (->> matches
        (remove :match/test?)
-       (map :match/winner)
-       (map (fn [winning-bot-id]
+       (map :match/winning-bots)
+       (map (fn [winning-bots]
               (cond
-                (= id winning-bot-id) :wins
-                (nil? winning-bot-id) :ties
+                (contains? (set winning-bots) id) :wins
+                (empty? winning-bots) :ties
                 :else :losses)))
        frequencies
        (merge {:wins 0 :losses 0 :ties 0})))
@@ -28,16 +28,17 @@
 (defn result-status
   [{:keys [match bot-id]}]
   (cond
-    (contains? (:match/errors match) bot-id)
+    (contains? (set (map :bot/id (:match/disqualified-bots match))) bot-id)
     "errored"
 
-    (= (:bot/id (:match/winner match)) bot-id)
+    (and (= 1 (count (:match/winning-bots match)))
+         (contains? (set (map :bot/id (:match/winning-bots match))) bot-id))
     "won"
 
-    (nil? (:match/winner match))
+    (contains? (set (map :bot/id (:match/winning-bots match))) bot-id)
     "tied"
 
-    (:match/winner match)
+    (seq (:match/winning-bots match))
     "lost"
 
     :else

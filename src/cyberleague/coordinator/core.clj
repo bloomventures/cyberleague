@@ -32,8 +32,8 @@
     (db/with-conn
      (let [ping-pong-evals (ping-pong! bots artifacts)
            ping-pong-errors (->> ping-pong-evals
-                                 (map (fn [[_ eval]]
-                                        (:eval/error eval)))
+                                 (filter (fn [[_ eval]]
+                                           (:eval/error eval)))
                                  (into {}))]
        (if (seq ping-pong-errors)
          (do
@@ -41,6 +41,10 @@
                            :match/test? test?
                            :match/bots [[:bot/id (:bot/id player-1)]
                                         [:bot/id (:bot/id player-2)]]
+                           :match/disqualified-bots
+                           (->> (keys ping-pong-errors)
+                                (map (fn [bot-id]
+                                       [:bot/id bot-id])))
                            :match/timestamp (java.util.Date.)
                            :match/log-transit (t/write-str [{:log-entry/evals ping-pong-evals}])}])
            (when (not test?)
@@ -66,9 +70,12 @@
                  ;; but for tournament purposes, if a bot errors
                  ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
                  ;; (ie. when about to lose, error)
-                 winner-id (or (:game.result/winner result)
-                               ;; assuming 2 player games
-                               (:bot/id (first (::ok bots-by-status))))]
+                 winner-ids (if (:game.result/winner result)
+                              ;; game currently always returns single
+                              [(:game.result/winner result)]
+
+                              ;; assuming 2 player games
+                              [(:bot/id (first (::ok bots-by-status)))])]
              (when (not test?)
                (doseq [errd-bot (::errored bots-by-status)]
                  (println "Disabling bot:" (:bot/id errd-bot) errors)
@@ -80,12 +87,19 @@
                               :match/bots [[:bot/id (:bot/id player-1)]
                                            [:bot/id (:bot/id player-2)]]
                               :match/timestamp (java.util.Date.)
-                              :match/log-transit (t/write-str (:game.result/log result))}
-                             (when winner-id
-                               {:match/winner [:bot/id winner-id]}))])
+                              :match/log-transit (t/write-str (:game.result/log result))
+                              :match/disqualified-bots
+                              (->> (bots-by-status ::errored)
+                                   (map (fn [id]
+                                          [:bot/id (:bot/id id)])))
+                              :match/winning-bots (->> winner-ids
+                                                       (map (fn [id]
+                                                              [:bot/id id])))})])
 
              (when (not test?)
-               (ranking/update-rankings! player-1 player-2 winner-id)))))))
+               (ranking/update-rankings! player-1 player-2
+                                         ;; curently only makes sense for 2p games anyway
+                                         (first winner-ids))))))))
     {:match/id match-id}))
 
 

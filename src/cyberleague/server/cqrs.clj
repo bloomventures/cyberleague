@@ -172,7 +172,8 @@
                               :game/name
                               :game/slug]}
                 {:match/bots bot-pattern}
-                {:match/winner [:bot/id]}
+                {:match/winning-bots [:bot/id]}
+                {:match/disqualified-bots [:bot/id]}
                 :match/test?
                 :match/timestamp
                 :match/log]))}
@@ -201,7 +202,8 @@
                 {:bot/matches [:match/id
                                :match/test?
                                :match/timestamp
-                               :match/winner
+                               {:match/winning-bots [:bot/id]}
+                               {:match/disqualified-bots [:bot/id]}
                                {:match/bots bot-pattern}]}]))}
 
    {:id :api/create-bot!
