@@ -19,7 +19,7 @@
    {:ping 551})
 
 (defn run-move
-  [bot-id artifact state context game-engine]
+  [player-index artifact state context game-engine]
   (let [eval (try
                (eval-move artifact context)
                ;; TODO this may fail for our reasons, not the bot's
@@ -38,7 +38,7 @@
        eval
        {:eval/error {:move.error/type :move.error.type/invalid-move}})
 
-      (not (game-engine.protocol/legal-move? game-engine state bot-id return-value))
+      (not (game-engine.protocol/legal-move? game-engine state player-index return-value))
       (merge
        eval
        {:eval/error {:move.error/type :move.error.type/illegal-move}})
@@ -60,7 +60,7 @@
                         :move.error.type/illegal-move]]]]])
 
 (def PlayerId
-  :uuid) ;; TODO anonymize bots with an int
+  :int)
 
 (def LogEntry
   [:map
@@ -76,15 +76,19 @@
    Artifacts [artifact ...]"
   [{:keys [game bot-ids artifacts]}]
   (let [game-engine (game-engine.protocol/make-engine game)
-        nplayers (game-engine.protocol/number-of-players game-engine)]
+        nplayers (game-engine.protocol/number-of-players game-engine)
+        player-indexes (range (count bot-ids))
+        bot-id->player-index (zipmap bot-ids
+                                     player-indexes)]
     (assert (= nplayers (count bot-ids))
             (str "Wrong number of players (" (count bot-ids) ") for " (:game/name game)))
-    (loop [state (game-engine.protocol/init-state game-engine bot-ids)
+    (loop [state (game-engine.protocol/init-state game-engine player-indexes)
            log []
-           player-indexes (cycle (range (count bot-ids)))]
+           player-indexes (cycle player-indexes)]
       (if (game-engine.protocol/game-over? game-engine state)
         {:game.result/errors {}
-         :game.result/winner (game-engine.protocol/winner game-engine state)
+         :game.result/player-mappings bot-id->player-index
+         :game.result/winner (get bot-ids (game-engine.protocol/winner game-engine state))
          :game.result/log (conj log
                                 {:log-entry/state state})}
         (let [[player-indexes
@@ -98,7 +102,7 @@
                             (map (fn [player-index]
                                    (let [bot-id (get bot-ids player-index)]
                                      [bot-id
-                                      (game-engine.protocol/anonymize-state-for game-engine bot-id state)])))
+                                      (game-engine.protocol/anonymize-state-for game-engine player-index state)])))
                             (into {}))
               evals (->> (take nplayers player-indexes)
                          (map (fn [player-index]
@@ -106,20 +110,25 @@
                                       artifact (get artifacts player-index)
                                       context (get contexts bot-id)]
                                   [bot-id
-                                   (run-move bot-id artifact state context game-engine)])))
+                                   (run-move player-index artifact state context game-engine)])))
                          (into {}))
               errors (->> evals
                           (keep (fn [[bot-id result]]
                                   (when (:eval/error result)
                                     [bot-id (:eval/error result)])))
                           (into {}))
-              moves (update-vals evals :eval/return-value)
+              moves (->> evals
+                         (map (fn [[bot-id eval]]
+                                [(bot-id->player-index bot-id)
+                                 (:eval/return-value eval)]))
+                         (into {}))
               next-log (conj log
                              {:log-entry/state state
                               :log-entry/contexts contexts
                               :log-entry/evals evals})]
           (if (seq errors)
             {:game.result/errors errors
+             :game.result/player-mappings bot-id->player-index
              :game.result/winner nil
              :game.result/log next-log}
             (recur (game-engine.protocol/next-state game-engine state moves)

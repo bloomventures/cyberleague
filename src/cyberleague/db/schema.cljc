@@ -68,6 +68,8 @@
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/winning-bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/disqualified-bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
+    :match/player-mappings-transit {:dat/type :db.type/string
+                                    :dat/doc "Stored as transit"}
     :match/log-transit {:dat/type :db.type/string
                         :dat/doc "Stored as transit"}}})
 

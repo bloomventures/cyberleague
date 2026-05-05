@@ -47,10 +47,14 @@
                            [marker-view (meta-board board-index)]]))]))])]
      [:div {:style {:display "flex"
                     :justify-content "space-between"}}
-      (for [[bot-id marker] (state :marker)]
-        ^{:key bot-id}
+      (for [[player-index marker] (state :marker)]
+        ^{:key player-index}
         [:div
-         [:span (:bot/name (bots-by-id bot-id))] " "
+         [:span (->> (:match/bots match)
+                     (filter (fn [bot]
+                               (= player-index (get (:match/player-mappings match) (:bot/id bot)))))
+                     first
+                     :bot/name)] " "
          [:span [marker-view marker]] " "
          [:span (othello/stone-count (:board state) marker)]])]]))
 

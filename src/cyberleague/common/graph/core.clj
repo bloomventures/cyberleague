@@ -57,6 +57,7 @@
    (alias-resolver :env/_language :language/envs)
 
    (transform-resolver :match/log-transit :match/log t/read-str)
+   (transform-resolver :match/player-mappings-transit :match/player-mappings t/read-str)
 
    (transform-resolver :env/slug :env/starter-files envs/files-for)
 

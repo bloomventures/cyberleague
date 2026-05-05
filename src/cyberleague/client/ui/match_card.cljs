@@ -23,32 +23,34 @@
         [:div {:tw "flex justify-center mb-2"}
          (when (:match/test? match)
            [:div {:tw "bg-#3f51b5  text-white px-1 rounded"} "TEST"])]
-        (let [[bot1 bot2] (:match/bots match)]
-          [:h1 {:tw "flex gap-1 justify-center items-center mb-4"}
-           [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot1)))} [ui/bot-chip bot1]]
-           " vs "
-           [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot2)))} [ui/bot-chip bot2]]])
+
 
         [:table
-         [:tr
-          [:td "Id"]
-          [:td (str (:match/id match))]]
-         [:tr
-          [:td "Time"]
-          [:td (.toLocaleString (:match/timestamp match))]]
-         [:tr
-          [:td "Winner(s):"]
-          [:td (for [{:bot/keys [id]} (:match/winning-bots match)]
-                 [ui/bot-chip (->> (:match/bots match)
-                                   (filter (fn [b]
-                                             (= id (:bot/id b))))
-                                   first)])]]
-         [:tr
-          [:td "Disqualified:"]
-          [:td
-           (for [{:bot/keys [id]} (:match/disqualified-bots match)]
-             [ui/bot-chip (->> (:match/bots match)
-                               (filter (fn [b]
-                                         (= id (:bot/id b))))
-                               first)])]]]
+         [:tbody
+          [:tr
+           [:td "Match Id"]
+           [:td (str (:match/id match))]]
+          [:tr
+           [:td "Time"]
+           [:td (.toLocaleString (:match/timestamp match))]]
+          [:tr
+           [:td "Players"]
+           [:td
+            (for [bot (:match/bots match)]
+              [:div [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))} [ui/bot-chip bot]] " as " (get-in match [:match/player-mappings (:bot/id bot)])])]]
+          [:tr
+           [:td "Winner(s):"]
+           [:td (for [{:bot/keys [id]} (:match/winning-bots match)]
+                  [ui/bot-chip (->> (:match/bots match)
+                                    (filter (fn [b]
+                                              (= id (:bot/id b))))
+                                    first)])]]
+          [:tr
+           [:td "Disqualified:"]
+           [:td
+            (for [{:bot/keys [id]} (:match/disqualified-bots match)]
+              [ui/bot-chip (->> (:match/bots match)
+                                (filter (fn [b]
+                                          (= id (:bot/id b))))
+                                first)])]]]]
         [match-results-view {:match match}]]]])))

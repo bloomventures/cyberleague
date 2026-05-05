@@ -174,6 +174,7 @@
                 {:match/bots bot-pattern}
                 {:match/winning-bots [:bot/id]}
                 {:match/disqualified-bots [:bot/id]}
+                :match/player-mappings
                 :match/test?
                 :match/timestamp
                 :match/log]))}

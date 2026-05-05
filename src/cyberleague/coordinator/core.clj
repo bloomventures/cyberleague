@@ -87,6 +87,7 @@
                               :match/bots [[:bot/id (:bot/id player-1)]
                                            [:bot/id (:bot/id player-2)]]
                               :match/timestamp (java.util.Date.)
+                              :match/player-mappings-transit (t/write-str (:game.result/player-mappings result))
                               :match/log-transit (t/write-str (:game.result/log result))
                               :match/disqualified-bots
                               (->> (bots-by-status ::errored)
