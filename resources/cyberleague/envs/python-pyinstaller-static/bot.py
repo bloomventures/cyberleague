@@ -1,0 +1,1 @@
+../python-py2wasm-wasm/bot.py
