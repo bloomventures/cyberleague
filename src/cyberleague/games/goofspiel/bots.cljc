@@ -2,6 +2,7 @@
 
 (def random-bot
   '(fn [state]
+     (println "I am so random.")
      (if (:ping state)
        {:pong (:ping state)}
        (rand-nth (vec (get-in state [:player-cards :me]))))))
