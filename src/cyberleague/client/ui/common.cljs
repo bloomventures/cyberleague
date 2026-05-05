@@ -64,12 +64,13 @@
 
    ;; only active bots have weights
    (when-let [weight (:bot/weight bot)]
-     [:span {:tw "whitespace-nowrap flex items-center"}
-      " ("
-      weight
-      [fa/fa-weight-hanging-solid
-       {:tw "w-0.75em h-0.75em inline ml-0.5"}]
-      ")"])])
+     (when (< 0 weight)
+       [:span {:tw "whitespace-nowrap flex items-center"}
+        " ("
+        weight
+        [fa/fa-weight-hanging-solid
+         {:tw "w-0.75em h-0.75em inline ml-0.5"}]
+        ")"]))])
 
 (defn subheading [s]
   [:div {:tw "border-b border-solid text-#3f51b5 border-#3f51b5"}
