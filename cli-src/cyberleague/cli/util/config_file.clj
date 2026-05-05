@@ -4,7 +4,12 @@
    [clojure.java.io :as io]
    [cyberleague.cli.util.ednf :as ednf]))
 
-(def filename "cyberleague-token.edn")
+(def filename "cyberleague.conf.edn")
+
+(def Config
+  [:map
+   [:cyberleague.cli.config/token :string]
+   [:cyberleague.cli.config/api-server-url {:optional true} :string]])
 
 (defn- find-path
   []

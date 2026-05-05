@@ -1,14 +1,20 @@
 (ns cyberleague.cli.util.remote
   (:require
    [cyberleague.common.transit-client :as http]
+   [cyberleague.cli.util.config-file :as config]
    [cyberleague.cli.util.token :as token]))
 
-(def api-root "http://127.0.0.1:3000")
+(def default-api-url
+  "https://cyberleague.rafd.me")
+
+(defn api-url []
+  (or (:cyberleague.cli.config/api-server-url (config/read))
+      default-api-url))
 
 (defn tada!
   [[event-id params]]
   (http/request
-   {:url (str api-root
+   {:url (str (api-url)
               "/api/tada/"
               (namespace event-id) "." (name event-id))
     :oauth-token (token/read)
