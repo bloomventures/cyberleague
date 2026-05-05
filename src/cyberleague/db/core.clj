@@ -182,7 +182,8 @@
   (let [artifact-id (bot-digest->artifact-id {:bot-id bot-id
                                               :digest digest})]
     {:bot/id bot-id
-     :bot/active-artifact [:artifact/id artifact-id]}))
+     :bot/active-artifact [:artifact/id artifact-id]
+     :bot/rating-dev 350}))
 
 (defn dummy-bot
   [game-slug]
