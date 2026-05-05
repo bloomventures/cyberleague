@@ -27,26 +27,30 @@
 (defn run-game!
   [{:keys [game bots artifacts test?]}]
   #_(print "Starting " (:bot/id player-1) " vs " (:bot/id player-2) "...")
-  (let [match-id (uuid/random)
-        [player-1 player-2] bots]
+  (let [match-id (uuid/random)]
     (db/with-conn
      (let [ping-pong-evals (ping-pong! bots artifacts)
            ping-pong-errors (->> ping-pong-evals
                                  (filter (fn [[_ eval]]
                                            (:eval/error eval)))
-                                 (into {}))]
+                                 (into {}))
+           match {:match/id match-id
+                  :match/test? test?
+                  :match/bots (->> bots
+                                   (map (fn [bot]
+                                          [:bot/id (:bot/id bot)])))
+                  :match/artifacts (->> artifacts
+                                        (map (fn [artifact]
+                                               [:artifact/id (:artifact/id artifact)])))
+                  :match/timestamp (java.util.Date.)}]
        (if (seq ping-pong-errors)
          (do
-           (db/transact! [{:match/id match-id
-                           :match/test? test?
-                           :match/bots [[:bot/id (:bot/id player-1)]
-                                        [:bot/id (:bot/id player-2)]]
-                           :match/disqualified-bots
-                           (->> (keys ping-pong-errors)
-                                (map (fn [bot-id]
-                                       [:bot/id bot-id])))
-                           :match/timestamp (java.util.Date.)
-                           :match/log-transit (t/write-str [{:log-entry/evals ping-pong-evals}])}])
+           (db/transact! [(assoc match
+                                 :match/disqualified-bots
+                                 (->> (keys ping-pong-errors)
+                                      (map (fn [bot-id]
+                                             [:bot/id bot-id])))
+                                 :match/log-transit (t/write-str [{:log-entry/evals ping-pong-evals}]))])
            (when (not test?)
              (doseq [errd-bot-id (keys ping-pong-errors)]
                (println "Disabling bot (ping-pong fail):" errd-bot-id)
@@ -83,28 +87,26 @@
                  (println "Disabling bot:" (:bot/id errd-bot) errors)
                  (db/disable-bot! (:bot/id errd-bot) (:bot/active-artifact errd-bot))))
 
-             (db/transact! [(merge
-                             {:match/id match-id
-                              :match/test? test?
-                              :match/bots [[:bot/id (:bot/id player-1)]
-                                           [:bot/id (:bot/id player-2)]]
-                              :match/timestamp (java.util.Date.)
-                              :match/player-mappings-transit (t/write-str (:game.result/player-mappings result))
-                              :match/log-transit (t/write-str (:game.result/log result))
-                              :match/disqualified-bots
-                              (->> (bots-by-status ::errored)
-                                   (map (fn [id]
-                                          [:bot/id (:bot/id id)])))
-                              :match/winning-bots (->> winner-ids
-                                                       (map (fn [id]
-                                                              [:bot/id id])))})])
-
-             (when (not test?)
-               (ranking/update-rankings! player-1 player-2
-                                         ;; curently only makes sense for 2p games anyway
-                                         (first winner-ids))))))))
+             (db/transact! (->> (concat [(assoc match
+                                                :match/player-mappings-transit
+                                                (t/write-str (:game.result/player-mappings result))
+                                                :match/log-transit
+                                                (t/write-str (:game.result/log result))
+                                                :match/disqualified-bots
+                                                (->> (bots-by-status ::errored)
+                                                     (map (fn [id]
+                                                            [:bot/id (:bot/id id)])))
+                                                :match/winning-bots
+                                                (->> winner-ids
+                                                     (map (fn [id]
+                                                            [:bot/id id]))))]
+                                        (when (not test?)
+                                           (ranking/new-ratings
+                                            (first bots)
+                                            (second bots)
+                                            ;; curently only makes sense for 2p games anyway
+                                            (first winner-ids)))))))))))
     {:match/id match-id}))
-
 
 (defn select-players
   [active-bots]

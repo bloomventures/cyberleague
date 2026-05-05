@@ -1,7 +1,6 @@
 (ns cyberleague.coordinator.ranking
   (:require
-   [clojure.math.numeric-tower :refer [expt]]
-   [cyberleague.db.core :as db]))
+   [clojure.math.numeric-tower :refer [expt]]))
 
 (def PI Math/PI)
 
@@ -26,7 +25,7 @@
 
     [new-R1 new-RD1]))
 
-(defn update-rankings! [p1 p2 winner]
+(defn new-ratings [p1 p2 winner]
   (let [[p1r p1rd] (glicko
                     (:bot/rating p1) (:bot/rating-dev p1)
                     (:bot/rating p2) (:bot/rating-dev p2)
@@ -41,4 +40,9 @@
                       (= winner (:bot/id p2)) :win
                       (nil? winner) :tie
                       :else :loss))]
-    (db/update-rankings! p1 p1r p1rd p2 p2r p2rd)))
+    [{:bot/id (:bot/id p1)
+      :bot/rating (Math/max 0 (Math/round p1r))
+      :bot/rating-dev (Math/max 50 (Math/round p1rd))}
+     {:bot/id (:bot/id p2)
+      :bot/rating (Math/max 0 (Math/round p2r))
+      :bot/rating-dev (Math/max 50 (Math/round p2rd))}]))

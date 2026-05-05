@@ -211,42 +211,47 @@
 
 (defn bot-history
   [bot-id]
-  (->> (d/q '[:find ?inst ?attr ?val
-              :in $ ?id
-              :where
-              [?e :bot/id ?id]
-              [?e ?a ?val ?tx true]
-              [?a :db/ident ?attr]
-              [?tx :db/txInstant ?inst]]
-            (d/history (d/db *conn*))
-            bot-id)
-       (group-by first)
-       (reduce-kv (fn [memo k v]
-                    (let [rating (last (first (filter #(= :bot/rating (second %)) v)))
-                          rating-dev (last (first (filter #(= :bot/rating-dev (second %)) v)))
-                          [rating rating-dev]
-                          (cond
-                            (and (nil? rating) (nil? rating-dev)) [nil nil]
-                            (nil? rating-dev) [rating
-                                               (:bot/rating-dev (d/entity (d/as-of (d/db *conn*) k) bot-id))]
-                            (nil? rating) [(:bot/rating (d/entity (d/as-of (d/db *conn*) k) bot-id))
-                                           rating-dev]
-                            :else [rating rating-dev])]
-                      (if (and rating rating-dev)
-                        (conj memo {:inst k :rating rating :rating-dev rating-dev})
-                        memo))) [])
-       (sort-by :inst)
-       vec))
+  (let [history (d/history (d/db *conn*))
+        raw (d/q '[:find ?tx ?inst ?attr ?val
+                   :in $ ?id
+                   :where
+                   [?e :bot/id ?id]
+                   [?e ?a ?val ?tx true]
+                   [?a :db/ident ?attr]
+                   [?tx :db/txInstant ?inst]]
+                 history
+                 bot-id)
+        match-id-by-tx (->> (d/q '[:find ?tx ?match-id
+                                   :in $ [?tx ...]
+                                   :where
+                                   [_ :match/id ?match-id ?tx true]]
+                                 history
+                                 (map first raw))
+                            (into {}))]
+    (->> raw
+         (group-by second)
+         (reduce-kv (fn [memo k v]
+                      (let [rating (last (first (filter #(= :bot/rating (nth % 2)) v)))
+                            rating-dev (last (first (filter #(= :bot/rating-dev (nth % 2)) v)))
+                            tx (ffirst v)
+                            [rating rating-dev]
+                            (cond
+                              (and (nil? rating) (nil? rating-dev)) [nil nil]
+                              (nil? rating-dev) [rating
+                                                 (:bot/rating-dev (d/entity (d/as-of (d/db *conn*) k) bot-id))]
+                              (nil? rating) [(:bot/rating (d/entity (d/as-of (d/db *conn*) k) bot-id))
+                                             rating-dev]
+                              :else [rating rating-dev])]
+                        (if (and rating rating-dev)
+                          (conj memo {:inst k
+                                      :rating rating
+                                      :rating-dev rating-dev
+                                      :match-id (match-id-by-tx tx)})
+                          memo))) [])
+         (sort-by :inst)
+         vec)))
 
 ;; Matches
-
-(defn update-rankings!
-  [p1 p1r p1rd p2 p2r p2rd]
-  (d/transact *conn*
-              [[:db/add [:bot/id (:bot/id p1)] :bot/rating (Math/max 0 (Math/round p1r))]
-               [:db/add [:bot/id (:bot/id p2)] :bot/rating (Math/max 0 (Math/round p2r))]
-               [:db/add [:bot/id (:bot/id p1)] :bot/rating-dev (Math/max 50 (Math/round p1rd))]
-               [:db/add [:bot/id (:bot/id p2)] :bot/rating-dev (Math/max 50 (Math/round p2rd))]]))
 
 (defn disable-bot!
   [bot-id artifact]

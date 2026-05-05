@@ -38,6 +38,18 @@
                 opts)]
         children))
 
+(defn color [x]
+  (if x
+    (str "oklch(50% 70% " (hash x) ")")
+    "#000000"))
+
+(defn artifact-chip
+  [digest]
+  (let [digest (or digest "??????")]
+    [:div {:tw "rounded text-white px-1 inline-block"
+           :style {:background-color (color digest)}}
+     (subs digest 0 6)]))
+
 (defn bot-chip [bot]
   [:div {:tw "inline-flex items-center gap-1 justify-between"}
    [:span (if (= :active (:bot/status bot))
@@ -58,3 +70,7 @@
       [fa/fa-weight-hanging-solid
        {:tw "w-0.75em h-0.75em inline ml-0.5"}]
       ")"])])
+
+(defn subheading [s]
+  [:div {:tw "border-b border-solid text-#3f51b5 border-#3f51b5"}
+   s])

@@ -30,28 +30,6 @@
     [:&:hover
      {:color colors/blue-dark}]]
 
-   [:.graph
-    [:svg
-     {:margin "0 -1em"}
-
-     [:.axis
-      [:path
-       :line
-       {:fill "none"
-        :stroke "#ccc"
-        :shape-rendering "crispEdges"}]]
-
-     [:text
-      {:fill "#ccc"
-       :font-size "10px"}]
-
-     [:.line
-      {:stroke colors/blue
-       :fill "none"}]
-
-     [:.area
-      {:fill "#eee"}]]]
-
    [:.CodeMirror
     {:font-family "Inconsolata"
      :line-height 1.2

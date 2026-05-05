@@ -66,6 +66,7 @@
     :match/timestamp {:dat/type :db.type/instant}
     :match/test? {:dat/type :db.type/boolean}
     :match/bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
+    :match/artifacts {:dat/rel [:dat.rel/many :entity/artifact :artifact/id]}
     :match/winning-bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/disqualified-bots {:dat/rel [:dat.rel/many :entity/bot :bot/id]}
     :match/player-mappings-transit {:dat/type :db.type/string

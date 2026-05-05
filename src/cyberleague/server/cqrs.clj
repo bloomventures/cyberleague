@@ -172,6 +172,8 @@
                               :game/name
                               :game/slug]}
                 {:match/bots bot-pattern}
+                {:match/artifacts [:artifact/digest
+                                   {:artifact/bot [:bot/id]}]}
                 {:match/winning-bots [:bot/id]}
                 {:match/disqualified-bots [:bot/id]}
                 :match/player-mappings
@@ -197,13 +199,19 @@
                             :game/name]}
                 {:bot/user [:user/id
                             :user/name]}
-                {:bot/active-artifact [{:artifact/env
+                {:bot/active-artifact [:artifact/digest
+                                       :artifact/weight
+                                       {:artifact/env
                                         [:env/slug
                                          {:env/language
                                           [:language/slug]}]}]}
+                {:bot/artifacts [:artifact/digest
+                                 :artifact/created-at]}
                 {:bot/matches [:match/id
                                :match/test?
                                :match/timestamp
+                               {:match/artifacts [:artifact/digest
+                                                  {:artifact/bot [:bot/id]}]}
                                {:match/winning-bots [:bot/id]}
                                {:match/disqualified-bots [:bot/id]}
                                {:match/bots bot-pattern}]}]))}

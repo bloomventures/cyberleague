@@ -54,6 +54,7 @@
    (alias-resolver :match/_bots :bot/matches)
    (alias-resolver :bot/_game :game/bots)
    (alias-resolver :bot/_user :user/bots)
+   (alias-resolver :artifact/_bot :bot/artifacts)
    (alias-resolver :env/_language :language/envs)
 
    (transform-resolver :match/log-transit :match/log t/read-str)
