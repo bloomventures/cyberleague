@@ -1,5 +1,6 @@
 (ns cyberleague.cli.subcommands.bot.new
   (:require
+   [clojure.string :as string]
    [clojure.java.io :as io]
    [cyberleague.cli.util.format :as f]
    [cyberleague.cli.util.remote :as r]
@@ -11,10 +12,11 @@
   (let [result (r/tada! [:api/create-bot! {:game-slug game-slug
                                            :env-slug env-slug}])]
     (if result
-      (let [{:env/keys [starter-files build-cmd artifact-path run-cmd]}
+      (let [{:env/keys [starter-files build-cmd artifact-path run-cmd note]}
             (r/tada! [:api/env {:env-slug env-slug
                                 :pull-pattern
                                 [:env/starter-files
+                                 :env/note
                                  :env/run-cmd
                                  :env/build-cmd
                                  :env/artifact-path]}])]
@@ -30,6 +32,9 @@
                           :bot/run-cmd run-cmd
                           :bot/build-cmd      build-cmd
                           :bot/build-artifact artifact-path})
+            (println "NOTE BLANK?" (string/blank? note))
+            (when (not (string/blank? note))
+              (spit (str dir-name "/NOTE.txt") note))
             (doseq [[path f-content] starter-files]
               (.mkdirs ^java.io.File (io/file (.getParent ^java.io.File (io/file (str dir-name "/" path)))))
               (spit (str dir-name "/" path) f-content))
