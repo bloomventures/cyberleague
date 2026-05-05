@@ -63,13 +63,9 @@
                      (cyberleague.games.protocol/anonymize-state-for
                       game-engine 123 state))})))))))
 
-(defn initialize-core!
+(defn initialize-envs!
   []
   (db/with-conn
-   (db/create-user! {:id (uuid "admin")
-                     :github-id 0
-                     :name "admin"})
-
    (let [envs (envs/all)]
      ;; languages
      (doseq [language-slug (->> envs
@@ -86,7 +82,16 @@
                           (:env/language-slug e)])))]
        (db/transact! [(db/env {:id (uuid env-slug)
                                :slug env-slug
-                               :language [:language/slug language-slug]})])))
+                               :language [:language/slug language-slug]})])))))
+
+(defn initialize-core!
+  []
+  (db/with-conn
+   (db/create-user! {:id (uuid "admin")
+                     :github-id 0
+                     :name "admin"})
+
+   (initialize-envs!)
 
    ;; games
    (doseq [game-config (games/all)
