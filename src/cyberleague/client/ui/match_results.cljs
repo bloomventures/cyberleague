@@ -66,7 +66,9 @@
               clj->js
               (js/JSON.stringify nil 2))]]
 
-        (for [bot (:match/bots match)]
+        (for [bot (:match/bots match)
+              :when (get (:log-entry/contexts log-entry)
+                         (:bot/id bot))]
           [:div
            [:div {:tw "text-white bg-#3f51b5 p-1"}
             [ui/bot-chip bot]]
