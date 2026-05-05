@@ -14,10 +14,12 @@
   :profiles {:common {:dependencies [[com.taoensso/telemere "1.2.1"]
                                      [org.clj-commons/digest "1.4.100"]
                                      [com.cognitect/transit-clj "1.1.357"]]}
-             :dev {:source-paths ["src" "dev-src"]}
+             :dev {:source-paths ["dev-src"]
+                   :repl-options {:init-ns user}}
              ;; leingen complains about mixing keywords and maps
              ;; hence the :*foo profiles
-             :*evaluator {:dependencies [[org.clojure/clojure "1.12.4"]
+             :*evaluator {:source-paths ["evaluator-src"]
+                          :dependencies [[org.clojure/clojure "1.12.4"]
                                          [http-kit "2.8.0"]
                                          [io.bloomventures/commons "0.17.1"]
                                          [com.rpl/specter "1.1.6"]
@@ -36,7 +38,9 @@
                                          [org.babashka/sci "0.12.51"]]
                           :main cyberleague.evaluator.core}
              :evaluator [:common :*evaluator]
-             :*server {:dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
+             :*server {:main cyberleague.core
+                       :source-paths ["src"]
+                       :dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
                                       [io.bloomventures/omni "0.36.2"]
                                       [com.datomic/peer "1.0.7491"
                                        :exclusions
@@ -72,12 +76,10 @@
 
                                       ;; registrar
                                       #_[metosin/malli "0.2.1"] ;; from omni->commoms
-                                      ]
-
-                       :main cyberleague.core
-                       :repl-options {:init-ns cyberleague.core}}
+                                      ] }
              :server [:common :*server]
              :*cli {:source-paths ["cli-src"]
+                    :resource-paths ^:replace []
                     :main         cyberleague.cli.core
                     :dependencies [[cli-matic "0.5.4"]
                                    [zprint "1.3.0"]
