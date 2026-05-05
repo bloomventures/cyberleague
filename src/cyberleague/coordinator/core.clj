@@ -70,10 +70,12 @@
                  ;; but for tournament purposes, if a bot errors
                  ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
                  ;; (ie. when about to lose, error)
-                 winner-ids (if (:game.result/winner result)
+                 winner-ids (cond
+                              (:game.result/winner result)
                               ;; game currently always returns single
                               [(:game.result/winner result)]
 
+                              (seq (::ok bots-by-status))
                               ;; assuming 2 player games
                               [(:bot/id (first (::ok bots-by-status)))])]
              (when (not test?)
