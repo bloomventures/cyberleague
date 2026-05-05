@@ -6,12 +6,13 @@
 
 (defn eval-move
   [artifact state]
-  (let [result (eval-client/eval!
-                {:digest (:artifact/digest artifact)
-                 :env-slug (:env/slug (:artifact/env artifact))
-                 :input (json/write-str state)})]
+  (if-let [result (eval-client/eval!
+                   {:digest (:artifact/digest artifact)
+                    :env-slug (:env/slug (:artifact/env artifact))
+                    :input (json/write-str state)})]
     (assoc result :eval/return-value
-           (json/read-str (:eval/stdout result) :key-fn keyword))))
+           (json/read-str (:eval/stdout result) :key-fn keyword))
+    nil))
 
 #_(eval-move
    {:artifact/digest "878a289fd4cb8db5320e10fc9285a9ffd9a337e4e06468e7273385fa1e171c43"
