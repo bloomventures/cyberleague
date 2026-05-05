@@ -7,7 +7,7 @@
    [cyberleague.db.seed :as seed]))
 
 (defn start! []
-  (evaluator/start!)
+  #_(evaluator/start!)
   (seed/seed!)
   (server/start!)
   (coordinator/start!))
