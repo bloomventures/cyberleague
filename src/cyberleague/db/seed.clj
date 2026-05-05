@@ -3,6 +3,8 @@
    [tada.events.core :as tada]
    [bloom.commons.uuid :as uuid]
    [datomic.api :as d]
+   [cyberleague.common.transit :as transit]
+   [cyberleague.coordinator.ranking :as ranking]
    [cyberleague.server.cqrs :as cqrs]
    [cyberleague.db.core :as db]
    [cyberleague.common.transit-client :as http]
@@ -148,7 +150,38 @@
                      :api/deploy-bot!
                      {:user-id user-id
                       :bot-id bot-id
-                      :digest (artifact/digest code)})))))))
+                      :digest (artifact/digest code)})))))
+
+   ;; add some fake matches
+   (doseq [[_game bots] (db/active-bots)
+           :when (>= (count bots) 2)]
+     (doseq [[bot-1 bot-2] (partition 2 1 bots)]
+       (dotimes [i 5]
+         (let [bot-1 (db/by-id [:bot/id (:bot/id bot-1)])
+               bot-2 (db/by-id [:bot/id (:bot/id bot-2)])
+               artifact-1 (:bot/active-artifact bot-1)
+               artifact-2 (:bot/active-artifact bot-2)
+               winner (rand-nth [bot-1 bot-2 nil])
+               winner-id (some-> winner :bot/id)
+               match-id (uuid/random)
+               ;; spread matches over the past few days
+               match-time (java.util.Date. (- (System/currentTimeMillis)
+                                              (* i 1000 60 60 12)))]
+           (db/transact!
+            (concat
+             [{:match/id match-id
+               :match/test? false
+               :match/bots [[:bot/id (:bot/id bot-1)]
+                            [:bot/id (:bot/id bot-2)]]
+               :match/artifacts [[:artifact/id (:artifact/id artifact-1)]
+                                 [:artifact/id (:artifact/id artifact-2)]]
+               :match/timestamp match-time
+               :match/player-mappings-transit (transit/write-str {(:bot/id bot-1) 0
+                                                                  (:bot/id bot-2) 1})
+               :match/log-transit (transit/write-str [{:log-entry/state {}}])
+               :match/disqualified-bots []
+               :match/winning-bots (if winner-id [[:bot/id winner-id]] [])}]
+             (ranking/new-ratings bot-1 bot-2 winner-id)))))))))
 
 #_(seed!)
 
