@@ -70,16 +70,20 @@
      (when-let [bot @data]
        [:<>
         [:span {:tw "whitespace-nowrap"} [ui/bot-chip bot]]
-        [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
-         (str "@" (:user/name (:bot/user bot)))]
-        [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-         (str "#" (:game/name (:bot/game bot)))]
         [:div {:tw "grow"}]])]
     [card/body {}
      (when-let [bot @data]
        [:<>
         [:table
          [:tbody
+          [:tr
+           [:td "User"]
+           [:td [:a {:on-click (fn [_] (state/nav! :card.type/user (:user/id (:bot/user bot))))}
+                 (str "@" (:user/name (:bot/user bot)))]]]
+          [:tr
+           [:td "Game"]
+           [:td [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+                 (str "#" (:game/name (:bot/game bot)))]]]
           [:tr
            [:td "Active Artifact"]
            [:td (if (:bot/active-artifact bot)
