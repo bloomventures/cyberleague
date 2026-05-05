@@ -69,13 +69,12 @@
         (for [bot (:match/bots match)
               :when (get (:log-entry/contexts log-entry)
                          (:bot/id bot))]
-          [:div
+          [:div {:tw "space-y-2"}
            [:div {:tw "text-white bg-#3f51b5 p-1"}
             [ui/bot-chip bot]]
 
            [:div
-            [:div {:tw "font-bold border-black border-solid border-b"}
-             "Context (stdin)"]
+            [ui/subheading "Context (stdin)"]
             [:code {:tw "block whitespace-pre-wrap py-1"}
              (-> (:log-entry/contexts log-entry)
                  (get (:bot/id bot))
@@ -87,8 +86,7 @@
                          :eval/stderr)]
              (when (not (string/blank? log))
                [:div
-                [:div {:tw "font-bold border-black border-solid border-b"}
-                 "Log (stderr)"]
+                [ui/subheading "Log (stderr)"]
                 [:div {:tw "pl-2"}
                  [:code {:tw "block py-1 whitespace-pre-wrap"}
                   log]]]))
@@ -97,15 +95,13 @@
                                 (get (:bot/id bot))
                                 :eval/error)]
              [:div
-              [:div {:tw "font-bold border-black border-solid border-b"}
-               "Error"]
+              [ui/subheading "Error"]
               [:div {:tw "pl-2"}
                [:code {:tw "block py-1 whitespace-pre-wrap"}
                 (str error)]]])
 
            [:div
-            [:div {:tw "font-bold border-black border-solid border-b"}
-             "Move (stdout)"]
+            [ui/subheading "Move (stdout)"]
             [:div {:tw "pl-2"}
              [:code {:tw "block py-1 whitespace-pre-wrap"}
               (-> (:log-entry/evals log-entry)

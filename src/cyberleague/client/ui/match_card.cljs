@@ -24,7 +24,6 @@
          (when (:match/test? match)
            [:div {:tw "bg-#3f51b5  text-white px-1 rounded"} "TEST"])]
 
-
         [:table
          [:tbody
           [:tr
@@ -37,7 +36,16 @@
            [:td "Players"]
            [:td
             (for [bot (:match/bots match)]
-              [:div [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))} [ui/bot-chip bot]] " as " (get-in match [:match/player-mappings (:bot/id bot)])])]]
+              [:div
+               [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
+                [ui/bot-chip bot]]
+               [ui/artifact-chip (->> match
+                                      :match/artifacts
+                                      (filter (fn [artifact]
+                                                (= (:bot/id bot) (:bot/id (:artifact/bot artifact)))))
+                                      first
+                                      :artifact/digest)]
+               " as " (get-in match [:match/player-mappings (:bot/id bot)])])]]
           [:tr
            [:td "Winner(s):"]
            [:td (for [{:bot/keys [id]} (:match/winning-bots match)]

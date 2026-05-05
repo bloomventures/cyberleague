@@ -5,10 +5,6 @@
    [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]))
 
-(defn subheading [s]
-  [:div {:tw "border-b border-solid text-#3f51b5 border-#3f51b5"}
-   s])
-
 (defn game-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let
@@ -58,17 +54,17 @@
                        :style {:width (str (->width (:bot/rating bot)) "px")
                                :height "0.5em"}}]]]))]]
         [:div
-         [subheading "Rules"]
+         [ui/subheading "Rules"]
          [:div {:tw "py-2"}
           [ui/markdown (:game/rules game)]]]
 
         [:div
-         [subheading "Technical Notes"]
+         [ui/subheading "Technical Notes"]
          [:div {:tw "py-2"}
           [ui/markdown (:game/technical-notes game)]]]
 
         [:div
-         [subheading "Context (Bot Input) Example"]
+         [ui/subheading "Context (Bot Input) Example"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
            (js/JSON.stringify
@@ -78,20 +74,20 @@
             2)]]]
 
         [:div
-         [subheading "Context Schema"]
+         [ui/subheading "Context Schema"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
            (ui/pretty-print
             (str (:game/context-spec game)))]]]
 
         [:div
-         [subheading "Move (Bot Output) Example"]
+         [ui/subheading "Move (Bot Output) Example"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
            (str (:game/move-example game))]]]
 
         [:div
-         [subheading "Move Schema"]
+         [ui/subheading "Move Schema"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
            (ui/pretty-print (str (:game/move-spec game)))]]]
