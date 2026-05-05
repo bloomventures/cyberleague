@@ -1,9 +1,9 @@
 (ns cyberleague.evaluator.eval
   (:require
-   [clojure.string :as string]
    [cyberleague.evaluator.artifacts :as artifacts]
    [cyberleague.evaluator.sci :as sci]
    [cyberleague.evaluator.vm :as vm]
+   [cyberleague.evaluator.wasm :as wasm]
    [cyberleague.common.envs :as envs]
    [taoensso.telemere :as tel]))
 
@@ -25,6 +25,15 @@
              :digest "19ba2915546340729782be7c346ec21f83f694a08026d0a8c6dfab49a5ff4a3f"
              :env-slug "rust-musl"})
 
+(defn wasm-eval!
+  [{:keys [input digest]}]
+  (let [result (wasm/eval!
+                {:eval.request/artifact (artifacts/load-bytes digest)
+                 :eval.request/stdin    (.getBytes input "UTF-8")
+                 :eval.request/argv     []})]
+    {:eval/stdout (:eval.response/stdout result)
+     :eval/stderr (:eval.response/stderr result)}))
+
 (defn eval!
   [{:keys [input digest env-slug]}]
   (tel/trace!
@@ -41,6 +50,9 @@
      (vm-eval! {:input input
                 :env-slug env-slug
                 :digest digest})
+     :runtime/wasm
+     (wasm-eval! {:input input
+                  :digest digest})
      ;; else
      (throw (ex-info
              (str "Unknown/unsupported env:" env-slug)
