@@ -57,7 +57,7 @@
 
         [:div
          [:div {:tw "text-white bg-#3f51b5 p-1"}
-          "State "]
+          "State (Private)"]
          [:code {:tw "block whitespace-pre-wrap py-1"}
           (-> (:log-entry/state log-entry)
               ;; the ui scrubber provides history
@@ -69,22 +69,21 @@
               (js/JSON.stringify nil 2))]]
 
         (for [bot (:match/bots match)
-              :when (get (:log-entry/contexts log-entry)
-                         (:bot/id bot))]
+              :let [bot-id (:bot/id bot)]
+              :when (or (get (:log-entry/contexts log-entry) bot-id)
+                        (get (:log-entry/evals log-entry) bot-id))]
           [:div {:tw "space-y-2"}
            [:div {:tw "text-white bg-#3f51b5 p-1"}
             [ui/bot-chip bot]]
 
-           [:div
-            [ui/subheading "Context (stdin)"]
-            [:code {:tw "block whitespace-pre-wrap py-1"}
-             (-> (:log-entry/contexts log-entry)
-                 (get (:bot/id bot))
-                 clj->js
-                 (js/JSON.stringify nil 2))]]
+           (when-let [ctx (get (:log-entry/contexts log-entry) bot-id)]
+             [:div
+              [ui/subheading "Context (stdin)"]
+              [:code {:tw "block whitespace-pre-wrap py-1"}
+               (-> ctx clj->js (js/JSON.stringify nil 2))]])
 
            (let [log (-> (:log-entry/evals log-entry)
-                         (get (:bot/id bot))
+                         (get bot-id)
                          :eval/stderr)]
              (when (not (string/blank? log))
                [:div
@@ -94,7 +93,7 @@
                   log]]]))
 
            (when-let [error (-> (:log-entry/evals log-entry)
-                                (get (:bot/id bot))
+                                (get bot-id)
                                 :eval/error)]
              [:div
               [ui/subheading "Error"]
@@ -107,7 +106,7 @@
             [:div {:tw "pl-2"}
              [:code {:tw "block py-1 whitespace-pre-wrap"}
               (-> (:log-entry/evals log-entry)
-                  (get (:bot/id bot))
+                  (get bot-id)
                   :eval/stdout)]]]
 
            [:div
@@ -116,7 +115,7 @@
              [:code {:tw "block py-1 whitespace-pre-wrap"}
               (try
                 (-> (:log-entry/evals log-entry)
-                    (get (:bot/id bot))
+                    (get bot-id)
                     :eval/return-value
                     clj->js
                     (js/JSON.stringify nil 2))
