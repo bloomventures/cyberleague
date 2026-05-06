@@ -78,7 +78,7 @@
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
            (ui/pretty-print
-            (str (:game/context-spec game)))]]]
+            (:game/context-spec game))]]]
 
         [:div
          [ui/subheading "Move (Bot Output) Example"]
@@ -90,5 +90,5 @@
          [ui/subheading "Move Schema"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
-           (ui/pretty-print (str (:game/move-spec game)))]]]
+           (ui/pretty-print (:game/move-spec game))]]]
         ]]])))

@@ -1,9 +1,9 @@
 (ns cyberleague.client.ui.common
   (:require
+   [clojure.pprint :as pprint]
    [bloom.commons.fontawesome :as fa]
    [markdown.core :as markdown]
-   [reagent.core :as r]
-   [zprint.core :as zprint]))
+   [reagent.core :as r]))
 
 (defn markdown
   [s]
@@ -13,12 +13,8 @@
 
 (defn pretty-print
   [code-string]
-  (when code-string
-    (zprint/zprint-file-str
-     code-string
-     "reformat"
-     {:width 45
-      :style [:community]})))
+  (with-out-str
+    (pprint/pprint code-string)))
 
 (defn button [opts & children]
   (into [:button

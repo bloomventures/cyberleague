@@ -40,7 +40,8 @@
              :evaluator [:common :*evaluator]
              :*server {:main cyberleague.core
                        :source-paths ["src"]
-                       :dependencies [; [org.clojure/clojure "1.12.4"] ;; from omni
+                       :dependencies [[org.clojure/clojure "1.12.4"] ;; from omni
+                                      [org.clojure/clojurescript "1.12.134"]
                                       [io.bloomventures/omni "0.36.2"]
                                       [com.datomic/peer "1.0.7491"
                                        :exclusions
@@ -62,7 +63,6 @@
                                       #_[org.clojure/clojurescript "1.10.764"] ;; from omni
                                       [cljsjs/codemirror "5.44.0-1"]
                                       [cljsjs/d3 "3.5.5-2"]
-                                      #_[zprint "1.2.9"] ;; from omni->commons
 
                                       [com.github.rafd/dat "0.0.1-20260505-0"]
 
@@ -75,7 +75,8 @@
                                       #_[org.clojure/data.json "1.0.0"]
 
                                       ;; registrar
-                                      #_[metosin/malli "0.2.1"] ;; from omni->commoms
+                                      #_[metosin/malli "0.20.1"] ;; from omni->commoms
+                                      [org.babashka/sci "0.12.51"]
                                       ] }
              :server [:common :*server]
              :*cli {:source-paths ["cli-src"]
@@ -101,11 +102,13 @@
                                                    "--enable-url-protocols=http,https"
                                                    "--verbose"]}}
              :native-image [:cli :*native-image]
-             :*uberjar {:aot :all
+             :*uberjar {:aot [cyberleague.core]
+                        :source-paths ["src"]
                         :dependencies
                         [[org.postgresql/postgresql "42.2.2"]]
                         :prep-tasks
                         [["omni" "compile"]
                          "compile"]}
-             :uberjar [::server
+             ;; lein with-profile uberjar uberjar
+             :uberjar [:server
                        :*uberjar]})
