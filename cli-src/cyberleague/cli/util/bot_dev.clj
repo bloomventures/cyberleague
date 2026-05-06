@@ -52,12 +52,17 @@
       (println "Artifact already exists. Skipping.")
 
       (:upload-url response)
-      (let [upload-url (:upload-url response)
-            upload-response (http/file-upload-request
-                             {:url upload-url
-                              :method :post
-                              :body artifact})]
-        (println "Upload successful."))
+      (do
+        (let [upload-url (:upload-url response)]
+          (println "Received upload path. Uploading...")
+          (try
+            (http/file-upload-request
+             {:url upload-url
+              :method :post
+              :body artifact})
+            (println "Upload successful.")
+            (catch Exception _
+              (println "Upload error.")))))
 
       :else
       (throw (ex-info "Error uploading" {})))))
