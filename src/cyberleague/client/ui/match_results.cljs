@@ -101,12 +101,23 @@
                 (str error)]]])
 
            [:div
-            [ui/subheading "Move (stdout)"]
+            [ui/subheading "Move (stdout) (raw)"]
             [:div {:tw "pl-2"}
              [:code {:tw "block py-1 whitespace-pre-wrap"}
               (-> (:log-entry/evals log-entry)
                   (get (:bot/id bot))
-                  :eval/return-value
-                  clj->js
-                  (js/JSON.stringify nil 2))]]]])]]])))
+                  :eval/stdout)]]]
+
+           [:div
+            [ui/subheading "Move (stdout) (parsed)"]
+            [:div {:tw "pl-2"}
+             [:code {:tw "block py-1 whitespace-pre-wrap"}
+              (try
+                (-> (:log-entry/evals log-entry)
+                    (get (:bot/id bot))
+                    :eval/return-value
+                    clj->js
+                    (js/JSON.stringify nil 2))
+                (catch js/Object _
+                  "JSON PARSE ERROR"))]]]])]]])))
 
