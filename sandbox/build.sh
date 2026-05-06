@@ -138,12 +138,11 @@ step_ext4() {
 
     ROOTFS_SIZE=\$(du -sm '$BUILD_DIR/root_fs' | cut -f1)
     echo '[fakeroot] Extracted rootfs size: '\${ROOTFS_SIZE}'MB'
-    if (( ROOTFS_SIZE > 480 )); then
-      echo \"Warning: rootfs is \${ROOTFS_SIZE}MB, which may not fit in a 512M image\" >&2
-    fi
+    IMG_SIZE=\$(( (ROOTFS_SIZE + 250 + 63) / 64 * 64 ))
+    echo '[fakeroot] Allocating image size: '\${IMG_SIZE}'MB'
 
     echo '[fakeroot] Running mke2fs to create rootfs.img...'
-    mke2fs -t ext4 -d '$BUILD_DIR/root_fs' '$BUILD_DIR/rootfs.img' 512M
+    mke2fs -t ext4 -d '$BUILD_DIR/root_fs' '$BUILD_DIR/rootfs.img' \${IMG_SIZE}M
     echo '[fakeroot] ext4 image created.'
   "
 
