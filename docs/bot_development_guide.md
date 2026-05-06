@@ -26,8 +26,8 @@ The overall worklflow is:
     - you will run the CLI via: `./java -jar FILE ARGS`
 - authenticate the cli (`./cyberleague login`)
   - (copy the CLI token from your profile card on the website)
-  - (this creates `cyberleague-token.edn` in your current directory)
-  - (the CLI will look for `cyberleague-token.edn` in the current directory and ancestors)
+  - (this creates `cyberleague.conf.edn` in your current directory)
+  - (the CLI will look for `cyberleague.conf.edn` in the current directory and ancestors)
 - choose a game and env for your bot
   - to list available games, run: `./cyberleague games`
   - to list available envs, run: `./cyberleague envs`
