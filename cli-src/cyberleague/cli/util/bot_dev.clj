@@ -23,9 +23,12 @@
   (if-let [cmd (:bot/build-cmd bot-config)]
     (do
       (println ">" cmd)
-      (println (:out (sh/sh "/bin/sh" "-c" cmd :dir (bot-config/dir bot-config))))
-      (when (->artifact bot-config)
-        (println "Build successful.")))
+      (let [{:keys [exit out err]} (sh/sh "/bin/sh" "-c" cmd :dir (bot-config/dir bot-config))]
+        (println out)
+        (when (not= 0 exit)
+          (throw (ex-info (str "Build failed (exit " exit "):\n" err) {})))
+        (when (->artifact bot-config)
+          (println "Build successful."))))
     (println "No build command, skipping.")))
 
 (defn upload!
