@@ -40,6 +40,7 @@
              :evaluator [:common :*evaluator]
              :*server {:main cyberleague.core
                        :source-paths ["src"]
+                       :resource-paths ["resources"]
                        :dependencies [[org.clojure/clojure "1.12.4"] ;; from omni
                                       [org.clojure/clojurescript "1.12.134"]
                                       [io.bloomventures/omni "0.36.2"]
