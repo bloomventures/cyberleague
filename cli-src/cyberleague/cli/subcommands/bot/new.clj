@@ -32,7 +32,6 @@
                           :bot/run-cmd run-cmd
                           :bot/build-cmd      build-cmd
                           :bot/build-artifact artifact-path})
-            (println "NOTE BLANK?" (string/blank? note))
             (when (not (string/blank? note))
               (spit (str dir-name "/NOTE.txt") note))
             (doseq [[path f-content] starter-files]
