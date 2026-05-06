@@ -14,7 +14,7 @@
     (fn [{:keys [status body] :as response}]
       (if (and status (<= 200 status 299))
         nil
-        (println "ERROR: " (slurp body))))))
+        (throw (ex-info "Error Uploading" {:body (slurp body)}) )))))
 
 (defn request
   [{:keys [url method body oauth-token] :as args}]
