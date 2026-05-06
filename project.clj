@@ -27,7 +27,7 @@
                                          [com.rpl/specter "1.1.6"]
                                          [com.dylibso.chicory/runtime "1.7.5"]
                                          [com.dylibso.chicory/wasi "1.7.5"]
-                                         #_[ring/ring-defaults "0.7.0"]
+                                         [ring/ring-defaults "0.7.0"]
                                          #_[metosin/muuntaja "0.6.11"]
                                          #_[org.clojure/data.json "2.5.2"]
 
