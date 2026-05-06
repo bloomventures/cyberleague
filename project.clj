@@ -18,6 +18,8 @@
                    :repl-options {:init-ns user}}
              ;; leingen complains about mixing keywords and maps
              ;; hence the :*foo profiles
+
+             ;; EVALUATOR
              :*evaluator {:source-paths ["evaluator-src"]
                           :dependencies [[org.clojure/clojure "1.12.4"]
                                          [http-kit "2.8.0"]
@@ -38,9 +40,12 @@
                                          [org.babashka/sci "0.12.51"]]
                           :main cyberleague.evaluator.core}
              :evaluator [:common :*evaluator]
+             :*uberjar-evaluator {:aot [cyberleague.evaluator.core]}
+             :uberjar-evaluator [:evaluator :*uberjar-evaluator]
+
+             ;; SERVER
              :*server {:main cyberleague.core
                        :source-paths ["src"]
-                       :resource-paths ["resources"]
                        :dependencies [[org.clojure/clojure "1.12.4"] ;; from omni
                                       [org.clojure/clojurescript "1.12.134"]
                                       [io.bloomventures/omni "0.36.2"]
@@ -80,6 +85,17 @@
                                       [org.babashka/sci "0.12.51"]
                                       ] }
              :server [:common :*server]
+             :*uberjar-server {:aot [cyberleague.core]
+                               :source-paths ["src"]
+                               :dependencies
+                               [[org.postgresql/postgresql "42.2.2"]]
+                               :prep-tasks
+                               [["omni" "compile"]
+                                "compile"]}
+             ;; lein with-profile uberjar-server uberjar
+             :uberjar-server [:server :*uberjar-server]
+
+             ;; CLI
              :*cli {:source-paths ["cli-src"]
                     :resource-paths ^:replace []
                     :main         cyberleague.cli.core
@@ -94,6 +110,8 @@
                                    [com.nextjournal/beholder "1.0.3"]]
                     :repl-options {:init-ns cyberleague.cli.core}}
              :cli [:common :*cli]
+             :*uberjar-cli {:aot [cyberleague.cli.core]}
+             :uberjar-cli [:cli :*uberjar-cli]
              ;; GRAALVM_HOME="/" lein with-profile native-image native-image
              :*native-image {:source-paths ^:replace ["cli-src"]
                              :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
@@ -103,13 +121,4 @@
                                                    "--enable-url-protocols=http,https"
                                                    "--verbose"]}}
              :native-image [:cli :*native-image]
-             :*uberjar {:aot [cyberleague.core]
-                        :source-paths ["src"]
-                        :dependencies
-                        [[org.postgresql/postgresql "42.2.2"]]
-                        :prep-tasks
-                        [["omni" "compile"]
-                         "compile"]}
-             ;; lein with-profile uberjar uberjar
-             :uberjar [:server
-                       :*uberjar]})
+             })
