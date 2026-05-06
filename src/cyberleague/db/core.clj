@@ -257,16 +257,16 @@
 ;; Matches
 
 (defn disable-bot!
-  [bot-id artifact]
+  [bot-id artifact-id]
   (d/transact *conn*
               [[:db/retract
                 [:bot/id bot-id]
                 :bot/active-artifact
-                artifact]]))
+                [:artifact/id artifact-id]]]))
 
 (defn disable-cheater!
   [cheater]
   (d/transact *conn*
               [[:db/add [:bot/id (:bot/id cheater)] :bot/rating (Math/max 0 (- (:bot/rating cheater) 10))]
               (disable-bot! (:bot/id cheater)
-                            (:bot/active-artifact cheater))]))
+                            (:artifact/id (:bot/active-artifact cheater)))]))

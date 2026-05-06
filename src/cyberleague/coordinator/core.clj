@@ -57,7 +57,7 @@
                (db/disable-bot! errd-bot-id (->> (map vector bots artifacts)
                                                  (some (fn [[bot artifact]]
                                                          (when (= (:bot/id bot) errd-bot-id)
-                                                           artifact))))))))
+                                                           (:artifact/id artifact)))))))))
 
          (let [result (game-runner/run-game
                        {:game (into {} game)
@@ -85,7 +85,7 @@
              (when (not test?)
                (doseq [errd-bot (::errored bots-by-status)]
                  (println "Disabling bot:" (:bot/id errd-bot) errors)
-                 (db/disable-bot! (:bot/id errd-bot) (:bot/active-artifact errd-bot))))
+                 (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
 
              (db/transact! (->> (concat [(assoc match
                                                 :match/player-mappings-transit
