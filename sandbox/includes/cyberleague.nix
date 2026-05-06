@@ -20,7 +20,7 @@ let
         #pkgsLinux.stdenv.cc.cc.lib
         #pkgsLinux.musl
         # java, clojure(uberjar) — java binary added via extraCommands wrapper
-        pkgsLinux.jre_minimal
+        pkgsLinux.jdk_headless
         # node
         #pkgsLinux.nodejs
         # wasm
