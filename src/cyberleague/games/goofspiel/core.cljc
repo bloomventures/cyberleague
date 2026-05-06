@@ -46,24 +46,27 @@
 
   :game.config/context-spec
   [:map
-   [:your-cards [:set Card]]
-   [:their-cards [:set Card]]
+   [:player-cards
+    [:map
+     [:me [:set Card]]
+     [:opponent [:set Card]]]]
    [:trophy-cards [:set Card]]
    [:current-trophy Card]
    [:history
     [:vector
      [:map
-      [:you Card]
-      [:them Card]
+      [:me Card]
+      [:opponent Card]
       [:trophy Card]]]]]
 
   :game.config/context-example
-  {:your-cards #{1 2 3 6 7 8 9 10 11 12 13}
-   :their-cards #{1 2 4 5 6 8 9 10 11 12 13}
-   :trophy-cards #{2 3 4 5 6 7 9 11 12 13}
-   :current-trophy 1
-   :history [{:you 4 :them 3 :trophy 8}
-             {:you 5 :them 7 :trophy 10}]}
+  {:player-cards
+   {:opponent #{1 3 4 5 7 8 9 10 11 12 13}
+    :me #{1 2 3 5 6 7 9 10 11 12 13}}
+   :trophy-cards #{1 3 4 5 7 8 9 10 12 13}
+   :current-trophy 11
+   :history [{:me 8 :opponent 6 :trophy 6}
+             {:me 4 :opponent 2 :trophy 2}]}
 
   :game.config/move-spec
   Card
