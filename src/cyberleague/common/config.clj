@@ -21,6 +21,7 @@
       [:coordinator-delay :int]
       [:datomic-uri {:optional true}
        [:re #"^datomic:.*"]]
+      [:cookie-secret :string]
       [:github-client-id :string] ;; in :dev, can be garbage
       [:github-client-secret :string] ;; in :dev, can be garbage
       [:github-redirect-uri :string] ;; in :dev, can be garbage

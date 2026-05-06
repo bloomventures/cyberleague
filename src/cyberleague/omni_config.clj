@@ -9,6 +9,7 @@
    :omni/title "Cyberleague"
    :omni/cljs {:main "cyberleague.client.core"}
    :omni/js-scripts [{:src "/graph.js"}]
-   :omni/auth {:cookie {:name "cyberleague"}}
+   :omni/auth {:cookie {:name "cyberleague"
+                        :secret (-> config :server :cookie-secret)}}
    :omni/api-routes #'routes
    :omni/css {:tailwind? true}})
