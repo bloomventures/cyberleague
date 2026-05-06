@@ -81,14 +81,14 @@
     (fn [request]
       (let [{:keys [code state]} (request :params)]
         (if (nonce-check state)
-          (if-let [user (-> (get-api-token {:code code
-                                            :state state})
-                            (fetch-user-data)
-                            ((fn [user]
-                               (db/with-conn (db/get-or-create-user! (user :id) (user :login))))))]
+          (if-let [user-id (-> (get-api-token {:code code
+                                               :state state})
+                               (fetch-user-data)
+                               ((fn [user]
+                                  (db/with-conn (db/get-or-create-user! (user :id) (user :login))))))]
             {:status 200
              :headers {"Content-Type" "text/html"}
-             :session {:id (:user/id user)}
+             :session {:id user-id}
              :body "<script>window.close();</script>"}
             {:status 400
              :body "Authentication Failed"})

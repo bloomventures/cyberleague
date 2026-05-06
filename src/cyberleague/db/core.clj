@@ -150,9 +150,11 @@
                           db
                           github-id)]
       user-id
-      (create-user! {:id (uuid/random)
-                     :github-id github-id
-                     :name uname}))))
+      (let [id (uuid/random)]
+        (create-user! {:id (uuid/random)
+                       :github-id github-id
+                       :name uname})
+        id))))
 
 (defn random-user-id
   []
