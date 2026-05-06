@@ -18,7 +18,7 @@
    [:env/note [:maybe :string]]])
 
 (defn read-envs []
-  (let [envs (->> (io/file (io/resource "cyberleague/envs"))
+  (let [envs (->> (io/file "envs")
                   (file-seq)
                   (filter (fn [f]
                             (= "env.edn" (.getName f))))
@@ -49,7 +49,7 @@
 (defn files-for
   [env-slug]
   {:pre [(enabled? env-slug)]}
-  (let [dir (io/file (io/resource "cyberleague/envs") env-slug)]
+  (let [dir (io/file "envs" env-slug)]
     (->> dir
          (file-seq)
          (remove (fn [f]
