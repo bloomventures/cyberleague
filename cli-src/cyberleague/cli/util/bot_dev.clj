@@ -23,7 +23,9 @@
   (if-let [cmd (:bot/build-cmd bot-config)]
     (do
       (println ">" cmd)
-      (let [{:keys [exit out err]} (sh/sh "/bin/sh" "-c" cmd :dir (bot-config/dir bot-config))]
+      (let [windows? (-> (System/getProperty "os.name") .toLowerCase (.contains "win"))
+            shell    (if windows? ["cmd.exe" "/c"] ["/bin/sh" "-c"])
+            {:keys [exit out err]} (apply sh/sh (concat shell [cmd :dir (bot-config/dir bot-config)]))]
         (println out)
         (when (not= 0 exit)
           (throw (ex-info (str "Build failed (exit " exit "):\n" err) {})))
