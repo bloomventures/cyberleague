@@ -1,5 +1,6 @@
 (ns cyberleague.evaluator.core
   "The 'evaluator' exposes an http API to run executables in various environments"
+  (:gen-class)
   (:require
    [clojure.java.io :as io]
    [bloom.commons.crypto :as crypto]
@@ -118,4 +119,6 @@
 
 #_(start!)
 
+(defn -main []
+  (start!))
 
