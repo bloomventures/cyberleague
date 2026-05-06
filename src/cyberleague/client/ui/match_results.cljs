@@ -43,11 +43,13 @@
        ;; per game custom view
 
        (if view
-         [eb/catch
-          [view
-           match
-           (map :log-entry/state (take (inc @move-index) log))
-           (:history (:log-entry/state (get log @move-index)))]]
+         (when (and (:log-entry/state log-entry)
+                    (:match/player-mappings match))
+           [eb/catch
+            [view
+             match
+             (map :log-entry/state (take (inc @move-index) log))
+             (:history (:log-entry/state (get log @move-index)))]])
          "CUSTOM VIEW NOT FOUND")
 
        ;; generic state inspection view
