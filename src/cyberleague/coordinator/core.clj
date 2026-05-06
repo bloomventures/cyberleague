@@ -157,7 +157,10 @@
   (reset! run? true)
   (while @run?
     (doseq [[game active-bots] (db/with-conn (db/active-bots))]
-      (run-one-game! game active-bots)
+      (try
+        (run-one-game! game active-bots)
+        (catch Exception e
+          (println "Exception" e)))
       (Thread/sleep (-> config :server :coordinator-delay)))))
 
 (defn start! []
