@@ -18,6 +18,7 @@
    :version "2026-04-18"
    :subcommands
    [{:command "login"
+     :description "Authenticate the CLI with a token from the website"
      :runs sc.login/exec!}
     {:command "envs"
      :description "List available languages and environments"
@@ -26,6 +27,7 @@
      :description "List available games"
      :runs sc.games/exec!}
     {:command "bot"
+     :description "Subcommands for working with bots, run 'bot --help' for details"
      :subcommands (concat [{:command "new"
                             :description "Create a new bot directory in the current directory. Expects --game and --env."
                             :opts [{:option "game"
