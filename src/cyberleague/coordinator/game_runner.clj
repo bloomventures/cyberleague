@@ -11,7 +11,10 @@
                     :env-slug (:env/slug (:artifact/env artifact))
                     :input (json/write-str state)})]
     (assoc result :eval/return-value
-           (json/read-str (:eval/stdout result) :key-fn keyword))
+           (try
+             (json/read-str (:eval/stdout result) :key-fn keyword)
+             (catch Exception _
+               nil)))
     nil))
 
 #_(eval-move
