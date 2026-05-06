@@ -17,12 +17,13 @@
         (throw (ex-info "Error Uploading" {:body (slurp body)}) )))))
 
 (defn request
-  [{:keys [url method body oauth-token] :as args}]
+  [{:keys [url method body oauth-token timeout] :as args}]
   (tel/event! ::http-request {:level :debug
                               :data args})
   @(http/request
     {:method method
      :url url
+     :timeout (or timeout 5000)
      :oauth-token oauth-token
      :headers {"Accept" "application/transit+json"
                "Content-Type" "application/transit+json"}

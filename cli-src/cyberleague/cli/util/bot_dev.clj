@@ -66,7 +66,8 @@
   [bot-config]
   (println (f/color :color/yellow "Testing..."))
   (let [artifact (->artifact bot-config)]
-    (if-let [match-id (:match/id (r/tada! [:api/test-bot!
+    (if-let [match-id (:match/id (r/tada! ^{:timeout 120000}
+                                          [:api/test-bot!
                                            {:bot-id (:bot/id bot-config)
                                             :digest (artifact/digest artifact)}]))]
       (println "Test completed. Match:" match-id ". View it online.")

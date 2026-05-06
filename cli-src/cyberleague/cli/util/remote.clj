@@ -12,11 +12,12 @@
       default-api-url))
 
 (defn tada!
-  [[event-id params]]
+  [[event-id params :as opts]]
   (http/request
    {:url (str (api-url)
               "/api/tada/"
               (namespace event-id) "." (name event-id))
+    :timeout (:timeout (meta opts))
     :oauth-token (token/read)
     :method :post
     :body {:tada.event/id event-id
