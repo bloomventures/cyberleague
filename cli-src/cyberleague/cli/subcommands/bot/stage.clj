@@ -10,6 +10,6 @@
   [{:keys [dir]}]
   (when-let [bot-config (bot-config/read! dir)]
     (build/build! bot-config)
-    (test-local/test-local! bot-config)
-    (upload/upload! bot-config)
-    (test-remote/test-remote! bot-config)))
+    (when (test-local/test-local! bot-config)
+      (upload/upload! bot-config)
+      (test-remote/test-remote! bot-config))))
