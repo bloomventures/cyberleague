@@ -10,7 +10,7 @@
    [cyberleague.common.transit :as t]))
 
 (defn ping-pong!
-  "Evals bots for ping/pong; returns {bot-id move-error}"
+  "Evals bots for ping/pong; returns {bot-id eval}"
   [bots artifacts]
   (->> (map vector bots artifacts)
        (keep (fn [[bot artifact]]
@@ -19,20 +19,29 @@
                              artifact
                              {:ping nonce})]
                  [(:bot/id bot)
-                  (merge result
-                         (when (not= nonce (:pong (:eval/return-value result)))
-                           {:eval/error {:move.error/type :move.error.type/failed-ping-pong}}))])))
+                  (if (= :eval.error.type/system-error (-> result :eval/error :eval.error/type))
+                    result
+                    (merge result
+                           (when (not= nonce (:pong (:eval/return-value result)))
+                             {:eval/error {:eval.error/type :eval.error.type/failed-ping-pong}})))])))
        (into {})))
 
 (defn run-game!
   [{:keys [game bots artifacts test?]}]
-  #_(print "Starting " (:bot/id player-1) " vs " (:bot/id player-2) "...")
+  (print "Starting " (:bot/name (first bots)) " vs " (:bot/name (second bots)) "...")
   (let [match-id (uuid/random)]
     (db/with-conn
      (let [ping-pong-evals (ping-pong! bots artifacts)
+           ping-pong-system-errors (->> ping-pong-evals
+                                        (filter (fn [[_ eval]]
+                                                  (= :eval.error.type/system-error
+                                                     (-> eval :eval/error :eval.error/type))))
+                                        (into {}))
            ping-pong-errors (->> ping-pong-evals
                                  (filter (fn [[_ eval]]
-                                           (:eval/error eval)))
+                                           (and (:eval/error eval)
+                                                (not= :eval.error.type/system-error
+                                                      (-> eval :eval/error :eval.error/type)))))
                                  (into {}))
            match {:match/id match-id
                   :match/test? test?
@@ -43,7 +52,11 @@
                                         (map (fn [artifact]
                                                [:artifact/id (:artifact/id artifact)])))
                   :match/timestamp (java.util.Date.)}]
-       (if (seq ping-pong-errors)
+       (cond
+         (seq ping-pong-system-errors)
+         (println "Skipping match (system error during ping-pong):" ping-pong-system-errors)
+
+         (seq ping-pong-errors)
          (do
            (db/transact! [(assoc match
                                  :match/disqualified-bots
@@ -59,53 +72,58 @@
                                                          (when (= (:bot/id bot) errd-bot-id)
                                                            (:artifact/id artifact)))))))))
 
+         :else
          (let [result (game-runner/run-game
                        {:game (into {} game)
                         :bot-ids (mapv :bot/id bots)
-                        :artifacts artifacts})]
+                        :artifacts artifacts})
+               errors (:game.result/errors result)]
            #_(println (str (:bot/id player-1) " vs " (:bot/id player-2) ": " (:game.result/winner result)))
-           (let [errors (:game.result/errors result)
-                 bots-by-status (->> bots
-                                     (group-by (fn [b]
-                                                 (if (contains? errors (:bot/id b))
-                                                   ::errored
-                                                   ::ok))))
-                 ;; run-game returns game.result/winner only for completed games
-                 ;; but for tournament purposes, if a bot errors
-                 ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
-                 ;; (ie. when about to lose, error)
-                 winner-ids (cond
-                              (:game.result/winner result)
-                              ;; game currently always returns single
-                              [(:game.result/winner result)]
+           (if (some (fn [[_ error]]
+                       (= :eval.error.type/system-error (:eval.error/type error)))
+                     errors)
+             (println "Skipping match (system error during game):" errors)
+             (let [bots-by-status (->> bots
+                                       (group-by (fn [b]
+                                                   (if (contains? errors (:bot/id b))
+                                                     ::errored
+                                                     ::ok))))
+                   ;; run-game returns game.result/winner only for completed games
+                   ;; but for tournament purposes, if a bot errors
+                   ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
+                   ;; (ie. when about to lose, error)
+                   winner-ids (cond
+                                (:game.result/winner result)
+                                ;; game currently always returns single
+                                [(:game.result/winner result)]
 
-                              (seq (::ok bots-by-status))
-                              ;; assuming 2 player games
-                              [(:bot/id (first (::ok bots-by-status)))])]
-             (when (not test?)
-               (doseq [errd-bot (::errored bots-by-status)]
-                 (println "Disabling bot:" (:bot/id errd-bot) errors)
-                 (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
+                                (seq (::ok bots-by-status))
+                                ;; assuming 2 player games
+                                [(:bot/id (first (::ok bots-by-status)))])]
+               (when (not test?)
+                 (doseq [errd-bot (::errored bots-by-status)]
+                   (println "Disabling bot:" (:bot/id errd-bot) errors)
+                   (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
 
-             (db/transact! (->> (concat [(assoc match
-                                                :match/player-mappings-transit
-                                                (t/write-str (:game.result/player-mappings result))
-                                                :match/log-transit
-                                                (t/write-str (:game.result/log result))
-                                                :match/disqualified-bots
-                                                (->> (bots-by-status ::errored)
-                                                     (map (fn [id]
-                                                            [:bot/id (:bot/id id)])))
-                                                :match/winning-bots
-                                                (->> winner-ids
-                                                     (map (fn [id]
-                                                            [:bot/id id]))))]
-                                        (when (not test?)
-                                           (ranking/new-ratings
-                                            (first bots)
-                                            (second bots)
-                                            ;; curently only makes sense for 2p games anyway
-                                            (first winner-ids)))))))))))
+               (db/transact! (->> (concat [(assoc match
+                                                  :match/player-mappings-transit
+                                                  (t/write-str (:game.result/player-mappings result))
+                                                  :match/log-transit
+                                                  (t/write-str (:game.result/log result))
+                                                  :match/disqualified-bots
+                                                  (->> (bots-by-status ::errored)
+                                                       (map (fn [id]
+                                                              [:bot/id (:bot/id id)])))
+                                                  :match/winning-bots
+                                                  (->> winner-ids
+                                                       (map (fn [id]
+                                                              [:bot/id id]))))]
+                                          (when (not test?)
+                                            (ranking/new-ratings
+                                             (first bots)
+                                             (second bots)
+                                             ;; curently only makes sense for 2p games anyway
+                                             (first winner-ids))))))))))
     {:match/id match-id}))
 
 (defn select-players

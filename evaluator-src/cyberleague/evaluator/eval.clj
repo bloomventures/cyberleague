@@ -14,6 +14,9 @@
                  :eval.request/stdin    (.getBytes input "UTF-8")
                  :eval.request/argv     (-> (envs/by-slug env-slug)
                                             :env/argv)})]
+    (when (= -1 (:eval.response/exit result))
+      (throw (ex-info "Relay infrastructure error"
+                      {:relay/stderr (:eval.response/stderr result)})))
     {:eval/stdout (:eval.response/stdout result)
      :eval/stderr (:eval.response/stderr result)}))
 

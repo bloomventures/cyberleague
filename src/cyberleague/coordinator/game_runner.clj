@@ -6,16 +6,19 @@
 
 (defn eval-move
   [artifact state]
-  (if-let [result (eval-client/eval!
-                   {:digest (:artifact/digest artifact)
-                    :env-slug (:env/slug (:artifact/env artifact))
-                    :input (json/write-str state)})]
-    (assoc result :eval/return-value
-           (try
-             (json/read-str (:eval/stdout result) :key-fn keyword)
-             (catch Exception _
-               nil)))
-    nil))
+  (let [result (eval-client/eval!
+                {:digest (:artifact/digest artifact)
+                 :env-slug (:env/slug (:artifact/env artifact))
+                 :input (json/write-str state)})]
+    (if (nil? result)
+      {:eval/error {:eval.error/type :eval.error.type/system-error}}
+      (let [return-value (try
+                           (json/read-str (:eval/stdout result) :key-fn keyword)
+                           (catch Exception _
+                             ::invalid-json))]
+        (if (= return-value ::invalid-json)
+          (assoc result :eval/error {:eval.error/type :eval.error.type/invalid-json})
+          (assoc result :eval/return-value return-value))))))
 
 #_(eval-move
    {:artifact/digest "878a289fd4cb8db5320e10fc9285a9ffd9a337e4e06468e7273385fa1e171c43"
@@ -24,44 +27,38 @@
 
 (defn run-move
   [player-index artifact state context game-engine]
-  (let [eval (try
-               (eval-move artifact context)
-               ;; TODO this may fail for our reasons, not the bot's
-               ;; ex. network failure; should handle it differently
-               (catch Exception e
-                 {:eval/error {:move.error/type :move.error.type/invalid-code
-                               :move.error/data {:message (str e)}}}))
+  (let [eval (eval-move artifact context)
         return-value (:eval/return-value eval)]
     (cond
-      ;; for the above try/catch
       (:eval/error eval)
       eval
 
       (not (game-engine.protocol/valid-move? game-engine return-value))
       (merge
        eval
-       {:eval/error {:move.error/type :move.error.type/invalid-move}})
+       {:eval/error {:eval.error/type :eval.error.type/invalid-move}})
 
       (not (game-engine.protocol/legal-move? game-engine state player-index return-value))
       (merge
        eval
-       {:eval/error {:move.error/type :move.error.type/illegal-move}})
+       {:eval/error {:eval.error/type :eval.error.type/illegal-move}})
 
       :else
       eval)))
 
 (def Eval
   [:map
-   [:eval/stdout :string]
-   [:eval/stderr :string]
+   [:eval/stdout {:optional true} :string]
+   [:eval/stderr {:optional true} :string]
    ;; stdout json->edn, "move"
-   [:eval/return-value :any]
+   [:eval/return-value {:optional true} :any]
    [:eval/error {:optional true}
     [:map
-     [:move.error/type [:enum
-                        :move.error.type/invalid-code
-                        :move.error.type/invalid-move
-                        :move.error.type/illegal-move]]]]])
+     [:eval.error/type [:enum
+                        :eval.error.type/system-error
+                        :eval.error.type/invalid-json
+                        :eval.error.type/invalid-move
+                        :eval.error.type/illegal-move]]]]])
 
 (def PlayerId
   :int)
