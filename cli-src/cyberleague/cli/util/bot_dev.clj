@@ -29,8 +29,9 @@
         (println out)
         (when (not= 0 exit)
           (throw (ex-info (str "Build failed (exit " exit "):\n" err) {})))
-        (when (->artifact bot-config)
-          (println "Build successful."))))
+        (when-let [artifact (->artifact bot-config)]
+          (println "Build successful.")
+          (println "Digest:" (artifact/digest artifact)))))
     (println "No build command, skipping.")))
 
 (defn upload!
@@ -76,11 +77,12 @@
   [bot-config]
   (println (f/color :color/yellow "Testing..."))
   (let [artifact (->artifact bot-config)]
+    (println "Digest:" (artifact/digest artifact))
     (if-let [match-id (:match/id (r/tada! ^{:timeout 120000}
                                           [:api/test-bot!
                                            {:bot-id (:bot/id bot-config)
                                             :digest (artifact/digest artifact)}]))]
-      (println "Test completed. Match:" match-id ". View it online.")
+      (println "Test completed. View it online.")
       (println "Error running test."))))
 
 (defn stage!
