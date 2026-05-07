@@ -233,7 +233,7 @@
                                 :bot/user [:user/id user-id]
                                 :bot/game [:game/slug game-slug]
                                 :bot/name bot-name
-                                :bot/rating 1500
+                                :bot/rating 1200
                                 :bot/rating-dev 350}])
                 {:bot/id id}))
     :return (fn [{result :tada/effect-return}]
