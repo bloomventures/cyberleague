@@ -28,3 +28,11 @@
 
 (defn dir [bot-config]
   (.getParent ^java.io.File (::file (meta bot-config))))
+
+(defn ->artifact
+  [bot-config]
+  (let [path (:bot/build-artifact bot-config)
+        ^java.io.File artifact (io/file (dir bot-config) path)]
+    (if (.exists artifact)
+      artifact
+      (throw (ex-info (str "Artifact not found at expected path: " path) {})))))
