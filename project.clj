@@ -105,6 +105,7 @@
                                    [org.clojure/clojure "1.11.4"]
                                    ;; bot weight
                                    [org.tukaani/xz "1.12"]
+                                   [cheshire "5.13.0"]
 
                                    [http-kit "2.8.0"]
                                    [com.nextjournal/beholder "1.0.3"]]
