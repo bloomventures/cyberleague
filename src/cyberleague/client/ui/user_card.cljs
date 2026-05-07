@@ -48,24 +48,29 @@
        [:<>
         [:div.bots
          {:tw "grow"}
-         [:table
-          {:tw "mx-auto"}
-          [:thead
-           [:tr
-            [:th {:tw "text-left font-bold p-1"} "Bot"]
-            [:th {:tw "text-left font-bold p-1"} "Rating"]
-            [:th {:tw "text-left font-bold p-1"} "Game"]]]
-          [:tbody
-           (for [bot (:user/bots user)]
-             ^{:key (:bot/id bot)}
+         (if (seq (:user/bots user))
+           [:table
+            {:tw "mx-auto"}
+            [:thead
              [:tr
-              [:td {:tw "p-1"}
-               [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
-                [ui/bot-chip bot]]]
-              [:td {:tw "p-1"} (:bot/rating bot)]
-              [:td {:tw "p-1"}
-               [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-                (str "#" (:game/name (:bot/game bot)))]]])]]]
+              [:th {:tw "text-left font-bold p-1"} "Bot"]
+              [:th {:tw "text-left font-bold p-1"} "Rating"]
+              [:th {:tw "text-left font-bold p-1"} "Game"]]]
+            [:tbody
+             (for [bot (:user/bots user)]
+               ^{:key (:bot/id bot)}
+               [:tr
+                [:td {:tw "p-1"}
+                 [:a {:on-click (fn [_] (state/nav! :card.type/bot (:bot/id bot)))}
+                  [ui/bot-chip bot]]]
+                [:td {:tw "p-1"} (:bot/rating bot)]
+                [:td {:tw "p-1"}
+                 [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
+                  (str "#" (:game/name (:bot/game bot)))]]])]]
+           [:a {:href "https://github.com/bloomventures/cyberleague/blob/master/docs/bot_development_guide.md"
+                :target "_blank"
+                :tw "block text-center text-blue-600 underline py-4 hover:text-blue-800"}
+            "Creating Your First Bot"])]
         (when (= (:user/id user)
                  (:user/id @state/user))
           [token-management-view])]]])))
