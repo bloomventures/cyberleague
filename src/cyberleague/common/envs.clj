@@ -15,7 +15,8 @@
    [:env/build-cmd [:maybe :string]]
    [:env/artifact-path :string]
    [:env/argv [:vector :string]]
-   [:env/note [:maybe :string]]])
+   [:env/note [:maybe :string]]
+   [:env/status [:maybe :string]]])
 
 (defn read-envs []
   (let [envs (->> (io/file "envs")

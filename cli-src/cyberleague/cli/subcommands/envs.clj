@@ -11,4 +11,6 @@
                           (sort-by :language/slug))]
       (println " " (str (:language/slug language) ":"))
       (doseq [env (:language/envs language)]
-        (println "   " (:env/slug env))))))
+        (println "   " (str (:env/slug env)
+                            (when-let [status (:env/status env)]
+                              (str " (" status ")"))))))))

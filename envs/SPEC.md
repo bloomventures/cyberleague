@@ -65,6 +65,10 @@ A bot.edn file, ex. for clojure-lein-uberjar:
  :env/note
    string or nil
    human-readable note for env users (e.g. setup prerequisites, platform-specific requirements); nil if none
+
+ :env/status
+   string or nil
+   short status label displayed next to the env slug in CLI listings (e.g. "dev-only"); nil if none
 ```
 
 ### Starter Bot Files

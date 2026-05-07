@@ -108,7 +108,8 @@
                       :language/slug
                       {:language/envs
                        [:env/id
-                        :env/slug]}]}])
+                        :env/slug
+                        :env/status]}]}])
                   :entity/language))}
 
    {:id :api/env

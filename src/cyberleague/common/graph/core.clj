@@ -70,7 +70,8 @@
                        :env/build-cmd
                        :env/artifact-path
                        :env/argv
-                       :env/note]
+                       :env/note
+                       :env/status]
     :dat.resolver/f (fn [{:keys [env/slug]}]
                       (envs/by-slug slug))}
 
