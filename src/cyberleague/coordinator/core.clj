@@ -124,7 +124,7 @@
                                              (second bots)
                                              ;; curently only makes sense for 2p games anyway
                                              (first winner-ids))))))))))
-    {:match/id match-id}))
+    {:match/id match-id}))))
 
 (defn select-players
   [active-bots]
