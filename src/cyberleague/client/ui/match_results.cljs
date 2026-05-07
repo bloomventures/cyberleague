@@ -13,27 +13,29 @@
     log (:match/log match)
     max-value (dec (count log))
     move-index (r/atom max-value)]
-   (let [log-entry (get log @move-index)]
+   (let [log-entry (get log @move-index)
+         game-state? (some? (:log-entry/state log-entry))]
      [:div.match-results
       {:tw "h-full overflow-y-auto overflow-x-hidden relative max-w-25em"}
 
-      [:div.scrubber {:tw "sticky top-0 bg-#9fa8da w-full p-2"}
+      (when game-state?
+        [:div.scrubber {:tw "sticky top-0 bg-#9fa8da w-full p-2"}
 
-       [:div.row {:tw "flex justify-between items-center"}
-        [:button {:on-click (fn [] (swap! move-index dec))
-                  :disabled (= 0 @move-index)}
-         "<"]
-        (str "Turn " (inc @move-index) "/" (inc max-value))
-        [:button {:on-click (fn [] (swap! move-index inc))
-                  :disabled (= max-value @move-index)} ">"]]
-       [:input {:type "range"
-                :tw "w-full"
-                :min 0
-                :max max-value
-                :step 1
-                :value @move-index
-                :on-change (fn [e]
-                             (reset! move-index (js/parseInt (.. e -target -value) 10)))}]]
+         [:div.row {:tw "flex justify-between items-center"}
+          [:button {:on-click (fn [] (swap! move-index dec))
+                    :disabled (= 0 @move-index)}
+           "<"]
+          (str "Turn " (inc @move-index) "/" (inc max-value))
+          [:button {:on-click (fn [] (swap! move-index inc))
+                    :disabled (= max-value @move-index)} ">"]]
+         [:input {:type "range"
+                  :tw "w-full"
+                  :min 0
+                  :max max-value
+                  :step 1
+                  :value @move-index
+                  :on-change (fn [e]
+                               (reset! move-index (js/parseInt (.. e -target -value) 10)))}]])
 
       [:div.content {:tw "p-2 space-y-2"}
        (when message
@@ -42,31 +44,33 @@
 
        ;; per game custom view
 
-       (if view
-         (when (and (:log-entry/state log-entry)
-                    (:match/player-mappings match))
-           [eb/catch
-            [view
-             match
-             (map :log-entry/state (take (inc @move-index) log))
-             (:history (:log-entry/state (get log @move-index)))]])
-         "CUSTOM VIEW NOT FOUND")
+       (when game-state?
+         (if view
+           (when (and (:log-entry/state log-entry)
+                      (:match/player-mappings match))
+             [eb/catch
+              [view
+               match
+               (map :log-entry/state (take (inc @move-index) log))
+               (:history (:log-entry/state (get log @move-index)))]])
+           "CUSTOM VIEW NOT FOUND"))
 
        ;; generic state inspection view
        [:div.generic {:tw "space-y-2"}
 
-        [:div
-         [:div {:tw "text-white bg-#3f51b5 p-1"}
-          "State (Private)"]
-         [:code {:tw "block whitespace-pre-wrap py-1"}
-          (-> (:log-entry/state log-entry)
-              ;; the ui scrubber provides history
-              ((fn [s]
-                 (if (:history s)
-                   (assoc s :history ["omitted"])
-                   s)))
-              clj->js
-              (js/JSON.stringify nil 2))]]
+        (when game-state?
+          [:div
+           [:div {:tw "text-white bg-#3f51b5 p-1"}
+            "State (Private)"]
+           [:code {:tw "block whitespace-pre-wrap py-1"}
+            (-> (:log-entry/state log-entry)
+                ;; the ui scrubber provides history
+                ((fn [s]
+                   (if (:history s)
+                     (assoc s :history ["omitted"])
+                     s)))
+                clj->js
+                (js/JSON.stringify nil 2))]])
 
         (for [bot (:match/bots match)
               :let [bot-id (:bot/id bot)]
@@ -75,6 +79,17 @@
           [:div {:tw "space-y-2"}
            [:div {:tw "text-white bg-#3f51b5 p-1"}
             [ui/bot-chip bot]]
+
+           (let [ping-pong-passed? (not= :eval.error.type/failed-ping-pong
+                                         (-> (:log-entry/evals log-entry)
+                                             (get bot-id)
+                                             :eval/error
+                                             :eval.error/type))]
+             [:div {:tw "flex items-center gap-2 py-1"}
+              [:span "Handshake:"]
+              (if ping-pong-passed?
+                [:span {:tw "text-green-700 font-bold"} "\u2713 passed"]
+                [:span {:tw "text-red-700 font-bold"} "\u2717 failed"])])
 
            (when-let [ctx (get (:log-entry/contexts log-entry) bot-id)]
              [:div
