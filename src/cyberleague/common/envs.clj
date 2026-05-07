@@ -61,4 +61,4 @@
                 [(str (.relativize (.toPath dir) (.toPath f))) (slurp f)]))
          (into {}))))
 
-#_(files-for "clojure-lein-uberjar")
+#_(files-for "clojure-lein-jvm")

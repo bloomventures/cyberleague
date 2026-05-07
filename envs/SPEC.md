@@ -16,9 +16,9 @@ Within that folder:
 
 ### bot.edn
 
-A bot.edn file, ex. for clojure-lein-uberjar:
+A bot.edn file, ex. for clojure-lein-jvm:
 ```
-{:env/slug "clojure-lein-uberjar"
+{:env/slug "clojure-lein-jvm"
  :env/language-slug "clojure"
  :env/enabled? true
  :env/runtime :runtime/firecracker
