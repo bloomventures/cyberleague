@@ -179,6 +179,20 @@
 (defn gen-bot-name []
   (apply str (take 3 (shuffle (vec "bcdfghjklmnpqrstvwxz")))))
 
+(defn artifact-changed?
+  [{:keys [bot-id digest]}]
+  (let [artifact-id (bot-digest->artifact-id {:bot-id bot-id
+                                              :digest digest})
+        current-artifact-id (d/q '[:find ?artifact-id .
+                                   :in $ ?bot-id
+                                   :where
+                                   [?b :bot/id ?bot-id]
+                                   [?b :bot/active-artifact ?a]
+                                   [?a :artifact/id ?artifact-id]]
+                                 (d/db *conn*)
+                                 bot-id)]
+    (not= artifact-id current-artifact-id)))
+
 (defn deploy-bot-tx
   [bot-id digest]
   (let [artifact-id (bot-digest->artifact-id {:bot-id bot-id

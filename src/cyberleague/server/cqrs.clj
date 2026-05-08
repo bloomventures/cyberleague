@@ -296,8 +296,10 @@
                    (user-owns-bot?-condition user-id bot-id)
                    (bot-has-artifact?-condition bot-id digest)])
     :effect (fn [{:keys [_user-id bot-id digest]}]
-              (db/transact!
-               [(db/deploy-bot-tx bot-id digest)]))}])
+              (when (db/artifact-changed? {:bot-id bot-id
+                                           :digest digest})
+                (db/transact!
+                 [(db/deploy-bot-tx bot-id digest)])))}])
 
 (tada/register! t events)
 
