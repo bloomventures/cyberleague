@@ -15,6 +15,8 @@
                                      [org.clj-commons/digest "1.4.100"]
                                      [com.cognitect/transit-clj "1.1.357"]]}
              :dev {:source-paths ["dev-src"]
+                   ;; for cli building
+                   :plugins [[lein-binplus "0.6.8"]]
                    :repl-options {:init-ns user}}
              ;; leingen complains about mixing keywords and maps
              ;; hence the :*foo profiles
@@ -109,10 +111,16 @@
 
                                    [http-kit "2.8.0"]
                                    [com.nextjournal/beholder "1.0.3"]]
-                    :repl-options {:init-ns cyberleague.cli.core}}
+                    :repl-options {:init-ns cyberleague.cli.core}
+                    }
              :cli [:common :*cli]
-             :*uberjar-cli {:aot [cyberleague.cli.core]}
-             :uberjar-cli [:cli :*uberjar-cli]
+             :*bin-cli {:aot [cyberleague.cli.core]
+                        :bin {:name "cyberleague"}}
+             ;; lein with-profile bin-cli bin
+             ;; creates target/cyberleague which is an uberjar that can be self-executed
+             ;; ie ./cyberleague instead of java -jar cyberleague.jar
+             ;; details in: https://github.com/BrunoBonacci/lein-binplus
+             :bin-cli [:cli :*bin-cli]
              ;; GRAALVM_HOME="/" lein with-profile native-image native-image
              :*native-image {:source-paths ^:replace ["cli-src"]
                              :jvm-opts ["-Dclojure.compiler.direct-linking=true"]

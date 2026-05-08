@@ -19,11 +19,8 @@ The overall worklflow is:
 
 - log into the website (via github oauth)
 - download the cli tool:
-  - apple silicon mac: TODO
-  - linux x86: TODO
-  - jar: TODO
-    - for this option, you need java installed
-    - you will run the CLI via: `./java -jar FILE ARGS`
+  - link: TODO
+  - you will need to have java installed on your system
 - authenticate the cli (`./cyberleague login`)
   - (copy the CLI token from your profile card on the website)
   - (this creates `cyberleague.conf.edn` in your current directory)
