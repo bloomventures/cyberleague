@@ -21,17 +21,17 @@ The overall worklflow is:
 - download the cli tool:
   - apple silicon mac: TODO
   - linux x86: TODO
-  - jar: TODO
+  - [jar download](https://github.com/bloomventures/cyberleague/releases/):
     - for this option, you need java installed
-    - you will run the CLI via: `./java -jar FILE ARGS`
-- authenticate the cli (`./cyberleague login`)
-  - (copy the CLI token from your profile card on the website)
+    - you will run the CLI via: `java -jar cyberleague.jar`
+- authenticate the cli (`java -jar cyberleague.jar login`)
+  - (copy the CLI token from your profile card on the [website](https://cyberleague.rafd.me/))
   - (this creates `cyberleague.conf.edn` in your current directory)
   - (the CLI will look for `cyberleague.conf.edn` in the current directory and ancestors)
-- choose a game and env for your bot
-  - to list available games, run: `./cyberleague games`
-  - to list available envs, run: `./cyberleague envs`
-- create a new bot, ex. `./cyberleague bot new --game goofspiel --env clojure`
+- choose a [game](https://github.com/bloomventures/cyberleague/tree/master/src/cyberleague/games) and [env](https://github.com/bloomventures/cyberleague/tree/master/envs) for your bot
+  - to list available games, run: `java -jar cyberleague.jar games`
+  - to list available envs, run: `java -jar cyberleague.jar envs`
+- create a new bot, ex. `java -jar cyberleague.jar bot new --game goofspiel --env clojure`
   - this creates:
       ```
       ./goofspiel-xyz
@@ -47,8 +47,8 @@ The overall worklflow is:
       ```
   - you can modify the `run-cmd`, `build-cmd`, and `build-artifact` to use your preferred tools
   - you can build, upload, and test your bot via the stage command
-    - `./cyberleague bot stage --dir goofspiel-xyz`
-    - (or, `cd` into your bot directory, and run `./cyberleague bot stage`)
+    - `java -jar cyberleague.jar bot stage --dir goofspiel-xyz`
+    - (or, `cd` into your bot directory, and run `java -jar ../cyberleague.jar bot stage`)
     - the starter code implements the ping-pong handshake that all bots must implement, but nothing else
     - the test involves running a match between your bot and a dummy bot
     - you can view the test match results on the website (navigate to your bot card)
@@ -79,16 +79,15 @@ Some important limits to be aware of:
 
 - the typical workflow is to:
   - work on your bot locally
-  - run `./cyberleague bot stage` to build, upload and test your bot
+  - run `java -jar ../cyberleague.jar bot stage` to build, upload and test your bot
   - view the test match results on the website
-  - when ready, "deploy" the current version of the bot via: `./cyberleague bot deploy`
+  - when ready, "deploy" the current version of the bot via: `java -jar ../cyberleague.jar bot deploy`
 
 ## Additional Commands
 
-- `./cyberleague bot build`
+- `java -jar ../cyberleague.jar bot build`
   - run the build step on its own
-- `./cyberleague bot upload`
+- `java -jar ../cyberleague.jar bot upload`
   - run the upload step on its own (with the current artifact)
-- `./cyberleague bot test`
+- `java -jar ../cyberleague.jar bot test`
   - run the test step on its own (with the current artifact)
-
