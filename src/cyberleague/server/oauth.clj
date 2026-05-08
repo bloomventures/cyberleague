@@ -63,7 +63,7 @@
 (def routes
   [[[:get "/oauth/pre-auth-redirect"]
     (fn [_]
-      (if (= :dev (-> config :environment))
+      (if (= :dev (-> config :common :environment))
         ;; in development, immediately log a user in (first in db)
         {:status 200
          :headers {"Content-Type" "text/html"}
