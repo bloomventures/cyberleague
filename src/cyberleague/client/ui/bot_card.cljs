@@ -7,26 +7,15 @@
    [cyberleague.client.ui.card :as card]
    [cyberleague.client.ui.common :as ui]))
 
-(defn graph-view [history matches bot-id]
-  (let [matches-by-id (zipmap (map :match/id matches)
-                              matches)]
-    [:div.graph
-     {:ref (fn [el]
-             (when el
-               (js/window.bot_graph el
-                                    (->> history
-                                         (map (fn [e]
-                                                (let [digest (->> (:match-id e)
-                                                                  matches-by-id
-                                                                  :match/artifacts
-                                                                  (filter (fn [a]
-                                                                            (= bot-id (:bot/id (:artifact/bot a)))))
-                                                                  first
-                                                                  :artifact/digest)]
-                                                  (assoc e
-                                                         :digest digest
-                                                         :color (ui/color digest)))))
-                                         clj->js))))}]))
+(defn graph-view [history]
+  [:div.graph
+   {:ref (fn [el]
+           (when el
+             (js/window.bot_graph el
+                                  (->> history
+                                       (map (fn [e]
+                                              (assoc e :color (ui/color (:digest e)))))
+                                       clj->js))))}])
 
 (defn record-summary
   [{:bot/keys [id matches]}]
@@ -100,7 +89,7 @@
            [:td "Weight"]
            [:td (-> bot :bot/active-artifact :artifact/weight)]]]]
 
-        [graph-view (:bot/history bot) (:bot/matches bot) (:bot/id bot)]
+        [graph-view (:bot/history bot)]
 
         (let [{:keys [wins losses ties]} (record-summary bot)]
           [:p {:tw "text-center"}
@@ -131,11 +120,18 @@
                                       :artifact/digest)]
                       [ui/artifact-chip digest]) ]
                [:td {:tw "text-right px-1"}
-                [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
+                [:a {:on-click (fn [_]
+                                 (state/nav! :card.type/match
+                                             {:match-id
+                                              (:match/id match)
+                                              :bot-id (:bot/id bot)}))}
                  (result-status {:match match
                                  :bot-id (:bot/id bot)})]]
                [:td {:tw "p-1"}
-                [:a {:on-click (fn [_] (state/nav! :card.type/match (:match/id match)))}
+                [:a {:on-click (fn [_] (state/nav! :card.type/match
+                                                   {:match-id
+                                                    (:match/id match)
+                                                    :bot-id (:bot/id bot)}))}
                  " vs "
                  (let [other-bot (->> (:match/bots match)
                                       (remove (fn [b] (= (:bot/id bot) (:bot/id b))))

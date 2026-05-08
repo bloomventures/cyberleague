@@ -161,13 +161,17 @@
 
    {:id :api/match
     :params {:user-id [:maybe :user/id]
-             :match-id :match/id}
+             :match-id :match/id
+             :bot-id :bot/id}
     :rest [:get "/api/matches/:match-id"]
-    :conditions (fn [{:keys [match-id]}]
-                  [(entity-exists?-condition :match/id match-id)])
-    :return (fn [{:keys [match-id]}]
+    :conditions (fn [{:keys [bot-id]}]
+                  [(entity-exists?-condition :bot/id bot-id)
+                   ;; not checking match-id
+                   ])
+    :return (fn [{:keys [bot-id match-id]}]
               (graph/pull
-               {:match/id match-id}
+               {:match/id match-id
+                :bot/id bot-id}
                [:match/id
                 {:match/game [:game/id
                               :game/name

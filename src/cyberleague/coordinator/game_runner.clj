@@ -2,7 +2,8 @@
   (:require
    [clojure.data.json :as json]
    [cyberleague.server.evaluator-client :as eval-client]
-   [cyberleague.games.protocol :as game-engine.protocol]))
+   [cyberleague.games.protocol :as game-engine.protocol]
+   [cyberleague.common.schema :as s]))
 
 (defn eval-move
   [artifact state]
@@ -45,32 +46,6 @@
 
       :else
       eval)))
-
-(def Eval
-  [:map
-   [:eval/stdout {:optional true} :string]
-   [:eval/stderr {:optional true} :string]
-   ;; stdout json->edn, "move"
-   [:eval/return-value {:optional true} :any]
-   [:eval/error {:optional true}
-    [:map
-     [:eval.error/type [:enum
-                        :eval.error.type/system-error
-                        :eval.error.type/invalid-json
-                        :eval.error.type/invalid-move
-                        :eval.error.type/illegal-move]]]]])
-
-(def PlayerId
-  :int)
-
-(def LogEntry
-  [:map
-   ;; state prior to moves
-   [:log-entry/state :any]
-   [:log-entry/contexts
-    [:map-of PlayerId :any]]
-   [:log-entry/evals
-    [:map-of PlayerId Eval]]])
 
 (defn run-game
   "Bots: [bot ...]

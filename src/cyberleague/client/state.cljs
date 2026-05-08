@@ -88,8 +88,10 @@
                (conj card)))))
 
 (defn nav!
-  [card-type id]
-  (open-card! [card-type {:id id}]))
+  [card-type id-or-obj]
+  (open-card! [card-type (if (map? id-or-obj)
+                          id-or-obj
+                          {:id id-or-obj})]))
 
 (defn fetch-user! []
   (-> (tada! [:api/me])

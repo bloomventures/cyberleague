@@ -7,9 +7,10 @@
    [cyberleague.client.ui.match-results :refer [match-results-view]]))
 
 (defn match-card-view
-  [[_ {:keys [id]} :as card]]
+  [[_ {:keys [match-id bot-id]} :as card]]
   (r/with-let
-   [data (state/tada-atom [:api/match {:match-id id}])]
+   [data (state/tada-atom [:api/match {:match-id match-id
+                                       :bot-id bot-id}])]
    (when-let [match @data]
      [card/wrapper {}
       [card/header {:card card

@@ -30,7 +30,7 @@
         new-RD1 (expt (+ (/ (sq RD1)) (/ dsq)) -1/2)]
     [new-R1 new-RD1]))
 
-(defn new-ratings [p1 p2 winner]
+(defn new-ratings [p1 p2 p1-digest p2-digest winner]
   (let [[p1r p1rd] (glicko
                     (:bot/rating p1) (:bot/rating-dev p1)
                     (:bot/rating p2) (:bot/rating-dev p2)
@@ -47,7 +47,9 @@
                       :else :loss))]
     [{:bot/id (:bot/id p1)
       :bot/rating (Math/max 0 (Math/round p1r))
-      :bot/rating-dev (Math/max 100 (Math/round p1rd))}
+      :bot/rating-dev (Math/max 100 (Math/round p1rd))
+      :bot/rating-digest p1-digest}
      {:bot/id (:bot/id p2)
       :bot/rating (Math/max 0 (Math/round p2r))
-      :bot/rating-dev (Math/max 100 (Math/round p2rd))}]))
+      :bot/rating-dev (Math/max 100 (Math/round p2rd))
+      :bot/rating-digest p2-digest}]))

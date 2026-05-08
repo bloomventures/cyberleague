@@ -237,20 +237,13 @@
                    [?a :db/ident ?attr]
                    [?tx :db/txInstant ?inst]]
                  history
-                 bot-id)
-        match-id-by-tx (->> (d/q '[:find ?tx ?match-id
-                                   :in $ [?tx ...]
-                                   :where
-                                   [_ :match/id ?match-id ?tx true]]
-                                 history
-                                 (map first raw))
-                            (into {}))]
+                 bot-id)]
     (->> raw
          (group-by second)
          (reduce-kv (fn [memo k v]
                       (let [rating (last (first (filter #(= :bot/rating (nth % 2)) v)))
                             rating-dev (last (first (filter #(= :bot/rating-dev (nth % 2)) v)))
-                            tx (ffirst v)
+                            digest (last (first (filter #(= :bot/rating-digest (nth % 2)) v)))
                             [rating rating-dev]
                             (cond
                               (and (nil? rating) (nil? rating-dev)) [nil nil]
@@ -263,7 +256,7 @@
                           (conj memo {:inst k
                                       :rating rating
                                       :rating-dev rating-dev
-                                      :match-id (match-id-by-tx tx)})
+                                      :digest digest})
                           memo))) [])
          (sort-by :inst)
          vec)))

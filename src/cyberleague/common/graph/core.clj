@@ -12,11 +12,19 @@
 
 (defn transform-resolver
   [source-key target-key f]
-  {:dat.resolver/id target-key
+  {:dat.resolver/id (str "custom-" target-key)
    :dat.resolver/in #{source-key}
    :dat.resolver/out #{target-key}
    :dat.resolver/f (fn [in]
                      {target-key (f (get in source-key))})})
+
+(defn xtransform-resolver
+  [source-key target-key f]
+  {:dat.resolver/id (str "custom-" target-key)
+   :dat.resolver/in #{source-key}
+   :dat.resolver/out target-key
+   :dat.resolver/f (fn [in]
+                     (f (get in source-key)))})
 
 (defn alias-resolver [source-key target-key]
   (transform-resolver source-key target-key identity))
@@ -51,11 +59,59 @@
    (alias-resolver :bot/_user-count :user/bot-count)
    (alias-resolver :bot/_game-count :game/bot-count)
 
-   (alias-resolver :match/_bots :bot/matches)
+   #_(alias-resolver :match/_bots :bot/matches)
    (alias-resolver :bot/_game :game/bots)
    (alias-resolver :bot/_user :user/bots)
    (alias-resolver :artifact/_bot :bot/artifacts)
    (alias-resolver :env/_language :language/envs)
+
+   {:dat.resolver/id ::bot-matches
+    :dat.resolver/in [:bot/matches-transit]
+    :dat.resolver/out [{:bot/matches [:match/id
+                                      :match/timestamp
+                                      :match/test?
+                                      :match/bot-ids
+                                      :match/artifact-ids
+                                      :match/winning-bot-ids
+                                      :match/disqualified-bot-ids
+                                      :match/player-mappings
+                                      :match/log]}]
+    :dat.resolver/f (fn [{:keys [bot/matches-transit]}]
+                      {:bot/matches
+                       (->> matches-transit
+                            t/read-str)})}
+
+   (xtransform-resolver :match/bot-ids
+                       [{:match/bots [:bot/id]}]
+                       (fn [ids] {:match/bots (map (fn [id] {:bot/id id}) ids)}))
+   (xtransform-resolver :match/winning-bot-ids
+                       [{:match/winning-bots [:bot/id]}]
+                       (fn [ids] {:match/winning-bots (map (fn [id] {:bot/id id}) ids)}))
+   (xtransform-resolver :match/disqualified-bot-ids
+                       [{:match/disqualified-bots [:bot/id]}]
+                       (fn [ids] {:match/disqualified-bots (map (fn [id] {:bot/id id}) ids)}))
+   (xtransform-resolver :match/artifact-ids
+                       [{:match/artifacts [:artifact/id]}]
+                       (fn [ids]
+                         {:match/artifacts (map (fn [id] {:artifact/id id}) ids)}))
+
+   {:dat.resolver/id ::bot-match
+    :dat.resolver/in [:bot/matches
+                      :match/id]
+    :dat.resolver/out [:match/id
+                       :match/timestamp
+                       :match/test?
+                       :match/bot-ids
+                       :match/artifact-ids
+                       :match/winning-bot-ids
+                       :match/disqualified-bot-ids
+                       :match/player-mappings
+                       :match/log]
+    :dat.resolver/f (fn [{:keys [bot/matches match/id]}]
+                      (->> matches
+                           (filter (fn [match]
+                                     (= id (:match/id match))))
+                           first))}
 
    (transform-resolver :match/log-transit :match/log t/read-str)
    (transform-resolver :match/player-mappings-transit :match/player-mappings t/read-str)

@@ -7,7 +7,7 @@
    [cyberleague.coordinator.game-runner :as game-runner]
    [cyberleague.coordinator.ranking :as ranking]
    [cyberleague.db.core :as db]
-   [cyberleague.common.transit :as t]))
+   [cyberleague.db.matches :as db.matches]))
 
 (defn ping-pong!
   "Evals bots for ping/pong; returns {bot-id eval}"
@@ -44,13 +44,16 @@
                                                       (-> eval :eval/error :eval.error/type)))))
                                  (into {}))
            match {:match/id match-id
+                  :match/game-id (:game/id game)
                   :match/test? test?
-                  :match/bots (->> bots
+                  :match/bot-ids (->> bots
                                    (map (fn [bot]
-                                          [:bot/id (:bot/id bot)])))
-                  :match/artifacts (->> artifacts
+                                          (:bot/id bot)))
+                                   set)
+                  :match/artifact-ids (->> artifacts
                                         (map (fn [artifact]
-                                               [:artifact/id (:artifact/id artifact)])))
+                                               (:artifact/id artifact)))
+                                        set)
                   :match/timestamp (java.util.Date.)}]
        (cond
          (seq ping-pong-system-errors)
@@ -58,12 +61,15 @@
 
          (seq ping-pong-errors)
          (do
-           (db/transact! [(assoc match
-                                 :match/disqualified-bots
+           (db/transact! (db.matches/match-txs
+                          (assoc match
+                                 :match/disqualified-bot-ids
                                  (->> (keys ping-pong-errors)
                                       (map (fn [bot-id]
-                                             [:bot/id bot-id])))
-                                 :match/log-transit (t/write-str [{:log-entry/evals ping-pong-evals}]))])
+                                             bot-id))
+                                      set)
+                                 :match/log [{:log-entry/evals ping-pong-evals}]))
+                         (map :bot/id bots))
            (when (not test?)
              (doseq [errd-bot-id (keys ping-pong-errors)]
                (println "Disabling bot (ping-pong fail):" errd-bot-id)
@@ -105,25 +111,32 @@
                    (println "Disabling bot:" (:bot/id errd-bot) errors)
                    (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
 
-               (db/transact! (->> (concat [(assoc match
-                                                  :match/player-mappings-transit
-                                                  (t/write-str (:game.result/player-mappings result))
-                                                  :match/log-transit
-                                                  (t/write-str (:game.result/log result))
-                                                  :match/disqualified-bots
-                                                  (->> (bots-by-status ::errored)
-                                                       (map (fn [id]
-                                                              [:bot/id (:bot/id id)])))
-                                                  :match/winning-bots
-                                                  (->> winner-ids
-                                                       (map (fn [id]
-                                                              [:bot/id id]))))]
-                                          (when (not test?)
-                                            (ranking/new-ratings
-                                             (first bots)
-                                             (second bots)
-                                             ;; curently only makes sense for 2p games anyway
-                                             (first winner-ids))))))))))
+               (db/transact!
+                (concat
+                 (db.matches/match-txs (assoc match
+                                              :match/player-mappings
+                                              (:game.result/player-mappings result)
+                                              :match/log
+                                              (:game.result/log result)
+                                              :match/disqualified-bot-ids
+                                              (->> (bots-by-status ::errored)
+                                                   (map (fn [id]
+                                                          (:bot/id id)))
+                                                   set)
+                                              :match/winning-bot-ids
+                                              (->> winner-ids
+                                                   (map (fn [id]
+                                                          id))
+                                                   set))
+                                       (map :bot/id bots))
+                 (when (not test?)
+                   (ranking/new-ratings
+                    (first bots)
+                    (second bots)
+                    (:artifact/digest (first artifacts))
+                    (:artifact/digest (second artifacts))
+                    ;; curently only makes sense for 2p games anyway
+                    (first winner-ids)))))))))
     {:match/id match-id}))))
 
 (defn select-players
@@ -182,6 +195,17 @@
                  :bot/code (db/with-conn (db/deployed-code [:bot/id (:bot/id bot)]))}))
          (game-runner/run-game game)))
 
+
+(defn matchmake! []
+  (doseq [[game active-bots] (db/with-conn (db/active-bots))]
+    (try
+      (run-one-game! game active-bots)
+      (catch Exception e
+        (println "Exception" e)))
+    (Thread/sleep (-> config :server :coordinator-delay))))
+
+#_(matchmake!)
+
 ;; -------
 
 (defonce run? (atom false))
@@ -190,12 +214,7 @@
   (println "Running games")
   (reset! run? true)
   (while @run?
-    (doseq [[game active-bots] (db/with-conn (db/active-bots))]
-      (try
-        (run-one-game! game active-bots)
-        (catch Exception e
-          (println "Exception" e)))
-      (Thread/sleep (-> config :server :coordinator-delay)))))
+    (matchmake!)))
 
 (defn start! []
   (when (not @run?)
