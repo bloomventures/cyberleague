@@ -59,14 +59,16 @@
    [:span {:tw "grow"}]
 
    ;; only active bots have weights
-   (when-let [weight (:bot/weight bot)]
-     (when (< 0 weight)
-       [:span {:tw "whitespace-nowrap flex items-center"}
-        " ("
-        weight
-        [fa/fa-weight-hanging-solid
-         {:tw "w-0.75em h-0.75em inline ml-0.5"}]
-        ")"]))])
+   ;; disable for now - not enough space
+   ;; brinb back when we make this a hover-tooltip
+   #_(when-let [weight (:bot/weight bot)]
+       (when (< 0 weight)
+         [:span {:tw "whitespace-nowrap flex items-center"}
+          " ("
+          weight
+          [fa/fa-weight-hanging-solid
+           {:tw "w-0.75em h-0.75em inline ml-0.5"}]
+          ")"]))])
 
 (defn subheading [s]
   [:div {:tw "border-b border-solid text-#3f51b5 border-#3f51b5"}
