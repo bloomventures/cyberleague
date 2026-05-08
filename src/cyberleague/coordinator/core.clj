@@ -128,27 +128,43 @@
 
 (defn select-players
   [active-bots]
-  (when (seq active-bots) ;; possible to have no active bots
-    (let [player-1 (rand-nth active-bots)
+  ;; PROPERTIES WE WANT:
+  ;; - per-game user match parity
+  ;;     within each game, every user's bots collectively play the same number of matches
+  ;;     user with 5 bots in game X has their bots play appx same # of games as user with 1 bot
+  ;; - a user's bots never play against each other
+  ;; - slightly prefer matchmaking against closer elo
+  ;; PLAN
+  ;;  group active-bots by user
+  ;;  pick a user randomly
+  ;;  pick a bot from user-bots randomly
+  ;;  from active-bots, find bots-not-owned-by-user, then pick one with close-ish elo
+
+  (when (seq active-bots)
+    (let [bots-by-user (group-by (fn [bot] (-> bot :bot/user :user/id)) active-bots)
+          user-1-id (rand-nth (keys bots-by-user))
+          player-1 (rand-nth (get bots-by-user user-1-id))
           player-2-candidates (->> active-bots
-                                   (remove (partial = player-1))
+                                   (remove (fn [bot] (= user-1-id (-> bot :bot/user :user/id))))
                                    (sort-by (fn [bot] (Math/abs
                                                        (- (:bot/rating bot)
                                                           (:bot/rating player-1)))))
                                    (take 10)
                                    (sort-by :bot/rating-dev #(compare %2 %1))
                                    (take 5))]
-      (when (seq player-2-candidates) ;; possible to have no other candidates
-        (let [player-2 (rand-nth player-2-candidates)]
-          {:player-1 player-1
-           :player-2 player-2})))))
+      (when (seq player-2-candidates)
+        {:player-1 player-1
+         :player-2 (rand-nth player-2-candidates)}))))
 
 #_(apply select-players (first (db/with-conn (db/active-bots))))
 
 (rcf/tests
  (select-players []) := nil
- (select-players [{:bot/rating 100}]) := nil
- (select-players [{:bot/rating 100} {:bot/rating 200}]) := {:player-1 _ :player-2 _})
+ (select-players [{:bot/rating 100 :bot/user {:user/id 1}}]) := nil
+ (select-players [{:bot/rating 100 :bot/user {:user/id 1}}
+                  {:bot/rating 100 :bot/user {:user/id 1}}]) := nil
+ (select-players [{:bot/rating 100 :bot/user {:user/id 1}}
+                  {:bot/rating 200 :bot/user {:user/id 2}}]) := {:player-1 _ :player-2 _})
 
 (defn run-one-game!
   [game active-bots]
