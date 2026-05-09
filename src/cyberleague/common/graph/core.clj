@@ -118,9 +118,6 @@
                            (filter (fn [m] (= id (:match/id m))))
                            first))}
 
-   (transform-resolver :match/log-transit :match/log t/read-str)
-   (transform-resolver :match/player-mappings-transit :match/player-mappings t/read-str)
-
    (transform-resolver :env/slug :env/starter-files envs/files-for)
 
    {:dat.resolver/id ::env-from-edn-configs
