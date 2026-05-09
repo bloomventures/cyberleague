@@ -85,7 +85,7 @@
 
           :else
           (let [result (game-runner/run-game
-                        {:game (into {} game)
+                        {:game-slug (:game/slug game)
                          :bot-ids (mapv :bot/id bots)
                          :artifacts artifacts})
                 errors (:game.result/errors result)]
@@ -190,26 +190,19 @@
                 :artifacts (mapv :bot/active-artifact [player-1 player-2])
                 :test? false})))
 
-#_(let [[game bots] (first (db/with-conn (db/active-bots)))]
-    (->> bots
-         (take 2)
-         (map (fn [bot]
-                {:bot/id (:bot/id bot)
-                 :bot/code (db/with-conn (db/deployed-code [:bot/id (:bot/id bot)]))}))
-         (game-runner/run-game game)))
+(defn pick-game-slug []
+  ;; this biases (by design) towards games with more bots
+  (when-let [active-bots (seq (db/active-bots))]
+    (:game/slug (:bot/game (rand-nth active-bots)))))
 
-(defn matchmake! []
-  (db/with-conn
-   (let [active-bots (db/active-bots)]
-     (when (seq active-bots)
-       ;; this biases (by design) towards games with more bots
-       (let [game (:bot/game (rand-nth active-bots))]
-         (try
-           (run-one-game! game active-bots)
-           (catch Exception e
-             (tel/error! ::match-error e))))))))
+(defn matchmake! [game-slug]
+  (when-let [active-game-bots (->> (db/active-bots)
+                                   (filter (fn [b]
+                                             (= game-slug (:game/slug (:bot/game b)))))
+                                   seq)]
+    (run-one-game! (db/by-id [:game/slug game-slug]) active-game-bots)))
 
-#_(matchmake!)
+#_(db/with-conn (matchmake! "liars-dice"))
 
 ;; -------
 
@@ -226,7 +219,8 @@
        exec
        (fn []
          (try
-           (matchmake!)
+           (db/with-conn
+            (matchmake! (pick-game-slug)))
            (catch Exception e
              (tel/error! ::match-error e))))
        0
@@ -251,3 +245,5 @@
     (tel/log! "Stopping coordinator")
     (.shutdown exec)
     (reset! executor nil)))
+
+#_(stop!)

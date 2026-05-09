@@ -27,7 +27,7 @@
    {:ping 551})
 
 (defn run-move
-  [player-index artifact state context game-engine]
+  [player-index artifact state context game-slug game-engine]
   (let [eval (eval-move artifact context)
         return-value (:eval/return-value eval)]
     (cond
@@ -50,14 +50,14 @@
 (defn run-game
   "Bots: [bot ...]
    Artifacts [artifact ...]"
-  [{:keys [game bot-ids artifacts]}]
-  (let [game-engine (game-engine.protocol/make-engine game)
+  [{:keys [game-slug bot-ids artifacts]}]
+  (let [game-engine (game-engine.protocol/make-engine {:game/slug game-slug})
         nplayers (game-engine.protocol/number-of-players game-engine)
         player-indexes (range (count bot-ids))
         bot-id->player-index (zipmap bot-ids
                                      player-indexes)]
     (assert (= nplayers (count bot-ids))
-            (str "Wrong number of players (" (count bot-ids) ") for " (:game/name game)))
+            (str "Wrong number of players (" (count bot-ids) ") for " game-slug))
     (loop [state (game-engine.protocol/init-state game-engine player-indexes)
            log []
            player-indexes (cycle player-indexes)]
@@ -86,7 +86,7 @@
                                       artifact (get artifacts player-index)
                                       context (get contexts bot-id)]
                                   [bot-id
-                                   (run-move player-index artifact state context game-engine)])))
+                                   (run-move player-index artifact state context game-slug game-engine)])))
                          (into {}))
               errors (->> evals
                           (keep (fn [[bot-id result]]

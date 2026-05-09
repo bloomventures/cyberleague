@@ -10,7 +10,7 @@
   (testing "can run a game"
     (let [random-bot-code (pr-str bots/random-valid-bot)
           result (runner/run-game
-                  {:game/name "ultimate tic-tac-toe"}
+                  "ultimate-tic-tac-toe"
                   [{:db/id 56789
                     :bot/code {:code/code random-bot-code
                                :code/env [:env/slug "clojure"]}}
@@ -25,7 +25,7 @@
 
 (deftest ultimate-tic-tac-toe-engine
   (testing "Can create an engine"
-    (is (satisfies? game/IGameEngine (game/make-engine {:game/name "ultimate tic-tac-toe"}))))
+    (is (satisfies? game/IGameEngine (game/make-engine {:game/slug "ultimate-tic-tac-toe"}))))
 
   (testing "board helper"
     (is (not (engine/won-subboard (vec (repeat 9 nil)))))
@@ -49,7 +49,7 @@
                                      "o" "x" "x"]))))
 
   (testing "does basic info correctly"
-    (let [g (game/make-engine {:game/name "ultimate tic-tac-toe"})]
+    (let [g (game/make-engine {:game/slug "ultimate-tic-tac-toe"})]
       (is (not (game/simultaneous-turns? g)))
 
       (is (game/valid-move? g [0 0]))
@@ -90,7 +90,7 @@
             (is (game/legal-move? g state 12345 [2 0])))))))
 
   (testing "progressing game state"
-    (let [g (game/make-engine {:game/name "ultimate tic-tac-toe"})
+    (let [g (game/make-engine {:game/slug "ultimate-tic-tac-toe"})
           state (game/init-state g [12345 54321])]
 
       (testing "starting with a good state"
@@ -120,7 +120,7 @@
 
   (testing "Finishing game"
     (testing "with a simple winning board"
-      (let [g (game/make-engine {:game/name "ultimate tic-tac-toe"})
+      (let [g (game/make-engine {:game/slug "ultimate-tic-tac-toe"})
             almost-done-state (-> (game/init-state g [12345 54321])
                                   (assoc-in [:grid 0] (vec (concat (repeat 3 "x") (repeat 6 nil))))
                                   (assoc-in [:grid 1] (vec (concat (repeat 3 "x") (repeat 6 nil))))
@@ -131,7 +131,7 @@
           (is (= 12345 (game/winner g done-state))))))
 
     (testing "with a drawn board"
-      (let [g (game/make-engine {:game/name "ultimate tic-tac-toe"})
+      (let [g (game/make-engine {:game/slug "ultimate-tic-tac-toe"})
             tied-state {:grid
                         [["o" nil "o" nil "o" "x" "o" "x" nil]
                          [nil "x" "o" nil "o" nil "o" nil nil]

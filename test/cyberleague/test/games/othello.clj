@@ -9,10 +9,10 @@
 
 (deftest othello-engine
   (testing "Can create an engine"
-    (is (satisfies? game/IGameEngine (game/make-engine {:game/name "othello"}))))
+    (is (satisfies? game/IGameEngine (game/make-engine {:game/slug "othello"}))))
 
   (testing "basic game setup"
-    (let [g (game/make-engine {:game/name "othello"})]
+    (let [g (game/make-engine {:game/slug "othello"})]
       (is (not (game/simultaneous-turns? g)))
       (is (= 2 (game/number-of-players g)))
       (is (game/valid-move? g 26))
@@ -30,7 +30,7 @@
         (is (not (game/legal-move? g state 123 17))))))
 
   (testing "progressing game state"
-    (let [g (game/make-engine {:game/name "othello"})
+    (let [g (game/make-engine {:game/slug "othello"})
           state (game/init-state g [123 456])]
 
       (testing "starting with a good state"
@@ -60,7 +60,7 @@
             (is (not (game/game-over? g third-state))))))))
 
   (testing "change stone colours in 2 directions"
-    (let [g (game/make-engine {:game/name "othello"})
+    (let [g (game/make-engine {:game/slug "othello"})
           first-state (-> (game/init-state g [123 456])
                           (assoc-in [:board  43] "W")
                           (assoc-in [:board  42] "B"))]
@@ -74,7 +74,7 @@
         (is (= "W" (get-in second-state [:board 27]))))))
 
   (testing "change a chain"
-    (let [g (game/make-engine {:game/name "othello"})
+    (let [g (game/make-engine {:game/slug "othello"})
           first-state (-> (game/init-state g [123 456])
                           (assoc-in [:board 19] "W"))
           second-state (game/next-state g first-state {123 11})]
@@ -82,7 +82,7 @@
       (is (= "B" (get-in second-state [:board 27])))))
 
   #_(testing "can finish game"
-    (let [g (game/make-engine {:game/name "othello"})
+    (let [g (game/make-engine {:game/slug "othello"})
           first-state (game/init-state g [123 456])
           second-state (->> (range 64)
                             (map (fn [curr]
@@ -100,7 +100,7 @@
     (let [random-bot-code (pr-str bots/random-valid-bot)
           first-bot-code (pr-str bots/first-valid-bot)
           result (runner/run-game
-                   {:game/name "othello"}
+                   "othello"
                    [{:db/id 12345
                      :bot/code {:code/code random-bot-code
                                 :code/env [:env/slug "clojure-sci"]}}
