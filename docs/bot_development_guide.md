@@ -20,14 +20,17 @@ The overall worklflow is:
 - log into the website (via github oauth)
 - download the cli tool:
   - link: TODO
-  - you will need to have java installed on your system
+  - you will need to have Java 21+ installed on your system
+  - you may need to make it executable (`chmod +x cyberleague`)
 - authenticate the cli (`./cyberleague login`)
-  - (copy the CLI token from your profile card on the website)
+  - copy the CLI token from your profile card on the website
   - (this creates `cyberleague.conf.edn` in your current directory)
   - (the CLI will look for `cyberleague.conf.edn` in the current directory and ancestors)
 - choose a game and env for your bot
   - to list available games, run: `./cyberleague games`
   - to list available envs, run: `./cyberleague envs`
+    - envs are a language + runtime combination (ex. rust compiling to a wasm target)
+    - if your language is not listed, but can target of our runtimes, you can use generic-* (but you will miss out on starter code)
 - create a new bot, ex. `./cyberleague bot new --game goofspiel --env clojure`
   - this creates:
       ```
@@ -40,16 +43,18 @@ The overall worklflow is:
             :bot/run-cmd "lein run"
             :bot/build-cmd "lein uberjar"
             :bot/build-artifact "target/bot.jar"}
-         other files for a starter bot based on the env chosen
+         plus other files for a starter bot based on the env chosen
       ```
   - you can modify the `run-cmd`, `build-cmd`, and `build-artifact` to use your preferred tools
   - you can build, upload, and test your bot via the stage command
     - `./cyberleague bot stage --dir goofspiel-xyz`
-    - (or, `cd` into your bot directory, and run `./cyberleague bot stage`)
-    - the starter code implements the ping-pong handshake that all bots must implement, but nothing else
-    - the test involves running a match between your bot and a dummy bot
-    - you can view the test match results on the website (navigate to your bot card)
-    - the match should indicate a passed handshake - you are ready to work on your bot!
+    - (or, `cd` into your bot directory, and run `../cyberleague bot stage`)
+    - the starter code implements the ping-pong handshake that all bots must implement (see below), but nothing else
+    - the local-test does a local ping-pong check and single state check (using the `run-cmd`)
+    - the remote-test involves running a match between your bot and a dummy bot
+        - you can view the remote-test match results on the website (navigate to your bot card)
+        - the match should indicate a passed handshake (and then an invalid move)
+        - you are ready to work on your bot!
 
 
 ## Bot Basics
@@ -84,8 +89,10 @@ Some important limits to be aware of:
 
 - `./cyberleague bot build`
   - run the build step on its own
+- `./cyberleague bot test-local`
+  - run the local test (with the `run-cmd`)
 - `./cyberleague bot upload`
   - run the upload step on its own (with the current artifact)
-- `./cyberleague bot test`
-  - run the test step on its own (with the current artifact)
+- `./cyberleague bot test-remote`
+  - run a remote test (with the current artifact - which must have been uploaded)
 
