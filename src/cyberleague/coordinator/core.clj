@@ -213,20 +213,41 @@
 
 ;; -------
 
-(defonce run? (atom false))
+(defonce executor (atom nil))
 
-#_(identity run?)
-
-(defn run-games! []
-  (println "Running games")
-  (reset! run? true)
-  (while @run?
-    (matchmake!)
-    (Thread/sleep (-> config :server :coordinator-delay))))
+#_(identity executor)
 
 (defn start! []
-  (when (not @run?)
-    (future (run-games!))))
+  (when (nil? @executor)
+    (tel/log! "Starting coordinator")
+    (let [exec (java.util.concurrent.ScheduledThreadPoolExecutor. 1)]
+      (reset! executor exec)
+      (.scheduleWithFixedDelay
+       exec
+       (fn []
+         (try
+           (matchmake!)
+           (catch Exception e
+             (tel/error! ::match-error e))))
+       0
+       (-> config :server :coordinator-delay)
+       java.util.concurrent.TimeUnit/MILLISECONDS))))
+
+(defn status []
+  (if-let [exec @executor]
+    {:running? (not (.isShutdown exec))
+     :terminated? (.isTerminated exec)
+     :queued (.. exec getQueue size)
+     :active (.getActiveCount exec)}
+    {:running? false
+     :terminated? true
+     :queued 0
+     :active 0}))
+
+#_(status)
 
 (defn stop! []
-  (reset! run? false))
+  (when-let [exec @executor]
+    (tel/log! "Stopping coordinator")
+    (.shutdown exec)
+    (reset! executor nil)))
