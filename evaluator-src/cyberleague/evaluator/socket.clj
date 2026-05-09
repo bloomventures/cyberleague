@@ -53,14 +53,19 @@
         buf (ByteBuffer/allocate 1)]
     (loop []
       (.clear buf)
-      (.read ch buf)
-      (.flip buf)
-      (let [b (.get buf)]
-        (if (= b (byte \newline))
-          (str sb)
+      (let [n (.read ch buf)]
+        (cond
+          (= n -1) (throw (ex-info "Channel closed unexpectedly during vsock handshake" {}))
+          (= n 0)  (recur)
+          :else
           (do
-            (.append sb (char b))
-            (recur)))))))
+            (.flip buf)
+            (let [b (.get buf)]
+              (if (= b (byte \newline))
+                (str sb)
+                (do
+                  (.append sb (char b))
+                  (recur))))))))))
 
 (def VsockContext
   [:map
