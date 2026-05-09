@@ -141,7 +141,9 @@
         [:div {:tw "mt-8"}
          [ui/subheading "Artifacts"]
          [:div {:tw "py-2"}
-          (for [artifact (:bot/artifacts bot)]
+          (for [artifact (->> (:bot/artifacts bot)
+                              (sort-by :artifact/created-at)
+                              reverse)]
             [:table
              [:tbody
               [:tr
