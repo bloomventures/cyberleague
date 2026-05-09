@@ -60,11 +60,12 @@
          (seq ping-pong-errors)
          (do
            (db/transact! (db.matches/match-txs
+            @(db/transact! (db.matches/match-txs
                           (assoc match
                                  :match/disqualified-bot-ids
                                  (set (keys ping-pong-errors))
-                                 :match/log [{:log-entry/evals ping-pong-evals}]))
-                         (map :bot/id bots))
+                                  :match/log [{:log-entry/evals ping-pong-evals}])
+                           (map :bot/id bots)))
            (when (not test?)
              (doseq [errd-bot-id (keys ping-pong-errors)]
                (println "Disabling bot (ping-pong fail):" errd-bot-id)
