@@ -1,6 +1,5 @@
 (ns cyberleague.client.ui.bot-card
   (:require
-   [clojure.string :as string]
    [cljsjs.d3]
    [reagent.core :as r]
    [cyberleague.client.state :as state]
@@ -14,7 +13,8 @@
              (js/window.bot_graph el
                                   (->> history
                                        (map (fn [e]
-                                              (assoc e :color (ui/color (:digest e)))))
+                                              (assoc e :color (when (:digest e)
+                                                                (ui/color (:digest e))))))
                                        clj->js))))}])
 
 (defn record-summary

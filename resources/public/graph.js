@@ -54,7 +54,7 @@ var bot_graph = function(el, data){
            + "H" + xi(i + 1)
            + "V" + y(data[i + 1].rating);
     })
-    .style("stroke", function(d) { return d.color; })
+    .style("stroke", function(d) { return "#3f51b5" })
     .style("fill", "none")
 
   var axis = graph.append("g")
