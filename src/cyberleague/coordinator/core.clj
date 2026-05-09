@@ -47,13 +47,11 @@
                   :match/game-id (:game/id game)
                   :match/test? test?
                   :match/bot-ids (->> bots
-                                   (map (fn [bot]
-                                          (:bot/id bot)))
-                                   set)
+                                      (map :bot/id)
+                                      set)
                   :match/artifact-ids (->> artifacts
-                                        (map (fn [artifact]
-                                               (:artifact/id artifact)))
-                                        set)
+                                           (map :artifact/id)
+                                           set)
                   :match/timestamp (java.util.Date.)}]
        (cond
          (seq ping-pong-system-errors)
@@ -64,10 +62,7 @@
            (db/transact! (db.matches/match-txs
                           (assoc match
                                  :match/disqualified-bot-ids
-                                 (->> (keys ping-pong-errors)
-                                      (map (fn [bot-id]
-                                             bot-id))
-                                      set)
+                                 (set (keys ping-pong-errors))
                                  :match/log [{:log-entry/evals ping-pong-evals}]))
                          (map :bot/id bots))
            (when (not test?)
@@ -120,14 +115,10 @@
                                               (:game.result/log result)
                                               :match/disqualified-bot-ids
                                               (->> (bots-by-status ::errored)
-                                                   (map (fn [id]
-                                                          (:bot/id id)))
+                                                   (map :bot/id)
                                                    set)
                                               :match/winning-bot-ids
-                                              (->> winner-ids
-                                                   (map (fn [id]
-                                                          id))
-                                                   set))
+                                              (set winner-ids))
                                        (map :bot/id bots))
                  (when (not test?)
                    (ranking/new-ratings

@@ -29,6 +29,41 @@
 (defn alias-resolver [source-key target-key]
   (transform-resolver source-key target-key identity))
 
+(defn- ids->bots [ids]
+  (map (fn [id] {:bot/id id}) ids))
+
+(defn- ids->artifacts [ids]
+  (map (fn [id] {:artifact/id id}) ids))
+
+(defn- expand-match [match]
+  (-> match
+      (assoc :match/game {:game/id (:match/game-id match)})
+      (assoc :match/bots (ids->bots (:match/bot-ids match)))
+      (assoc :match/artifacts (ids->artifacts (:match/artifact-ids match)))
+      ;; optional fields — always assoc so Pathom sees them as resolved (nil is ok)
+      (assoc :match/winning-bots
+             (when-let [ids (seq (:match/winning-bot-ids match))]
+               (ids->bots ids)))
+      (assoc :match/disqualified-bots
+             (when-let [ids (seq (:match/disqualified-bot-ids match))]
+               (ids->bots ids)))))
+
+(def match-pattern
+  [:match/id
+   :match/timestamp
+   :match/test?
+   :match/bot-ids
+   :match/artifact-ids
+   :match/winning-bot-ids
+   :match/disqualified-bot-ids
+   :match/player-mappings
+   :match/log
+   {:match/game [:game/id]}
+   {:match/bots [:bot/id]}
+   {:match/artifacts [:artifact/id]}
+   {:match/winning-bots [:bot/id]}
+   {:match/disqualified-bots [:bot/id]}])
+
 (def dynamic-resolvers
   [{:dat.resolver/id :bot/status
     :dat.resolver/in [:bot/active-artifact]
@@ -67,50 +102,20 @@
 
    {:dat.resolver/id ::bot-matches
     :dat.resolver/in [:bot/matches-transit]
-    :dat.resolver/out [{:bot/matches [:match/id
-                                      :match/timestamp
-                                      :match/test?
-                                      :match/bot-ids
-                                      :match/artifact-ids
-                                      :match/winning-bot-ids
-                                      :match/disqualified-bot-ids
-                                      :match/player-mappings
-                                      :match/log]}]
+    :dat.resolver/out [{:bot/matches match-pattern}]
     :dat.resolver/f (fn [{:keys [bot/matches-transit]}]
                       {:bot/matches
                        (->> matches-transit
-                            t/read-str)})}
-
-   (xtransform-resolver :match/bot-ids
-                       [{:match/bots [:bot/id]}]
-                       (fn [ids] {:match/bots (map (fn [id] {:bot/id id}) ids)}))
-   (xtransform-resolver :match/winning-bot-ids
-                       [{:match/winning-bots [:bot/id]}]
-                       (fn [ids] {:match/winning-bots (map (fn [id] {:bot/id id}) ids)}))
-   (xtransform-resolver :match/disqualified-bot-ids
-                       [{:match/disqualified-bots [:bot/id]}]
-                       (fn [ids] {:match/disqualified-bots (map (fn [id] {:bot/id id}) ids)}))
-   (xtransform-resolver :match/artifact-ids
-                       [{:match/artifacts [:artifact/id]}]
-                       (fn [ids]
-                         {:match/artifacts (map (fn [id] {:artifact/id id}) ids)}))
+                            t/read-str
+                            (map expand-match))})}
 
    {:dat.resolver/id ::bot-match
     :dat.resolver/in [:bot/matches
                       :match/id]
-    :dat.resolver/out [:match/id
-                       :match/timestamp
-                       :match/test?
-                       :match/bot-ids
-                       :match/artifact-ids
-                       :match/winning-bot-ids
-                       :match/disqualified-bot-ids
-                       :match/player-mappings
-                       :match/log]
+    :dat.resolver/out match-pattern
     :dat.resolver/f (fn [{:keys [bot/matches match/id]}]
                       (->> matches
-                           (filter (fn [match]
-                                     (= id (:match/id match))))
+                           (filter (fn [m] (= id (:match/id m))))
                            first))}
 
    (transform-resolver :match/log-transit :match/log t/read-str)
@@ -208,4 +213,3 @@
                      (d/db db/*conn*))]
      (pull {:bot/id bot-id}
            [:bot/weight])))
-
