@@ -58,7 +58,7 @@
        ;; generic state inspection view
        [:div.generic {:tw "space-y-2"}
 
-        (when game-state?
+        #_(when game-state?
           [:div
            [:div {:tw "text-white bg-#3f51b5 p-1"}
             "State (Private)"]
