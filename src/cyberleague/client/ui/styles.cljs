@@ -28,17 +28,7 @@
      :text-decoration "none"}
 
     [:&:hover
-     {:color colors/blue-dark}]]
-
-   [:.CodeMirror
-    {:font-family "Inconsolata"
-     :line-height 1.2
-     :height "100%"
-     :overflow "hidden"}
-
-    [:.CodeMirror-lines
-     {:padding-top "1em"
-      :padding-left "1em"}]]])
+     {:color colors/blue-dark}]]])
 
 (def css
   (garden/css flash styles))
