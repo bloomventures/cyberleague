@@ -98,7 +98,8 @@
              :uberjar-server [:server :*uberjar-server]
 
              ;; CLI
-             :*cli {:source-paths ["cli-src"]
+             :*cli {:target-path "cli-target"
+                    :source-paths ["cli-src"]
                     :resource-paths ^:replace []
                     :main         cyberleague.cli.core
                     :dependencies [[cli-matic "0.5.4"]
