@@ -159,14 +159,15 @@
     (let [bots-by-user (group-by (fn [bot] (-> bot :bot/user :user/id)) active-bots)
           user-1-id (rand-nth (keys bots-by-user))
           player-1 (rand-nth (get bots-by-user user-1-id))
+          n (count active-bots)
           player-2-candidates (->> active-bots
                                    (remove (fn [bot] (= user-1-id (-> bot :bot/user :user/id))))
                                    (sort-by (fn [bot] (Math/abs
                                                        (- (:bot/rating bot)
                                                           (:bot/rating player-1)))))
-                                   (take 10)
+                                   (take (max 1 (quot n 10)))
                                    (sort-by :bot/rating-dev #(compare %2 %1))
-                                   (take 5))]
+                                   (take (max 1 (quot n 20))))]
       (when (seq player-2-candidates)
         {:player-1 player-1
          :player-2 (rand-nth player-2-candidates)}))))
