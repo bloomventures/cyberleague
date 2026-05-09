@@ -23,7 +23,7 @@
   @(http/request
     {:method method
      :url url
-     :timeout (or timeout 5000)
+     :timeout (or timeout 60000)
      :oauth-token oauth-token
      :headers {"Accept" "application/transit+json"
                "Content-Type" "application/transit+json"}
