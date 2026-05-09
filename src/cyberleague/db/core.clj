@@ -223,8 +223,7 @@
               :where
               [?e :bot/active-artifact _]]
             (d/db *conn*))
-       (map (comp by-id first))
-       (group-by :bot/game)))
+       (map (comp by-id first))))
 
 (defn bot-history
   [bot-id]

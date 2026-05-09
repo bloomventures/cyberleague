@@ -186,14 +186,16 @@
                  :bot/code (db/with-conn (db/deployed-code [:bot/id (:bot/id bot)]))}))
          (game-runner/run-game game)))
 
-
 (defn matchmake! []
-  (doseq [[game active-bots] (db/with-conn (db/active-bots))]
-    (try
-      (run-one-game! game active-bots)
-      (catch Exception e
-        (println "Exception" e)))
-    (Thread/sleep (-> config :server :coordinator-delay))))
+  (db/with-conn
+   (let [active-bots (db/active-bots)]
+     (when (seq active-bots)
+       ;; this biases (by design) towards games with more bots
+       (let [game (:bot/game (rand-nth active-bots))]
+         (try
+           (run-one-game! game active-bots)
+           (catch Exception e
+             (println "Exception" e))))))))
 
 #_(matchmake!)
 
@@ -205,7 +207,8 @@
   (println "Running games")
   (reset! run? true)
   (while @run?
-    (matchmake!)))
+    (matchmake!)
+    (Thread/sleep (-> config :server :coordinator-delay))))
 
 (defn start! []
   (when (not @run?)

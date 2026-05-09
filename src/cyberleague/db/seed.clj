@@ -159,7 +159,8 @@
                       :digest (artifact/digest code)})))))
 
    ;; add some fake matches
-   (doseq [[game bots] (db/active-bots)
+   (doseq [[game bots] (->> (db/active-bots)
+                            (group-by :bot/game))
            :when (>= (count bots) 2)]
      (doseq [[bot-1 bot-2] (partition 2 1 bots)]
        (dotimes [i 5]
