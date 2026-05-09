@@ -41,6 +41,7 @@
       (assoc :match/bots (ids->bots (:match/bot-ids match)))
       (assoc :match/artifacts (ids->artifacts (:match/artifact-ids match)))
       ;; optional fields — always assoc so Pathom sees them as resolved (nil is ok)
+      (update :match/player-mappings identity)
       (assoc :match/winning-bots
              (when-let [ids (seq (:match/winning-bot-ids match))]
                (ids->bots ids)))
