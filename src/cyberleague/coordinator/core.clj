@@ -3,6 +3,7 @@
   (:require
    [bloom.commons.uuid :as uuid]
    [hyperfiddle.rcf :as rcf]
+   [taoensso.telemere :as tel]
    [cyberleague.common.config :refer [config]]
    [cyberleague.coordinator.game-runner :as game-runner]
    [cyberleague.coordinator.ranking :as ranking]
@@ -28,108 +29,117 @@
 
 (defn run-game!
   [{:keys [game bots artifacts test?]}]
-  (print "Starting " (:bot/name (first bots)) " vs " (:bot/name (second bots)) "...")
-  (let [match-id (uuid/random)]
-    (db/with-conn
-     (let [ping-pong-evals (ping-pong! bots artifacts)
-           ping-pong-system-errors (->> ping-pong-evals
-                                        (filter (fn [[_ eval]]
-                                                  (= :eval.error.type/system-error
-                                                     (-> eval :eval/error :eval.error/type))))
-                                        (into {}))
-           ping-pong-errors (->> ping-pong-evals
-                                 (filter (fn [[_ eval]]
-                                           (and (:eval/error eval)
-                                                (not= :eval.error.type/system-error
-                                                      (-> eval :eval/error :eval.error/type)))))
-                                 (into {}))
-           match {:match/id match-id
-                  :match/game-id (:game/id game)
-                  :match/test? test?
-                  :match/bot-ids (->> bots
-                                      (map :bot/id)
-                                      set)
-                  :match/artifact-ids (->> artifacts
-                                           (map :artifact/id)
-                                           set)
-                  :match/timestamp (java.util.Date.)}]
-       (cond
-         (seq ping-pong-system-errors)
-         (println "Skipping match (system error during ping-pong):" ping-pong-system-errors)
+  (tel/trace!
+   {:id ::game
+    :level :info
+    :data {:game game
+           :bot-names (map :bot/name bots)
+           :bots bots
+           :test? test?}}
+   (let [match-id (uuid/random)]
+     (db/with-conn
+      (let [ping-pong-evals (ping-pong! bots artifacts)
+            ping-pong-system-errors (->> ping-pong-evals
+                                         (filter (fn [[_ eval]]
+                                                   (= :eval.error.type/system-error
+                                                      (-> eval :eval/error :eval.error/type))))
+                                         (into {}))
+            ping-pong-errors (->> ping-pong-evals
+                                  (filter (fn [[_ eval]]
+                                            (and (:eval/error eval)
+                                                 (not= :eval.error.type/system-error
+                                                       (-> eval :eval/error :eval.error/type)))))
+                                  (into {}))
+            match {:match/id match-id
+                   :match/game-id (:game/id game)
+                   :match/test? test?
+                   :match/bot-ids (->> bots
+                                       (map :bot/id)
+                                       set)
+                   :match/artifact-ids (->> artifacts
+                                            (map :artifact/id)
+                                            set)
+                   :match/timestamp (java.util.Date.)}]
+        (cond
+          (seq ping-pong-system-errors)
+          (tel/event! ::ping-pong-system-error
+                      {:level :error
+                       :data {:errors ping-pong-system-errors}})
 
-         (seq ping-pong-errors)
-         (do
-           (db/transact! (db.matches/match-txs
+          (seq ping-pong-errors)
+          (do
+            (tel/log! "Storing match (ping pong fail)")
             @(db/transact! (db.matches/match-txs
-                          (assoc match
-                                 :match/disqualified-bot-ids
-                                 (set (keys ping-pong-errors))
+                           (assoc match
+                                  :match/disqualified-bot-ids
+                                  (set (keys ping-pong-errors))
                                   :match/log [{:log-entry/evals ping-pong-evals}])
                            (map :bot/id bots)))
-           (when (not test?)
-             (doseq [errd-bot-id (keys ping-pong-errors)]
-               (println "Disabling bot (ping-pong fail):" errd-bot-id)
-               (db/disable-bot! errd-bot-id (->> (map vector bots artifacts)
-                                                 (some (fn [[bot artifact]]
-                                                         (when (= (:bot/id bot) errd-bot-id)
-                                                           (:artifact/id artifact)))))))))
+            (when (not test?)
+              (doseq [errd-bot-id (keys ping-pong-errors)]
+                (tel/log! (str "Disabling bot (ping-pong fail):" errd-bot-id))
+                (db/disable-bot! errd-bot-id (->> (map vector bots artifacts)
+                                                  (some (fn [[bot artifact]]
+                                                          (when (= (:bot/id bot) errd-bot-id)
+                                                            (:artifact/id artifact)))))))))
 
-         :else
-         (let [result (game-runner/run-game
-                       {:game (into {} game)
-                        :bot-ids (mapv :bot/id bots)
-                        :artifacts artifacts})
-               errors (:game.result/errors result)]
-           #_(println (str (:bot/id player-1) " vs " (:bot/id player-2) ": " (:game.result/winner result)))
-           (if (some (fn [[_ error]]
-                       (= :eval.error.type/system-error (:eval.error/type error)))
-                     errors)
-             (println "Skipping match (system error during game):" errors)
-             (let [bots-by-status (->> bots
-                                       (group-by (fn [b]
-                                                   (if (contains? errors (:bot/id b))
-                                                     ::errored
-                                                     ::ok))))
-                   ;; run-game returns game.result/winner only for completed games
-                   ;; but for tournament purposes, if a bot errors
-                   ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
-                   ;; (ie. when about to lose, error)
-                   winner-ids (cond
-                                (:game.result/winner result)
-                                ;; game currently always returns single
-                                [(:game.result/winner result)]
+          :else
+          (let [result (game-runner/run-game
+                        {:game (into {} game)
+                         :bot-ids (mapv :bot/id bots)
+                         :artifacts artifacts})
+                errors (:game.result/errors result)]
+            (if (some (fn [[_ error]]
+                        (= :eval.error.type/system-error (:eval.error/type error)))
+                      errors)
+              (tel/event! ::game-system-error {:level :error
+                                              :data {:errors errors}})
+              (let [bots-by-status (->> bots
+                                        (group-by (fn [b]
+                                                    (if (contains? errors (:bot/id b))
+                                                      ::errored
+                                                      ::ok))))
+                    ;; run-game returns game.result/winner only for completed games
+                    ;; but for tournament purposes, if a bot errors
+                    ;; we still mark a winner, so that erroring is not a viable "cheesing" strat
+                    ;; (ie. when about to lose, error)
+                    winner-ids (cond
+                                 (:game.result/winner result)
+                                 ;; game currently always returns single
+                                 [(:game.result/winner result)]
 
-                                (seq (::ok bots-by-status))
-                                ;; assuming 2 player games
-                                [(:bot/id (first (::ok bots-by-status)))])]
-               (when (not test?)
-                 (doseq [errd-bot (::errored bots-by-status)]
-                   (println "Disabling bot:" (:bot/id errd-bot) errors)
-                   (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
+                                 (seq (::ok bots-by-status))
+                                 ;; assuming 2 player games
+                                 [(:bot/id (first (::ok bots-by-status)))])]
+                (when (not test?)
+                  (doseq [errd-bot (::errored bots-by-status)]
+                    (tel/log! (str "Disabling bot:" (:bot/id errd-bot)))
+                    (db/disable-bot! (:bot/id errd-bot) (:artifact/id (:bot/active-artifact errd-bot)))))
 
-               (db/transact!
-                (concat
-                 (db.matches/match-txs (assoc match
-                                              :match/player-mappings
-                                              (:game.result/player-mappings result)
-                                              :match/log
-                                              (:game.result/log result)
-                                              :match/disqualified-bot-ids
-                                              (->> (bots-by-status ::errored)
-                                                   (map :bot/id)
-                                                   set)
-                                              :match/winning-bot-ids
-                                              (set winner-ids))
-                                       (map :bot/id bots))
-                 (when (not test?)
-                   (ranking/new-ratings
-                    (first bots)
-                    (second bots)
-                    (:artifact/digest (first artifacts))
-                    (:artifact/digest (second artifacts))
-                    ;; curently only makes sense for 2p games anyway
-                    (first winner-ids)))))))))
-    {:match/id match-id}))))
+                (tel/log! "Storing match")
+                @(db/transact!
+                 (concat
+                  (db.matches/match-txs (assoc match
+                                               :match/player-mappings
+                                               (:game.result/player-mappings result)
+                                               :match/log
+                                               (:game.result/log result)
+                                               :match/disqualified-bot-ids
+                                               (->> (bots-by-status ::errored)
+                                                    (map :bot/id)
+                                                    set)
+                                               :match/winning-bot-ids
+                                               (set winner-ids))
+                                        (map :bot/id bots))
+                  (when (not test?)
+                    (ranking/new-ratings
+                     (first bots)
+                     (second bots)
+                     (:artifact/digest (first artifacts))
+                     (:artifact/digest (second artifacts))
+                     ;; curently only makes sense for 2p games anyway
+                     (first winner-ids)))))))))
+        {:match/id match-id})))))
 
 (defn select-players
   [active-bots]
@@ -196,13 +206,15 @@
          (try
            (run-one-game! game active-bots)
            (catch Exception e
-             (println "Exception" e))))))))
+             (tel/error! ::match-error e))))))))
 
 #_(matchmake!)
 
 ;; -------
 
 (defonce run? (atom false))
+
+#_(identity run?)
 
 (defn run-games! []
   (println "Running games")
