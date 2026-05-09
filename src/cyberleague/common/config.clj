@@ -14,7 +14,14 @@
     [:evaluator
      [:map
       [:http-port :int]
-      [:signing-secret :string]]]
+      [:signing-secret :string]
+      [:vm-base-context
+       [:map
+        [:vm/firecracker-executable-path :string]
+        [:vm/root-fs-path :string]
+        [:vm/sidecar-path :string]
+        [:vm/kernel-image-path :string]
+        [:vm/vsock-inner-port :int]]]]]
     [:server
      [:map
       [:http-port :int]

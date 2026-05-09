@@ -5,6 +5,7 @@
    [cyberleague.evaluator.firecracker :as f]
    [cyberleague.evaluator.open :as o]
    [cyberleague.evaluator.socket :as socket]
+   [cyberleague.common.config :as config]
    [taoensso.telemere :as tel])
   (:import
    [java.nio.file Files]
@@ -25,12 +26,13 @@
 ;;       https://jacquesverre.com/blog/gentle-introduction-to-firecracker
 ;;       https://jvns.ca/blog/2021/01/23/firecracker--start-a-vm-in-less-than-a-second/
 
-(def base-context
-  {:vm/firecracker-executable-path "/home/rafal/vm/firecracker"
-   :vm/root-fs-path                "/home/rafal/vm/out/rootfs.img"
-   :vm/sidecar-path                "/home/rafal/vm/out/sidecar.sqsh"
-   :vm/kernel-image-path           "/home/rafal/vm/out/vmlinux"
-   :vm/vsock-inner-port            52525})
+(def BaseContext
+  [:map
+   [:vm/firecracker-executable-path :string]
+   [:vm/root-fs-path :string]
+   [:vm/sidecar-path :string]
+   [:vm/kernel-image-path :string]
+   [:vm/vsock-inner-port :int]])
 
 (def VmContext
   [:map
@@ -249,7 +251,7 @@
   ;; http-kits Socket lifecycle management
   ;; must start on a fresh thread or vsock socket is closed early
   @(future (o/with-open+
-            [vm (init! base-context)]
+            [vm (init! (-> config/config :evaluator :vm-base-context))]
             (vsock-request! vm eval-request))))
 
 #_(comment
