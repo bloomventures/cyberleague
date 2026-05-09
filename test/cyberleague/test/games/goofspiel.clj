@@ -9,10 +9,10 @@
 
 (deftest goofspiel-engine
   (testing "Can create an engine"
-    (is (satisfies? game/IGameEngine (game/make-engine {:game/name "goofspiel"}))))
+    (is (satisfies? game/IGameEngine (game/make-engine {:game/slug "goofspiel"}))))
 
   (testing "does basic info correctly"
-    (let [g (game/make-engine {:game/name "goofspiel"})]
+    (let [g (game/make-engine {:game/slug "goofspiel"})]
       (is (game/simultaneous-turns? g))
 
       (is (game/valid-move? g 5))
@@ -27,7 +27,7 @@
         (is (not (game/legal-move? g state 12345 6))))))
 
   (testing "progressing game state"
-    (let [g (game/make-engine {:game/name "goofspiel"})
+    (let [g (game/make-engine {:game/slug "goofspiel"})
           state (game/init-state g [12345 54321])]
 
       (testing "starting with a good state"
@@ -50,7 +50,7 @@
             (is (not (game/game-over? g third-state))))))))
 
   (testing "Finishing game"
-    (let [g (game/make-engine {:game/name "goofspiel"})
+    (let [g (game/make-engine {:game/slug "goofspiel"})
           almost-done-state {:player-cards {12345 #{1}
                                             54321 #{13}}
                              :trophy-cards #{}
@@ -66,7 +66,7 @@
   (testing "can run a game"
     (let [random-bot-code (pr-str bots/random-bot)
           result (runner/run-game
-                  {:game/name "goofspiel"}
+                  "goofspiel"
                   [{:db/id 1234
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
                                :code/env [:env/slug "clojure-sci"]}}
@@ -85,7 +85,7 @@
 
   (testing "reports bad moves"
     (let [result (runner/run-game
-                  {:game/name "goofspiel"}
+                  "goofspiel"
                   [{:db/id 1235
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
                                :code/env [:env/slug "clojure-sci"]}}
@@ -99,7 +99,7 @@
 
   (testing "report illegal moves"
     (let [result (runner/run-game
-                  {:game/name "goofspiel"}
+                  "goofspiel"
                   [{:db/id 1236
                     :bot/code {:code/code (pr-str '(fn [state] (state :current-trophy)))
                                :code/env [:env/slug "clojure-sci"]}}
@@ -113,7 +113,7 @@
 
   #_(testing "times out games that don't terminate"
       (let [result (runner/run-game
-                    {:game/name "goofspiel"}
+                    {:game/slug "goofspiel"}
                     [{:db/id 1237
                       :bot/code-version 1
                       :bot/deployed-code (pr-str '(fn [state] (state :current-trophy)))}

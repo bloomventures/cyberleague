@@ -52,7 +52,7 @@
        (take 1)
        (map (fn [game-config]
               (let [game-engine (cyberleague.games.protocol/make-engine
-                                 {:game/name (:game.config/name game-config)})
+                                 {:game/slug (:game.config/name game-config)})
                     state (cyberleague.games.protocol/init-state
                            game-engine [123 456])]
                 (let [{:blueprint/keys [env-slug code]} (:game.config/test-bot game-config)]

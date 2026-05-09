@@ -22,6 +22,7 @@
    :bot/status
    :bot/weight
    {:bot/game [:game/id
+               :game/slug
                :game/name]}])
 
 (defn entity-exists?-condition [id-key id]
@@ -201,7 +202,8 @@
                 :bot/history
                 :bot/weight
                 {:bot/game [:game/id
-                            :game/name]}
+                            :game/name
+                            :game/slug]}
                 {:bot/user [:user/id
                             :user/name]}
                 {:bot/active-artifact [:artifact/digest

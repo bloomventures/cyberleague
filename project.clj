@@ -44,7 +44,7 @@
              :evaluator [:common :*evaluator]
              :*uberjar-evaluator {:aot [cyberleague.evaluator.core]}
              :uberjar-evaluator [:evaluator :*uberjar-evaluator]
-
+             :test {:source-paths ["test"]}
              ;; SERVER
              :*server {:main cyberleague.core
                        :source-paths ["src"]
