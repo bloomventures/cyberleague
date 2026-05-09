@@ -61,6 +61,12 @@
                      :db/noHistory true
                      :db/doc "Store as transit; see match-store"}])))
 
+(defn m2026-05-08-add-bot-rating-digest []
+  (db/with-conn
+   @(db/transact! [{:db/ident :bot/rating-digest
+                    :db/valueType :db.type/string
+                    :db/cardinality :db.cardinality/one}])))
+
 #_(spit "debug.edn" (pr-str (db/with-conn
  (let [db (d/db db/*conn*)]
    (->> (d/q '[:find [?e ...]
