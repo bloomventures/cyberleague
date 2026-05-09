@@ -72,7 +72,7 @@
                                       [cljsjs/codemirror "5.44.0-1"]
                                       [cljsjs/d3 "3.5.5-2"]
 
-                                      [com.github.rafd/dat "0.0.1-20260505-0"]
+                                      [com.github.rafd/dat "0.0.1-20260509-0"]
 
                                       ;; coordinator
                                       [org.clojure/math.numeric-tower "0.0.4"
