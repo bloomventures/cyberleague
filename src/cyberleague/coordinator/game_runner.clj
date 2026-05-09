@@ -1,6 +1,8 @@
 (ns cyberleague.coordinator.game-runner
   (:require
    [clojure.data.json :as json]
+   [malli.core :as malli]
+   [cyberleague.game-registrar :as games]
    [cyberleague.server.evaluator-client :as eval-client]
    [cyberleague.games.protocol :as game-engine.protocol]
    [cyberleague.common.schema :as s]))
@@ -12,13 +14,15 @@
                  :env-slug (:env/slug (:artifact/env artifact))
                  :input (json/write-str state)})]
     (if (nil? result)
-      {:eval/error {:eval.error/type :eval.error.type/system-error}}
+      {:eval/error {:eval.error/type :eval.error.type/system-error
+                    :eval.error/origin :eval.error.origin/system}}
       (let [return-value (try
                            (json/read-str (:eval/stdout result) :key-fn keyword)
                            (catch Exception _
                              ::invalid-json))]
         (if (= return-value ::invalid-json)
-          (assoc result :eval/error {:eval.error/type :eval.error.type/invalid-json})
+          (assoc result :eval/error {:eval.error/type :eval.error.type/invalid-json
+                                     :eval.error/origin :eval.error.origin/bot})
           (assoc result :eval/return-value return-value))))))
 
 #_(eval-move
@@ -28,24 +32,32 @@
 
 (defn run-move
   [player-index artifact state context game-slug game-engine]
-  (let [eval (eval-move artifact context)
-        return-value (:eval/return-value eval)]
-    (cond
-      (:eval/error eval)
-      eval
+  (cond
+    (not (malli/validate (:game.config/state-spec (games/by-slug game-slug)) state))
+    {:eval/error {:eval.error/type :eval.error.type/state-schema-invalid
+                  :eval.error/origin :eval.error.origin/system}}
 
-      (not (game-engine.protocol/valid-move? game-engine return-value))
-      (merge
-       eval
-       {:eval/error {:eval.error/type :eval.error.type/invalid-move}})
+    (not (malli/validate (:game.config/context-spec (games/by-slug game-slug)) context))
+    {:eval/error {:eval.error/type :eval.error.type/context-schema-invalid
+                  :eval.error/origin :eval.error.origin/system}}
 
-      (not (game-engine.protocol/legal-move? game-engine state player-index return-value))
-      (merge
-       eval
-       {:eval/error {:eval.error/type :eval.error.type/illegal-move}})
+    :else
+    (let [eval (eval-move artifact context)
+          return-value (:eval/return-value eval)]
+      (cond
+        (:eval/error eval)
+        eval
 
-      :else
-      eval)))
+        (not (game-engine.protocol/valid-move? game-engine return-value))
+        (merge eval {:eval/error {:eval.error/type :eval.error.type/invalid-move
+                                  :eval.error/origin :eval.error.origin/bot}})
+
+        (not (game-engine.protocol/legal-move? game-engine state player-index return-value))
+        (merge eval {:eval/error {:eval.error/type :eval.error.type/illegal-move
+                                  :eval.error/origin :eval.error.origin/bot}})
+
+        :else
+        eval))))
 
 (defn run-game
   "Bots: [bot ...]

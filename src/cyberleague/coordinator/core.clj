@@ -20,11 +20,12 @@
                              artifact
                              {:ping nonce})]
                  [(:bot/id bot)
-                  (if (= :eval.error.type/system-error (-> result :eval/error :eval.error/type))
+                  (if (= :eval.error.origin/system (-> result :eval/error :eval.error/origin))
                     result
                     (merge result
                            (when (not= nonce (:pong (:eval/return-value result)))
-                             {:eval/error {:eval.error/type :eval.error.type/failed-ping-pong}})))])))
+                             {:eval/error {:eval.error/type :eval.error.type/failed-ping-pong
+                                           :eval.error/origin :eval.error.origin/bot}})))])))
        (into {})))
 
 (defn run-game!
@@ -41,14 +42,13 @@
       (let [ping-pong-evals (ping-pong! bots artifacts)
             ping-pong-system-errors (->> ping-pong-evals
                                          (filter (fn [[_ eval]]
-                                                   (= :eval.error.type/system-error
-                                                      (-> eval :eval/error :eval.error/type))))
+                                                   (= :eval.error.origin/system
+                                                      (-> eval :eval/error :eval.error/origin))))
                                          (into {}))
             ping-pong-errors (->> ping-pong-evals
                                   (filter (fn [[_ eval]]
-                                            (and (:eval/error eval)
-                                                 (not= :eval.error.type/system-error
-                                                       (-> eval :eval/error :eval.error/type)))))
+                                            (= :eval.error.origin/bot
+                                               (-> eval :eval/error :eval.error/origin))))
                                   (into {}))
             match {:match/id match-id
                    :match/game-id (:game/id game)
@@ -90,7 +90,7 @@
                          :artifacts artifacts})
                 errors (:game.result/errors result)]
             (if (some (fn [[_ error]]
-                        (= :eval.error.type/system-error (:eval.error/type error)))
+                        (= :eval.error.origin/system (:eval.error/origin error)))
                       errors)
               (tel/event! ::game-system-error {:level :error
                                               :data {:errors errors}})

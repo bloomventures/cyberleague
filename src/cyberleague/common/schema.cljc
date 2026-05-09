@@ -25,13 +25,20 @@
    ;; stdout json->edn, "move"
    [:eval/return-value {:optional true} :any]
    [:eval/error {:optional true}
-    [:map
-     [:eval.error/type
-      [:enum
-       :eval.error.type/system-error
-       :eval.error.type/invalid-json
-       :eval.error.type/invalid-move
-       :eval.error.type/illegal-move]]]]])
+    [:or
+     [:map
+      [:eval.error/origin [:= :eval.error.origin/system]]
+      [:eval.error/type [:enum
+                         :eval.error.type/system-error
+                         :eval.error.type/state-schema-invalid
+                         :eval.error.type/context-schema-invalid]]]
+     [:map
+      [:eval.error/origin [:= :eval.error.origin/bot]]
+      [:eval.error/type [:enum
+                         :eval.error.type/invalid-json
+                         :eval.error.type/invalid-move
+                         :eval.error.type/illegal-move
+                         :eval.error.type/failed-ping-pong]]]]]])
 
 (def LogEntry
   [:map
