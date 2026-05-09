@@ -39,10 +39,6 @@
   [eid]
   (d/entity (d/db *conn*) eid))
 
-(defn transact!
-  [txs]
-  (d/transact *conn* txs))
-
 (defn entity-exists?
   [[id-key id]]
   (boolean (d/q '[:find ?id .
