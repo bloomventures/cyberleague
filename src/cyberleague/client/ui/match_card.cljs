@@ -18,7 +18,7 @@
        [:<>
         "MATCH"
         [ui/nav-link {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:match/game match))))}
-         (str "#" (:game/name (:match/game match)))]]]
+         (str "#" (:game/slug (:match/game match)))]]]
       [card/body {}
        [:<>
         [:div {:tw "flex justify-center mb-2"}

@@ -15,7 +15,7 @@
                     :refresh [data]}
        [:<>
         [:span {:tw "whitespace-nowrap mr-4"}
-         (str "#" (:game/name game))]
+         (str "#" (:game/slug game))]
         [:div {:tw "grow"}]]]
       [card/body {}
        [:div {:tw "max-w-45vw space-y-4"}

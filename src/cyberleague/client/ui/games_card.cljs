@@ -25,5 +25,5 @@
            [:tr
             [:td {:tw "p-1"}
              [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id game)))}
-              (str "#" (:game/name game))]]
+              (str "#" (:game/slug game))]]
             [:td {:tw "p-1"} (:game/bot-count game)]])]]]])))

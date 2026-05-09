@@ -66,7 +66,7 @@
                 [:td {:tw "p-1"} (:bot/rating bot)]
                 [:td {:tw "p-1"}
                  [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-                  (str "#" (:game/name (:bot/game bot)))]]])]]
+                  (str "#" (:game/slug (:bot/game bot)))]]])]]
            [:a {:href "https://github.com/bloomventures/cyberleague/blob/master/docs/bot_development_guide.md"
                 :target "_blank"
                 :tw "block text-center text-blue-600 underline py-4 hover:text-blue-800"}

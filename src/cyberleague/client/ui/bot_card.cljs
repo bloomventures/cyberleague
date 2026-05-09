@@ -72,7 +72,7 @@
           [:tr
            [:td "Game"]
            [:td [:a {:on-click (fn [_] (state/nav! :card.type/game (:game/id (:bot/game bot))))}
-                 (str "#" (:game/name (:bot/game bot)))]]]
+                 (str "#" (:game/slug (:bot/game bot)))]]]
           [:tr
            [:td "Active Artifact"]
            [:td (if (:bot/active-artifact bot)
