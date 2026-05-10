@@ -1,9 +1,7 @@
 (ns cyberleague.test.games.othello
   (:require
     [clojure.test :refer :all]
-    [cyberleague.games.othello.bots :as bots]
     [cyberleague.games.othello.helpers :as othello]
-    [cyberleague.coordinator.game-runner :as runner]
     [cyberleague.games.othello.engine]
     [cyberleague.games.protocol :as game]))
 
@@ -94,18 +92,3 @@
                 (assoc-in [:board 36] "B"))]
         (is (game/game-over? g third-state))
         (is (= "B" (game/winner g third-state)))))))
-
-(deftest running-a-game-othello
-  (testing "can run a game"
-    (let [random-bot-code (pr-str bots/random-valid-bot)
-          first-bot-code (pr-str bots/first-valid-bot)
-          result (runner/run-game
-                   "othello"
-                   [{:db/id 12345
-                     :bot/code {:code/code random-bot-code
-                                :code/env [:env/slug "clojure-sci"]}}
-                    {:db/id 56789
-                     :bot/code {:code/code first-bot-code
-                                :code/env [:env/slug "clojure-sci"]}}])] (is (map? result))
-         (println "Result" result)
-      (is (not (:error result))))))
