@@ -52,8 +52,8 @@
                        set/rename-keys {other :opponent
                                         player-id :me})
             (update-in [:history]
-                       (partial map #(set/rename-keys % {other :opponent
-                                                         player-id :me}))))))
+                       (fn [h] (mapv (fn [entry] (set/rename-keys entry {other :opponent
+                                                                          player-id :me})) h))))))
 
     (legal-move? [_ state player move]
       (contains? (get-in state [:player-cards player]) move))

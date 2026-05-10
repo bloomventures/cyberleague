@@ -35,13 +35,13 @@
   :game.config/state-spec
   [:map
    [:player-cards
-    [:map-of s/BotId [:set Card]]]
+    [:map-of s/PlayerId [:set Card]]]
    [:trophy-cards [:set Card]]
-   [:current-trophy Card]
+   [:current-trophy [:maybe Card]]
    [:history
     [:vector
      [:map-of
-      [:or s/BotId [:enum :trophy]]
+      [:or s/PlayerId [:enum :trophy]]
       Card]]]]
 
   :game.config/context-spec
@@ -51,7 +51,7 @@
      [:me [:set Card]]
      [:opponent [:set Card]]]]
    [:trophy-cards [:set Card]]
-   [:current-trophy Card]
+   [:current-trophy [:maybe Card]]
    [:history
     [:vector
      [:map
