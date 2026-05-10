@@ -19,8 +19,6 @@ let
         # rust
         #pkgsLinux.stdenv.cc.cc.lib
         #pkgsLinux.musl
-        # java, clojure(uberjar) — java binary added via extraCommands wrapper
-        pkgsLinux.jdk_headless
         # node
         #pkgsLinux.nodejs
         # wasm
@@ -30,5 +28,9 @@ let
       ];
     };
   };
+
+  # JDK lives in the sidecar squashfs (not the initramfs) so it is
+  # demand-paged from disk rather than loaded into RAM at boot.
+  jdk = pkgsLinux.jdk_headless;
 in
-{ inherit rootfs; }
+{ inherit rootfs jdk; }

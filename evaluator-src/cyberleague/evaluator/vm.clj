@@ -9,7 +9,8 @@
    [taoensso.telemere :as tel])
   (:import
    [java.nio.file Files]
-   [java.nio.file.attribute FileAttribute]))
+   [java.nio.file.attribute FileAttribute]
+   [java.util.concurrent Executors]))
 
 ;; ssh -nNT -L /tmp/firecracker.socket:/run/firecracker.socket root@192.168.64.2
 ;; ssh -nNT -L /tmp/v.sock:/home/rafal/v.sock root@192.168.64.2
@@ -29,21 +30,25 @@
 (def BaseContext
   [:map
    [:vm/firecracker-executable-path :string]
-   [:vm/root-fs-path :string]
+   [:vm/firecracker-snapshot-dir-path :string]
+   [:vm/firecracker-timeout-seconds :int]
+   [:vm/initramfs-path :string]
    [:vm/sidecar-path :string]
    [:vm/kernel-image-path :string]
    [:vm/vsock-inner-port :int]])
 
 (def VmContext
   [:map
-   ;; path to ext4 img file containing the root-fs
-   [:vm/root-fs-path                 :string]
+   ;; path to initramfs cpio.gz (rootfs loaded into RAM at boot)
+   [:vm/initramfs-path               :string]
    ;; path to img file containing "sidecar" drive
-   ;; (containing relay program)
+   ;; (containing relay program); becomes /dev/vda (only drive)
    [:vm/sidecar-path                 :string]
    ;; path to uncompressed linux kernel, typically "vmlinux"
    [:vm/kernel-image-path            :string]
 
+   [:vm/firecracker-executable-path  :string]
+   [:vm/firecracker-snapshot-dir-path :string]
    [:vm/firecracker-executable-path  :string]
    ;; path to where the firecracker control socket
    ;; should be created
@@ -54,6 +59,16 @@
    ;; port within guest at which vsock will be connected
    [:vm/vsock-inner-port             :int]
    ])
+
+(defn- wait-for!
+  "Calls f repeatedly until it returns without throwing."
+  [f poll-ms]
+  (loop []
+    (when (= ::retry
+             (try (f) nil
+                  (catch Exception _ ::retry)))
+      (Thread/sleep poll-ms)
+      (recur))))
 
 (defn vsock-request!
   [vm eval-request]
@@ -73,7 +88,7 @@
                       :body {:action_type "SendCtrlAltDel"}}))
 
 (defn configure-and-boot!
-  [{:vm/keys [vsock-host-socket-path kernel-image-path root-fs-path sidecar-path] :as vm} fc]
+  [{:vm/keys [vsock-host-socket-path kernel-image-path initramfs-path sidecar-path] :as vm} fc]
   (tel/event! ::configure-and-boot {:level :info})
   #_(f/api-request! fc {:method :put
                         :path "/logger"
@@ -83,17 +98,6 @@
                                :show_log_origin true}})
 
   (f/api-request! fc {:method :put
-                      :path "/cpu-config"
-                      :body {:kvm_capabilities ["!56"]
-                             :cpuid_modifiers [{:leaf "0x1"
-                                                :subleaf "0x0"
-                                                :flags 0
-                                                :modifiers [{:register "eax"
-                                                             :bitmap "0bxxxx000000000011xx00011011110010"}]}]
-                             :msr_modifiers [{:addr "0x10a"
-                                              :bitmap "0b0000000000000000000000000000000000000000000000000000000000000000"}]}})
-
-  (f/api-request! fc {:method :put
                       :path "/vsock"
                       :body {:guest_cid 3
                              :uds_path vsock-host-socket-path}})
@@ -101,19 +105,11 @@
   (f/api-request! fc {:method :put
                       :path "/boot-source"
                       :body {:kernel_image_path kernel-image-path
+                             :initrd_path       initramfs-path
                              :boot_args
                              (string/join
                               " "
-                              #_["console=ttyS0"
-                               "panic=1"
-                               "pci=off"
-                               "root=/dev/vda"
-                               "rw"
-                               #_"init=/bin/sh"
-                               "init=/init.sh"]
-                              ;; advanced - prod
                               [;; serial console on ttyS0 at 115200 baud
-                               #_"console=ttyS0"
                                "console=ttyS0,115200n8"
                                ;; limit serial port probing to just ttyS0 (default scans 4)
                                "8250.nr_uarts=1"
@@ -128,18 +124,12 @@
                                "panic=1"
                                ;; disable PCI bus enumeration (Firecracker has no PCI)
                                "pci=off"
-                               ;; breaks the VM - leave commented out
-                               #_"acpi=off"
                                ;; Firecracker has no HPET timer; skip probing for it
                                "nohpet"
                                ;; skip periodic timer consistency check on boot
                                "no_timer_check"
                                ;; KVM provides a reliable TSC; skip calibration/validation
                                "tsc=reliable"
-                               ;; root filesystem
-                               "root=/dev/vda"
-                               ;; mount root read-write
-                               "rw"
                                ;; use CPU hardware RNG for entropy; avoids stalling
                                ;; waiting for entropy pool to fill (biggest boot-time win)
                                "random.trust_cpu=on"
@@ -150,16 +140,10 @@
                                "nokaslr"
                                ;; skip RAID autodetection at boot
                                "raid=noautodetect"
-                               ;; init script
-                               "init=/init.sh"])}})
+                               ;; initramfs init entry point
+                               "rdinit=/init"])}})
 
-  (f/api-request! fc {:method :put
-                      :path "/drives/rootfs"
-                      :body {:drive_id       "rootfs"
-                             :path_on_host   root-fs-path
-                             :is_root_device true
-                             :is_read_only   false}})
-
+  ;; sidecar is the only drive; becomes /dev/vda inside the guest
   (f/api-request! fc {:method :put
                       :path "/drives/sidecar"
                       :body {:drive_id       "sidecar"
@@ -170,46 +154,11 @@
   (f/api-request! fc {:method :put
                       :path "/machine-config"
                       :body {:vcpu_count 1
-                             :mem_size_mib 128}})
+                             :mem_size_mib 512}})
 
   (f/api-request! fc {:method :put
                       :path "/actions"
                       :body {:action_type "InstanceStart"}}))
-
-(defn boot-and-snapshot!
-  [fc]
-  ;; WIP
-  (comment
-    (f/api-request! fc {:method :patch
-                        :path "/vm"
-                        :body {:state "Paused"}})
-
-    (f/api-request! fc {:method :put
-                        :path "/snapshot/create"
-                        :body {:snapshot_type "Full"
-                               :snapshot_path "/tmp/firecracker.snap"
-                               :mem_file_path "/tmp/firecracker.mem"}})
-
-    (f/api-request! fc {:method :put
-                        :path "/actions"
-                        :body {:action_type "SendCtrlAltDel"}})))
-
-(defn boot-from-snapshot!
-  [fc]
-  ;; WIP
-  (f/api-request! fc {:method :put
-                      :path "/snapshot/load"
-                      :body {:snapshot_path "/tmp/firecracker.snap"
-                             :mem_backend
-                             {:backend_path "/tmp/firecracker.mem"
-                              :backend_type "File"}
-                             :resume_vm false
-                             ;; :vsock_override {:uds_path "TODO"}
-                             }})
-  (f/api-request! fc {:method :patch
-                      :path "/vm"
-                      :body {:state "Resumed"}}))
-
 
 (defn create-temp-dir!
   [prefix]
@@ -225,14 +174,36 @@
             reverse
             (run! (fn [f] (.delete f))))))))
 
-(defn init!
+(defn create-fixed-dir!
+  [path-str]
+  (let [path (-> (io/file path-str) .toPath)]
+    (.mkdirs (.toFile path))
+    (o/with-close-fn
+     {:path path}
+     (fn [_]
+       (tel/event! ::close-fixed-dir {:level :debug
+                                      :path path-str})
+       #_(->> (file-seq path)
+            (filter (fn [f]
+                      (.isFile f)))
+            (map (fn [f]
+                   (tel/event! :delete-file {:level :debug
+                                             :data {:path f}})))
+            (run! (fn [f] (.delete f))))))))
+
+(defn init-from-scratch!
   [vm]
-  (let [dir (create-temp-dir! "cyber-vm-")
+  (let [dir #_(create-temp-dir! "cyber-vm-")
+        ;; use fixed dir, because we're going to snapshot
+        ;; and until new firecracker version hits, it expects vsock in the same place
+        (create-fixed-dir! "/home/rafal/vm/socks")
         vm  (assoc vm
                    :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
                    :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
         fc  (f/init! {:firecracker/socket-path     (:vm/firecracker-host-socket-path vm)
-                      :firecracker/executable-path (:vm/firecracker-executable-path vm)})]
+                      :firecracker/timeout-seconds (:vm/firecracker-timeout-seconds vm)
+                      :firecracker/executable-path (:vm/firecracker-executable-path vm)})
+        vm (assoc vm :vm/firecracker-instance fc)]
     (tel/event! ::vm-start {:level :debug})
     (Thread/sleep 100)
     (configure-and-boot! vm fc)
@@ -243,30 +214,104 @@
      (fn [_]
        (tel/event! ::vm-close {:level :info})
        (o/close fc)
+       (.delete (io/file (:vm/vsock-host-socket-path vm)))
        (o/close dir)))))
 
-(defn eval!
+(defn init-from-snapshot!
+  [vm]
+  (let [dir (create-fixed-dir! "/home/rafal/vm/socks")
+        vm  (assoc vm
+                   :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
+                   :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
+        fc  (f/init! {:firecracker/socket-path     (:vm/firecracker-host-socket-path vm)
+                      :firecracker/timeout-seconds (:vm/firecracker-timeout-seconds vm)
+                      :firecracker/executable-path (:vm/firecracker-executable-path vm)})
+        vm (assoc vm :vm/firecracker-instance fc)]
+    (wait-for! (fn [] (check-conn! fc)) 2)
+    (tel/event! ::vm-start-snapshot {:level :debug})
+    (f/api-request! fc {:method :put
+                        :path "/snapshot/load"
+                        :body {:snapshot_path (str (:vm/firecracker-snapshot-dir-path vm) "/firecracker.snap")
+                               :mem_backend
+                               {:backend_path (str (:vm/firecracker-snapshot-dir-path vm) "/firecracker.mem")
+                                :backend_type "File"}
+                               :resume_vm false
+                               ;; useful when next version comes out
+                               #_#_:vsock_override {:uds_path vsock-host-socket-path}}})
+    (f/api-request! fc {:method :patch
+                        :path "/vm"
+                        :body {:state "Resumed"}})
+    (tel/event! ::vm-wait {:level :debug})
+    (o/with-close-fn
+     vm
+     (fn [_]
+       (tel/event! ::vm-close {:level :info})
+       (o/close fc)
+       (.delete (io/file (:vm/vsock-host-socket-path vm)))
+       (o/close dir)))))
+
+(defn eval-unsafe!
   [eval-request]
   ;; vsock's SocketChannel seems to interact with
   ;; http-kits Socket lifecycle management
   ;; must start on a fresh thread or vsock socket is closed early
   @(future (o/with-open+
-            [vm (init! (-> config/config :evaluator :vm-base-context))]
+            [vm (init-from-snapshot! (-> config/config :evaluator :vm-base-context))]
             (vsock-request! vm eval-request))))
 
-#_(comment
-    (def fc {:firecracker/socket-path "/tmp/firecracker.socket"})
+;; Single-threaded executor — serializes all eval requests into a queue.
+;; defonce so it survives REPL reloads without leaking threads.
+(defonce ^:private eval-executor
+  (Executors/newSingleThreadExecutor))
 
-    (check-conn! fc)
-    (configure-and-boot-vm! fc)
-    (shutdown! fc)
+(defn eval!
+  [eval-request]
+  (-> eval-executor
+      (.submit ^Callable (fn [] (eval-unsafe! eval-request)))
+      .get))
 
-    (eval!
-     {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
-      :eval.request/stdin    (byte-array 0)
-      :eval.request/argv     ["$ARTIFACT" "Rust"]})
+(comment
+  ;; create snapshot
+  (def *vm (atom nil))
 
-    (eval!
-     {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/Users/rafal/Code/cyberleague-runtime-maker/samples/hello.jar")
-      :eval.request/stdin    (byte-array 0)
-      :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]}))
+  (reset! *vm (init-from-scratch!
+               {:vm/firecracker-executable-path "/home/rafal/vm/firecracker"
+                :vm/firecracker-snapshot-dir-path "/home/rafal/vm/snapshot"
+                :vm/firecracker-timeout-seconds 100000
+                :vm/initramfs-path              "/home/rafal/vm/out/initramfs.cpio.gz"
+                :vm/sidecar-path                "/home/rafal/vm/out/sidecar.sqsh"
+                :vm/kernel-image-path           "/home/rafal/vm/out/vmlinux"
+                :vm/vsock-inner-port            52525}))
+
+  (f/api-request! (:vm/firecracker-instance @*vm)
+                  {:method :patch
+                   :path "/vm"
+                   :body {:state "Paused"}})
+
+  (f/api-request! (:vm/firecracker-instance @*vm)
+                  {:method :put
+                   :path "/snapshot/create"
+                   :body {:snapshot_type "Full"
+                          :snapshot_path (str (:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.snap")
+                          :mem_file_path (str (:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.mem")}})
+
+  (f/api-request! (:vm/firecracker-instance @*vm)
+                  {:method :patch
+                   :path "/vm"
+                   :body {:state "Resumed"}})
+
+  (f/api-request! (:vm/firecracker-instance @*vm)
+                  {:method :put
+                   :path "/actions"
+                   :body {:action_type "SendCtrlAltDel"}}))
+
+(comment
+  (eval!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["$ARTIFACT" "Rust"]})
+
+  (eval!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/Users/rafal/Code/cyberleague-runtime-maker/samples/hello.jar")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]}))

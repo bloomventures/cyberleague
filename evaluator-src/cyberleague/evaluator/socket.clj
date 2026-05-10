@@ -75,14 +75,22 @@
 (defn vsock-request!
   [{:vsock/keys [host-socket-path guest-port]}
    eval-request]
-  (let [ch (SocketChannel/open StandardProtocolFamily/UNIX)]
+  (let [;; repeat handshake until successful
+        ch (loop []
+             (let [ch (SocketChannel/open StandardProtocolFamily/UNIX)]
+               (if (try
+                     (.connect ch (UnixDomainSocketAddress/of host-socket-path))
+                     (.write ch (ByteBuffer/wrap (.getBytes (str "CONNECT " guest-port "\n") "UTF-8")))
+                     (read-line! ch)
+                     true
+                     (catch Exception _
+                       (.close ch)
+                       false))
+                 ch
+                 (do (Thread/sleep 5)
+                     (recur)))))]
     (try
       (tel/event! ::vsock-connect {:level :debug})
-      (.connect ch (UnixDomainSocketAddress/of host-socket-path))
-      ;; Vsock CONNECT handshake
-      (.write ch (ByteBuffer/wrap (.getBytes (str "CONNECT " guest-port "\n") "UTF-8")))
-      ;; Read OK response (ex. "OK 1073741829")
-      (read-line! ch)
       (tel/event! ::vsock-send {:level :debug
                                 :data eval-request})
 

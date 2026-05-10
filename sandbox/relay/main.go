@@ -58,7 +58,6 @@ func handleConn(conn net.Conn) {
 		sendErr(conn, "temp file: "+err.Error())
 		return
 	}
-	defer os.Remove(tmp.Name())
 
 	logf("writing artifact")
 	if _, err = tmp.Write(req.Artifact); err != nil {
@@ -87,14 +86,13 @@ func handleConn(conn net.Conn) {
 		}
 	}
 	cmd := exec.Command(argv[0], argv[1:]...)
-	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewReader(req.Stdin)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	logf("executing: %v", argv)
+	logf("executing: %v (LD_LIBRARY_PATH=%s)", argv, os.Getenv("LD_LIBRARY_PATH"))
 	if err = cmd.Start(); err != nil {
 		sendErr(conn, "start: "+err.Error())
 		return

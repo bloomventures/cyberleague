@@ -5,11 +5,11 @@ log() { echo "[$(date +"%H:%M:%S")] $*"; }
 
 usage() {
   echo "Usage: $0 <step> [step...]"
-  echo "Steps: all nix podman ext4 sidecar vmlinux"
-  echo "  all     — full build with a fresh timestamped build dir"
-  echo "  nix     — nix-build rootfs (requires: nothing)"
-  echo "  podman  — load image, export rootfs.tar (requires: nix)"
-  echo "  ext4    — extract tar, build rootfs.img (requires: podman)"
+  echo "Steps: all nix podman initramfs sidecar vmlinux"
+  echo "  all       — full build with a fresh timestamped build dir"
+  echo "  nix       — nix-build rootfs (requires: nothing)"
+  echo "  podman    — load image, export rootfs.tar (requires: nix)"
+  echo "  initramfs — extract tar, build initramfs.cpio.gz (requires: podman)"
   echo "  sidecar — build sidecar.sqsh (requires: nothing)"
   echo "  vmlinux — fetch vmlinux kernel from firecracker CI (if not present)"
   exit 1
@@ -53,13 +53,15 @@ preflight() {
 # --- resolve build dir for partial runs ---
 
 resolve_build_dir() {
-  if [[ ! -L "$OUT_DIR/rootfs.img" ]]; then
-    echo "Error: $OUT_DIR/rootfs.img symlink not found — run 'all' first or set up a build dir" >&2
+  if [[ ! -L "$OUT_DIR/initramfs.cpio.gz" ]]; then
+    echo "Error: $OUT_DIR/initramfs.cpio.gz symlink not found — run 'all' first or set up a build dir" >&2
     exit 1
   fi
-  BUILD_DIR="$(readlink "$OUT_DIR/rootfs.img")"
+  local target
+  target="$(readlink "$OUT_DIR/initramfs.cpio.gz")"
+  BUILD_DIR="$(dirname "$target")"
   if [[ ! -d "$BUILD_DIR" ]]; then
-    echo "Error: $OUT_DIR/rootfs.img points to '$BUILD_DIR' which does not exist" >&2
+    echo "Error: $OUT_DIR/initramfs.cpio.gz points to '$target' whose directory '$BUILD_DIR' does not exist" >&2
     exit 1
   fi
   log "Using build dir: $BUILD_DIR"
@@ -95,13 +97,13 @@ step_nix() {
 }
 
 step_podman() {
-  log "Cleaning podman storage at $HOME/.local/share/containers/storage..."
-  podman unshare rm -rf "$HOME/.local/share/containers/storage"
+  log "Resetting podman storage..."
+  podman system reset --force
 
   local build_id
   build_id="$(basename "$BUILD_DIR")"
 
-  trap 'log "Cleaning up container $build_id..."; podman rm --ignore "$build_id" 2>/dev/null || true' EXIT
+  trap "log 'Cleaning up container $build_id...'; podman rm --ignore '$build_id' 2>/dev/null || true" EXIT
 
   log "Loading image into podman..."
   local load_out
@@ -109,7 +111,7 @@ step_podman() {
   echo "podman load output: $load_out"
 
   local image
-  image=$(echo "$load_out" | grep -oP "Loaded images?\([^)]*\)?:\s+\K\S+")
+  image=$(echo "$load_out" | grep -oP "Loaded images?(?:\([^)]*\))?:\s+\K\S+")
   if [[ -z "$image" ]]; then
     echo "Error: Could not parse image name from podman load output" >&2
     exit 1
@@ -125,25 +127,21 @@ step_podman() {
   trap - EXIT
 }
 
-step_ext4() {
-  log "Extracting and building ext4 image (via fakeroot)..."
+step_initramfs() {
+  log "Building initramfs cpio.gz (via fakeroot)..."
   fakeroot -- bash -c "
     set -euo pipefail
     echo '[fakeroot] Extracting $BUILD_DIR/rootfs.tar to $BUILD_DIR/root_fs...'
     tar xpf '$BUILD_DIR/rootfs.tar' -C '$BUILD_DIR/root_fs'
 
-    echo '[fakeroot] Copying init.sh into rootfs...'
-    cp '$INIT_SH' '$BUILD_DIR/root_fs/init.sh'
-    chmod +x '$BUILD_DIR/root_fs/init.sh'
+    echo '[fakeroot] Copying init.sh as /init...'
+    cp '$INIT_SH' '$BUILD_DIR/root_fs/init'
+    chmod +x '$BUILD_DIR/root_fs/init'
 
-    ROOTFS_SIZE=\$(du -sm '$BUILD_DIR/root_fs' | cut -f1)
-    echo '[fakeroot] Extracted rootfs size: '\${ROOTFS_SIZE}'MB'
-    IMG_SIZE=\$(( (ROOTFS_SIZE + 250 + 63) / 64 * 64 ))
-    echo '[fakeroot] Allocating image size: '\${IMG_SIZE}'MB'
-
-    echo '[fakeroot] Running mke2fs to create rootfs.img...'
-    mke2fs -t ext4 -d '$BUILD_DIR/root_fs' '$BUILD_DIR/rootfs.img' \${IMG_SIZE}M
-    echo '[fakeroot] ext4 image created.'
+    echo '[fakeroot] Packing initramfs...'
+    cd '$BUILD_DIR/root_fs'
+    find . | cpio -o -H newc | gzip > '$BUILD_DIR/initramfs.cpio.gz'
+    echo '[fakeroot] initramfs created.'
   "
 
   rm -f "$BUILD_DIR/rootfs.tar"
@@ -151,15 +149,32 @@ step_ext4() {
 
 step_sidecar() {
   log "Building sidecar squashfs..."
+
+  log "Building JDK via nix..."
+  local jdk_path
+  jdk_path=$(nix-build "$NIX_FILE" -A jdk --no-out-link)
+  log "JDK store path: $jdk_path"
+
   local tmp_sidecar
   tmp_sidecar="$(mktemp -d)"
+  mkdir -p "$tmp_sidecar/nix/store"
+
+  log "Copying JDK closure into sidecar..."
+  while IFS= read -r store_path; do
+    cp -a "$store_path" "$tmp_sidecar/nix/store/"
+  done < <(nix-store -q --requisites "$jdk_path")
+
+  # Stable relative symlink so sidecar_run.sh can use /mnt/sidecar/jdk
+  # regardless of which Nix store hash the current build produced.
+  (cd "$tmp_sidecar" && ln -s "nix/store/$(basename "$jdk_path")" jdk)
+
   cp "$RELAY_X86" "$tmp_sidecar/relay"
   chmod +x "$tmp_sidecar/relay"
   cp "$SIDECAR_RUN_SH" "$tmp_sidecar/sidecar_run.sh"
   chmod +x "$tmp_sidecar/sidecar_run.sh"
+
   mkdir -p "$OUT_DIR"
   mksquashfs "$tmp_sidecar" "$OUT_DIR/sidecar.sqsh" -noappend
-  rm -rf "$tmp_sidecar"
 }
 
 # --- dispatch ---
@@ -186,11 +201,11 @@ if [[ "${STEPS[*]}" == *"all"* ]]; then
   step_vmlinux
   step_nix
   step_podman
-  step_ext4
+  step_initramfs
   step_sidecar
 
-  ln -sfn "$BUILD_DIR" "$OUT_DIR/rootfs.img"
-  log "Done. Build artifacts in $BUILD_DIR (symlinked from $OUT_DIR/rootfs.img)"
+  ln -sfn "$BUILD_DIR/initramfs.cpio.gz" "$OUT_DIR/initramfs.cpio.gz"
+  log "Done. Build artifacts in $BUILD_DIR (symlinked from $OUT_DIR/initramfs.cpio.gz)"
   exit 0
 fi
 
@@ -207,9 +222,9 @@ for step in "${STEPS[@]}"; do
       resolve_build_dir
       step_podman
       ;;
-    ext4)
+    initramfs)
       resolve_build_dir
-      step_ext4
+      step_initramfs
       ;;
     sidecar)
       step_sidecar

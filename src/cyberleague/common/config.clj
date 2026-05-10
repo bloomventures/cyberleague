@@ -18,6 +18,8 @@
       [:vm-base-context
        [:map
         [:vm/firecracker-executable-path :string]
+        [:vm/firecracker-snapshot-dir-path :string]
+        [:vm/firecracker-timeout-seconds :int]
         [:vm/root-fs-path :string]
         [:vm/sidecar-path :string]
         [:vm/kernel-image-path :string]
