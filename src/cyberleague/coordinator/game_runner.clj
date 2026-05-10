@@ -35,11 +35,13 @@
   (cond
     (not (malli/validate (:game.config/state-spec (games/by-slug game-slug)) state))
     {:eval/error {:eval.error/type :eval.error.type/state-schema-invalid
-                  :eval.error/origin :eval.error.origin/system}}
+                  :eval.error/origin :eval.error.origin/system
+                  :eval.error/data (malli/explain (:game.config/state-spec (games/by-slug game-slug)) state)}}
 
     (not (malli/validate (:game.config/context-spec (games/by-slug game-slug)) context))
     {:eval/error {:eval.error/type :eval.error.type/context-schema-invalid
-                  :eval.error/origin :eval.error.origin/system}}
+                  :eval.error/origin :eval.error.origin/system
+                  :eval.error/data (malli/explain (:game.config/context-spec (games/by-slug game-slug)) context)}}
 
     :else
     (let [eval (eval-move artifact context)
