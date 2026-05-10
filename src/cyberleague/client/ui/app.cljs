@@ -17,8 +17,6 @@
 
    ;; LINKS ARE TEMPORARY
    [:link {:rel "stylesheet"
-           :href "/reset.css"}]
-   [:link {:rel "stylesheet"
            :href "//fonts.googleapis.com/css?family=Inconsolata"}]
 
    [:style styles/css]
