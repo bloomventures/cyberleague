@@ -130,3 +130,19 @@
                      (filter :bot/matches-transit)
                      (map :bot/matches-transit)
                      ))
+
+(defn m2026-05-10-backfill-artifact-env []
+  (db/with-conn
+    (let [db (d/db db/*conn*)
+          artifact-eids (d/q '[:find [?a ...]
+                               :where
+                               [?a :artifact/id]
+                               (not [?a :artifact/env])]
+                             db)
+          txs (map (fn [eid]
+                     {:db/id eid
+                      :artifact/env [:env/slug "clojure-lein-jvm"]})
+                   artifact-eids)]
+      (println "Backfilling env for" (count txs) "artifacts")
+      @(db/transact! txs)
+      nil)))
