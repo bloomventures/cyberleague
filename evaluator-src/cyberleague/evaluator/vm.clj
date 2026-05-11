@@ -280,13 +280,8 @@
   (def *vm (atom nil))
 
   (reset! *vm (init-from-scratch!
-               {:vm/firecracker-executable-path "/home/rafal/vm/firecracker"
-                :vm/firecracker-snapshot-dir-path "/home/rafal/vm/snapshot"
-                :vm/firecracker-timeout-seconds 100000
-                :vm/initramfs-path              "/home/rafal/vm/out/initramfs.cpio.gz"
-                :vm/sidecar-path                "/home/rafal/vm/out/sidecar.sqsh"
-                :vm/kernel-image-path           "/home/rafal/vm/out/vmlinux"
-                :vm/vsock-inner-port            52525}))
+               (assoc (-> config/config :evaluator :vm-base-context)
+                      :vm/firecracker-timeout-seconds 100000)))
 
   (f/api-request! (:vm/firecracker-instance @*vm)
                   {:method :patch
@@ -311,12 +306,45 @@
                    :body {:action_type "SendCtrlAltDel"}}))
 
 (comment
-  (eval!
+
+  (def *vm (atom nil))
+
+  (reset! *vm (init-from-scratch!
+               (assoc (-> config/config :evaluator :vm-base-context)
+                      :vm/firecracker-timeout-seconds 100000)))
+
+  (f/api-request! (:vm/firecracker-instance @*vm) {:method :get :path "/"})
+
+  (vsock-request!
+   @*vm
    {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
     :eval.request/stdin    (byte-array 0)
     :eval.request/argv     ["$ARTIFACT" "Rust"]})
 
-  (eval!
-   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/Users/rafal/Code/cyberleague-runtime-maker/samples/hello.jar")
+  (vsock-request!
+   @*vm
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.jar")
     :eval.request/stdin    (byte-array 0)
-    :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]}))
+    :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]})
+
+  (vsock-request!
+   @*vm
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.py")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["python" "$ARTIFACT" "Python"]}))
+
+(comment
+  (eval-unsafe!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["$ARTIFACT" "Rust"]})
+
+  (eval-unsafe!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.jar")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]})
+
+  (eval-unsafe!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.py")
+    :eval.request/stdin    (byte-array 0)
+    :eval.request/argv     ["python" "$ARTIFACT" "Python"]}))
