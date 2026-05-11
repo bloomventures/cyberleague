@@ -5,6 +5,7 @@
    [clojure.string :as str]
    [malli.core :as m]
    [malli.error :as me]
+   [malli.transform :as mt]
    [cyberleague.cli.util.bot-config :as bot-config]
    [cyberleague.cli.util.format :as f]
    [cyberleague.cli.util.remote :as r]))
@@ -100,10 +101,11 @@
               (when (not (str/blank? (:err result)))
                 (println "  stderr:" (str/trim (:err result))))
               (try
-                (let [response (json/parse-string (:out result))]
-                  (if (m/validate move-spec response)
+                (let [response (json/parse-string (:out result) true)
+                      decoded (m/decode move-spec response (mt/json-transformer))]
+                  (if (m/validate move-spec decoded)
                     (do (println (f/color :color/green "  PASS") "valid move") true)
-                    (let [errors (me/humanize (m/explain move-spec response))]
+                    (let [errors (me/humanize (m/explain move-spec decoded))]
                       (println (f/color :color/red "  FAIL") "invalid move")
                       (println "  Errors:" errors)
                       false)))
