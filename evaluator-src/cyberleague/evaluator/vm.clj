@@ -203,6 +203,7 @@
                    :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
                    :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
         fc  (f/init! {:firecracker/socket-path     (:vm/firecracker-host-socket-path vm)
+                      :firecracker/log-level (:vm/firecracker-log-level vm)
                       :firecracker/timeout-seconds (:vm/firecracker-timeout-seconds vm)
                       :firecracker/executable-path (:vm/firecracker-executable-path vm)})
         vm (assoc vm :vm/firecracker-instance fc)]

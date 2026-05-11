@@ -17,10 +17,10 @@
 
 (defn init!
   "Starts a firecracker process. Returns a closeable map; use with with-open+."
-  [{:firecracker/keys [executable-path socket-path timeout-seconds] :as context}]
+  [{:firecracker/keys [executable-path socket-path timeout-seconds log-level] :as context}]
   (tel/event! ::start {:level :info
                        :socket-path socket-path})
-  (let [cmd  ["timeout" "--kill-after=1s" (str timeout-seconds "s") executable-path "--api-sock" socket-path "--level" "Error"]
+  (let [cmd  ["timeout" "--kill-after=1s" (str timeout-seconds "s") executable-path "--api-sock" socket-path "--level" (or log-level "Info")]
         proc (-> (ProcessBuilder. ^java.util.List cmd)
                  (.redirectOutput ProcessBuilder$Redirect/INHERIT)
                  (.redirectError ProcessBuilder$Redirect/INHERIT)
