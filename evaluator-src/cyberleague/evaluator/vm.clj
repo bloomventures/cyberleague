@@ -31,6 +31,7 @@
   [:map
    [:vm/firecracker-executable-path :string]
    [:vm/firecracker-snapshot-dir-path :string]
+   [:vm/firecracker-sock-dir-path :string]
    [:vm/firecracker-timeout-seconds :int]
    [:vm/initramfs-path :string]
    [:vm/sidecar-path :string]
@@ -49,6 +50,7 @@
 
    [:vm/firecracker-executable-path  :string]
    [:vm/firecracker-snapshot-dir-path :string]
+   [:vm/firecracker-sock-dir-path    :string]
    [:vm/firecracker-executable-path  :string]
    ;; path to where the firecracker control socket
    ;; should be created
@@ -196,7 +198,7 @@
   (let [dir #_(create-temp-dir! "cyber-vm-")
         ;; use fixed dir, because we're going to snapshot
         ;; and until new firecracker version hits, it expects vsock in the same place
-        (create-fixed-dir! "/home/rafal/vm/socks")
+        (create-fixed-dir! (:vm/firecracker-sock-dir-path vm))
         vm  (assoc vm
                    :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
                    :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
@@ -219,7 +221,7 @@
 
 (defn init-from-snapshot!
   [vm]
-  (let [dir (create-fixed-dir! "/home/rafal/vm/socks")
+  (let [dir (create-fixed-dir! (:vm/firecracker-sock-dir-path vm))
         vm  (assoc vm
                    :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
                    :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
