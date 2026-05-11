@@ -91,7 +91,7 @@
 
         [graph-view (:bot/history bot)]
 
-        (let [{:keys [wins losses ties]} (record-summary bot)]
+        #_(let [{:keys [wins losses ties]} (record-summary bot)]
           [:p {:tw "text-center"}
            "Wins: " wins ", Losses: " losses ", Ties: " ties])
 
