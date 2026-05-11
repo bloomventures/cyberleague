@@ -76,7 +76,10 @@
   [{:vsock/keys [host-socket-path guest-port]}
    eval-request]
   (let [;; repeat handshake until successful
-        ch (loop []
+        ch (loop [attempts 0]
+             (when (>= attempts 20)
+               (throw (ex-info "Vsock handshake failed after 20 attempts" {:guest-port guest-port
+                                                                            :host-socket-path host-socket-path})))
              (let [ch (SocketChannel/open StandardProtocolFamily/UNIX)]
                (if (try
                      (.connect ch (UnixDomainSocketAddress/of host-socket-path))
@@ -88,7 +91,7 @@
                        false))
                  ch
                  (do (Thread/sleep 5)
-                     (recur)))))]
+                     (recur (inc attempts))))))]
     (try
       (tel/event! ::vsock-connect {:level :debug})
       (tel/event! ::vsock-send {:level :debug
