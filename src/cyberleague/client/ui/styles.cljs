@@ -14,6 +14,9 @@
 (def styles
   [:body
 
+   [:code
+    {:font-family "Inconsolata, monospace"}]
+
    [:.prose
     [:ul
      {:list-style-type "disc"
