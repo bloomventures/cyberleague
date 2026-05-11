@@ -18,9 +18,11 @@
   (uuid/from-email (str x)))
 
 (defn initialize-test-bots!
-  []
+  [game-slug]
   (let [user-id (uuid "admin")]
     (->> (games/all)
+         (filter (fn [game-config]
+                   (= game-slug (:game.config/slug game-config))))
          (map (fn [game-config]
                 (let [{:blueprint/keys [env-slug code]}
                       (:game.config/test-bot game-config)
@@ -44,7 +46,7 @@
                       :body code})))))
          doall)))
 
-#_(initialize-test-bots!)
+#_(initialize-test-bots! "liars-dice")
 
 (defn check-test-bots!
   []
@@ -102,7 +104,8 @@
         :game/slug (:game.config/slug game-config)}]))
 
    ;; test-bots
-   (initialize-test-bots!)))
+   (doseq [game-config (games/all)]
+     (initialize-test-bots! (:game.config/slug game-config)))))
 
 (defn seed! []
   (db/drop!)
