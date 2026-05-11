@@ -165,9 +165,9 @@
                                    (sort-by (fn [bot] (Math/abs
                                                        (- (:bot/rating bot)
                                                           (:bot/rating player-1)))))
-                                   (take (max 1 (quot n 10)))
+                                   (take (max 4 (quot n 10)))
                                    (sort-by :bot/rating-dev #(compare %2 %1))
-                                   (take (max 1 (quot n 20))))]
+                                   (take (max 2 (quot n 20))))]
       (when (seq player-2-candidates)
         {:player-1 player-1
          :player-2 (rand-nth player-2-candidates)}))))
