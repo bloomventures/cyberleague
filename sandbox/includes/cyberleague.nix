@@ -24,7 +24,7 @@ let
         # wasm
         #pkgsLinux.wasmtime
         # python
-        #pkgsLinux.python3Minimal
+        pkgsLinux.python3Minimal
       ];
     };
   };
