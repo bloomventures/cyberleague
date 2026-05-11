@@ -91,7 +91,9 @@
 
 (defn configure-and-boot!
   [{:vm/keys [vsock-host-socket-path kernel-image-path initramfs-path sidecar-path] :as vm} fc]
-  (tel/event! ::configure-and-boot {:level :info})
+  (tel/event! ::configure-and-boot {:level :info
+                                    :data {:vm vm
+                                           :fc fc}})
   #_(f/api-request! fc {:method :put
                         :path "/logger"
                         :body {:log_path "firecracker_log.txt"
