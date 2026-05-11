@@ -22,7 +22,8 @@
              ;; hence the :*foo profiles
 
              ;; EVALUATOR
-             :*evaluator {:source-paths ["evaluator-src"]
+             :*evaluator {:target-path "evaluator-target"
+                          :source-paths ^:replace ["evaluator-src"]
                           :dependencies [[org.clojure/clojure "1.12.4"]
                                          [http-kit "2.8.0"]
                                          [io.bloomventures/commons "0.17.1"]
@@ -42,7 +43,8 @@
                                          [org.babashka/sci "0.12.51"]]
                           :main cyberleague.evaluator.core}
              :evaluator [:common :*evaluator]
-             :*uberjar-evaluator {:aot [cyberleague.evaluator.core]}
+             :*uberjar-evaluator {:aot [cyberleague.evaluator.core]
+                                  :uberjar-name "cyberleague-evaluator.jar"}
              :uberjar-evaluator [:evaluator :*uberjar-evaluator]
              :test {:source-paths ["test"]}
              ;; SERVER
@@ -88,6 +90,7 @@
                                       ] }
              :server [:common :*server]
              :*uberjar-server {:aot [cyberleague.core]
+                               :uberjar-name "cyberleague-server.jar"
                                :source-paths ["src"]
                                :dependencies
                                [[org.postgresql/postgresql "42.2.2"]]
@@ -99,7 +102,7 @@
 
              ;; CLI
              :*cli {:target-path "cli-target"
-                    :source-paths ["cli-src"]
+                    :source-paths ^:replace ["cli-src"]
                     :resource-paths ^:replace []
                     :main         cyberleague.cli.core
                     :dependencies [[cli-matic "0.5.4"]
