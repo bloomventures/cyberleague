@@ -10,7 +10,7 @@
    {:tw ["bg-white shrink-0 shadow-sm flex flex-col"
          (if (= variant :wide)
            "min-w-800px"
-           "max-w-90vw")]}
+           "min-w-25em max-w-90vw")]}
    (for [c children]
      [eb/catch c])])
 
