@@ -11,6 +11,8 @@
 
   :dependencies [[com.hyperfiddle/rcf "20220926-202227"
                   :exclusions [org.clojure/clojure]]]
+  :repositories [["central-google" {:url "https://maven-central.storage.googleapis.com/maven2/"
+                                    :snapshots false}]]
   :profiles {:common {:dependencies [[com.taoensso/telemere "1.2.1"]
                                      [org.clj-commons/digest "1.4.100"]
                                      [com.cognitect/transit-clj "1.1.357"]]}
