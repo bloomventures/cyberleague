@@ -26,9 +26,9 @@
           (assoc result :eval/return-value return-value))))))
 
 #_(eval-move
-   {:artifact/digest "878a289fd4cb8db5320e10fc9285a9ffd9a337e4e06468e7273385fa1e171c43"
+   {:artifact/digest "4a7c741d318ddd2576f3680326ae5e3201ee6dc6998dc342a5636a93b9105fe2"
     :artifact/env {:env/slug "clojure-sci"}}
-   {:ping 551})
+   {:ping "551"})
 
 (defn run-move
   [player-index artifact state context game-slug game-engine]
