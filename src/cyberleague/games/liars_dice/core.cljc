@@ -69,7 +69,7 @@
              {:player-id 1
               :move {:action "bid" :quantity 2 :face 5}}
              {:player-id 0
-              :move {:action "bid" :quantity 3 :face 4}}]}
+              :move {:action "bid" :quantity 3 :face 5}}]}
 
   :game.config/move-spec
   Move
