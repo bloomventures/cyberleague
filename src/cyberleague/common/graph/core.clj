@@ -8,7 +8,8 @@
    [cyberleague.common.envs :as envs]
    [cyberleague.common.transit :as t]
    [cyberleague.db.schema :as schema]
-   [cyberleague.db.core :as db]))
+   [cyberleague.db.core :as db]
+   [cyberleague.db.history :as db.history]))
 
 (defn transform-resolver
   [source-key target-key f]
@@ -91,6 +92,12 @@
     :dat.resolver/out [:bot/history]
     :dat.resolver/f (fn [{:keys [bot/id]}]
                       {:bot/history (db/bot-history id)})}
+
+   {:dat.resolver/id :bot/ratings-recent
+    :dat.resolver/in [:bot/id]
+    :dat.resolver/out [:bot/ratings-recent]
+    :dat.resolver/f (fn [{:keys [bot/id]}]
+                      {:bot/ratings-recent (db.history/last-n-ratings id 25)})}
 
    (alias-resolver :bot/_user-count :user/bot-count)
    (alias-resolver :bot/_game-count :game/bot-count)

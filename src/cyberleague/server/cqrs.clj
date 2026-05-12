@@ -146,19 +146,33 @@
     :conditions (fn [{:keys [game-id]}]
                   [(entity-exists?-condition :game/id game-id)])
     :return (fn [{:keys [game-id]}]
-              (graph/pull
-               {:game/id game-id}
-               [:game/id
-                :game/slug
-                :game/name
-                :game/description
-                :game/rules
-                :game/technical-notes
-                :game/context-spec
-                :game/context-example
-                :game/move-spec
-                :game/move-example
-                {:game/bots bot-pattern}]))}
+              (-> (graph/pull
+                   {:game/id game-id}
+                   [:game/id
+                    :game/slug
+                    :game/name
+                    :game/description
+                    :game/rules
+                    :game/technical-notes
+                    :game/context-spec
+                    :game/context-example
+                    :game/move-spec
+                    :game/move-example])))}
+
+   {:id :api/game-standings
+    :params {:user-id [:maybe :user/id]
+             :game-id :game/id}
+    :rest [:get "/api/games/:game-id"]
+    :conditions (fn [{:keys [game-id]}]
+                  [(entity-exists?-condition :game/id game-id)])
+    :return (fn [{:keys [game-id]}]
+              (-> (graph/pull
+                   {:game/id game-id}
+                   [:game/id
+                    :game/slug
+                    :game/name
+                    {:game/bots (conj bot-pattern
+                                      :bot/ratings-recent)}])))}
 
    {:id :api/match
     :params {:user-id [:maybe :user/id]

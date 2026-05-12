@@ -3,6 +3,7 @@
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.bot-card :refer [bot-card-view]]
    [cyberleague.client.ui.game-card :refer [game-card-view]]
+   [cyberleague.client.ui.game-standings-card :refer [game-standings-card-view]]
    [cyberleague.client.ui.games-card :refer [games-card-view]]
    [cyberleague.client.ui.match-card :refer [match-card-view]]
    [cyberleague.client.ui.styles :as styles]
@@ -57,6 +58,7 @@
                         :card.type/users users-card-view
                         :card.type/user user-card-view
                         :card.type/game game-card-view
+                        :card.type/game-standings game-standings-card-view
                         :card.type/games games-card-view
                         :card.type/match match-card-view
                         :card.type/bot bot-card-view)]

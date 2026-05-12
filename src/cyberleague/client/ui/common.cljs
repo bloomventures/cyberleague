@@ -22,6 +22,20 @@
                 opts)]
         children))
 
+(defn body-link
+  [opts & children]
+  (into [:a
+         (merge {:tw "bg-#3f51b5 text-white font-bold px-1 py-0.5 rounded hover:bg-#1a237e hover:text-white inline-block"}
+                opts)]
+        children))
+
+(defn body-button
+  [opts & children]
+  (into [:button
+         (merge {:tw "bg-#3f51b5 text-white font-bold px-1 py-0.5 rounded hover:bg-#1a237e hover:text-white inline-block"}
+                opts)]
+        children))
+
 (defn nav-button [opts & children]
   (into [:a
          (merge {:tw "bg-white/65 text-#3f51b5 font-bold px-1 py-0.5 rounded hover:bg-white"}

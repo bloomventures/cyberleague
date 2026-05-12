@@ -8,7 +8,7 @@
 (defn game-card-view
   [[_ {:keys [id]} :as card]]
   (r/with-let
-   [data (state/tada-atom [:api/game {:game-id id}] {:refresh-rate 5000})]
+   [data (state/tada-atom [:api/game {:game-id id}])]
    (when-let [game @data]
      [card/wrapper {}
       [card/header {:card card
@@ -21,47 +21,21 @@
        [:div {:tw "max-w-45vw space-y-4"}
         [:div
          [ui/markdown (:game/description game)]]
-        [:table
-         {:tw "mx-auto"}
-         [:thead
-          [:tr
-           [:th {:tw "text-left font-bold p-1"}]
-           [:th {:tw "text-left font-bold p-1"} "Rank"]
-           [:th {:tw "text-left font-bold p-1"} "Bot"]
-           [:th {:tw "text-left font-bold p-1"} "Rating"]
-           [:th {:tw "text-left font-bold p-1"}]]]
-         [:tbody
-          (let [max-bar-width 100
-                max-rating (apply max (map :bot/rating (:game/bots game)))
-                ->width (fn [rating]
-                          (* max-bar-width (/ rating max-rating)))]
-            (for [[rank bot] (->> (:game/bots game)
-                                  (sort-by :bot/rating)
-                                  reverse
-                                  (map-indexed vector))]
-              ^{:key (:bot/id bot)}
-              [:tr
-               [:td {:tw "p-1"} (when (= (:user/id (:bot/user bot)) (:user/id @state/user))
-                                  "★")]
-               [:td {:tw "p-1"} (inc rank)]
-               [:td {:tw "p-1"}
-                [:a {:on-click (fn [_]
-                                 (state/nav! :card.type/bot (:bot/id bot)))}
-                 [ui/bot-chip bot]]]
-               [:td {:tw "p-1"} (:bot/rating bot)]
-               [:td {:tw "p-1 align-middle"}
-                [:div {:tw "bg-#6877ca"
-                       :style {:width (str (->width (:bot/rating bot)) "px")
-                               :height "0.5em"}}]]]))]]
+
+        [ui/body-link {:on-click (fn []
+                                   (state/nav! :card.type/game-standings id))}
+         "View Standings"]
+
         [:div
          [ui/subheading "Rules"]
          [:div {:tw "py-2"}
           [ui/markdown (:game/rules game)]]]
 
-        [:div
-         [ui/subheading "Technical Notes"]
-         [:div {:tw "py-2"}
-          [ui/markdown (:game/technical-notes game)]]]
+        (when (:game/technical-notes game)
+          [:div
+           [ui/subheading "Technical Notes"]
+           [:div {:tw "py-2"}
+            [ui/markdown (:game/technical-notes game)]]])
 
         [:div
          [ui/subheading "Context (Bot Input) Example"]
@@ -90,5 +64,4 @@
          [ui/subheading "Move Schema"]
          [:div {:tw "py-2"}
           [:code {:tw "whitespace-pre-wrap"}
-           (ui/pretty-print (:game/move-spec game))]]]
-        ]]])))
+           (ui/pretty-print (:game/move-spec game))]]]]]])))
