@@ -131,6 +131,40 @@
                      (map :bot/matches-transit)
                      ))
 
+(def ^:private admin-user-id #uuid "21232f29-7a57-35a7-8389-4a0e4a801fc3")
+
+(defn m2026-05-10-deploy-bots-without-active-artifact []
+  (db/with-conn
+    (let [db (d/db db/*conn*)
+          bot-infos (->> (d/q '[:find ?b ?bot-id ?user-id
+                                :where
+                                [?b :bot/id ?bot-id]
+                                [?b :bot/user ?u]
+                                [?u :user/id ?user-id]
+                                (not [?b :bot/active-artifact _])]
+                              db)
+                         (remove (fn [[_ _ user-id]] (= user-id admin-user-id))))
+          txs (->> bot-infos
+                   (keep (fn [[bot-eid bot-id _]]
+                           (let [most-recent-artifact
+                                 (->> (d/q '[:find ?a ?created-at
+                                             :in $ ?b
+                                             :where
+                                             [?a :artifact/bot ?b]
+                                             [?a :artifact/created-at ?created-at]
+                                             [?a :artifact/digest ?digest]]
+                                           db bot-eid)
+                                      (sort-by second #(compare %2 %1))
+                                      first)]
+                             (when most-recent-artifact
+                               (let [[artifact-eid _] most-recent-artifact
+                                     digest (:artifact/digest (d/entity db artifact-eid))]
+                                 (println "Deploying bot" bot-id "with digest" digest)
+                                 (db/deploy-bot-tx bot-id digest)))))))]
+      (println "Bots to deploy:" (count txs))
+      @(db/transact! txs)
+      nil)))
+
 (defn m2026-05-10-backfill-artifact-env []
   (db/with-conn
     (let [db (d/db db/*conn*)
