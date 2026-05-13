@@ -1,8 +1,10 @@
 (ns cyberleague.client.ui.game-standings-card
   (:require
+   [bloom.commons.fontawesome :as fa]
    [reagent.core :as r]
    [cyberleague.client.state :as state]
    [cyberleague.client.ui.card :as card]
+   [cyberleague.client.ui.colors :as colors]
    [cyberleague.client.ui.common :as ui]))
 
 (defn make-interpolator [[x0 x1] [y0 y1]]
@@ -12,33 +14,36 @@
     (fn [x]
       (+ (* m x) b))))
 
-(defn swarm-plot-view [{:keys [values x-min x-max size width]}]
+(defn swarm-plot-view
+  [{:keys [values x-min x-max size width color]}]
   (let [r        (or size 3)
         svg-w    (or width 100)
         diameter (* 2 r)
         ->svg-x  (make-interpolator [x-min x-max] [r (- svg-w r)])
-        placed   (reduce
-                   (fn [acc v]
-                     (let [x (->svg-x v)
-                           y (loop [step 0]
-                               (if (> step 100)
-                                 0
-                                 (let [y-try (if (zero? step)
-                                               0
-                                               (* (if (odd? step) 1 -1)
-                                                  (quot (inc step) 2)
-                                                  diameter))]
-                                   (if (every? (fn [[px py]]
-                                                 (let [dx (- x px)
-                                                       dy (- y-try py)]
-                                                   (> (js/Math.sqrt (+ (* dx dx) (* dy dy)))
-                                                      diameter)))
-                                               acc)
-                                     y-try
-                                     (recur (inc step))))))]
-                       (conj acc [x y])))
-                   []
-                   (sort values))
+        placed   (->> values
+                      (map-indexed vector)
+                      (sort-by second)
+                      (reduce
+                       (fn [acc [orig-i v]]
+                         (let [x (->svg-x v)
+                               y (loop [step 0]
+                                   (if (> step 100)
+                                     0
+                                     (let [y-try (if (zero? step)
+                                                   0
+                                                   (* (if (odd? step) 1 -1)
+                                                      (quot (inc step) 2)
+                                                      diameter))]
+                                       (if (every? (fn [[px py _]]
+                                                     (let [dx (- x px)
+                                                           dy (- y-try py)]
+                                                       (> (js/Math.sqrt (+ (* dx dx) (* dy dy)))
+                                                          diameter)))
+                                                   acc)
+                                         y-try
+                                         (recur (inc step))))))]
+                           (conj acc [x y orig-i])))
+                       []))
         max-abs-y (if (empty? placed)
                     0
                     (apply max (map (fn [[_ y]] (js/Math.abs y)) placed)))
@@ -47,13 +52,28 @@
     [:svg {:width svg-w
            :height svg-h
            :style {:overflow "visible"}}
-     [:line {:x1 0 :x2 width :y1 max-abs-y :y2 max-abs-y :stroke "gray"}]
-     (for [[i [x y]] (map-indexed vector placed)]
+     [:line {:x1 0 :x2 width :y1 max-abs-y :y2 max-abs-y :stroke "#ccc" :stroke-width 1 :vector-effect "non-scaling-stroke"}]
+     (for [[i [x y orig-i]] (map-indexed vector placed)]
        ^{:key i}
        [:circle {:cx   x
                  :cy   (+ center-y y)
                  :r    r
-                 :fill "#6877ca"}])]))
+                 :fill (color orig-i)}])]))
+
+(defn momentum-direction [values]
+  (let [n (count values)
+        n' (int (/ n 4))
+        old (take n' values)
+        recent (take n' (reverse values))]
+    (cond
+      (< (apply max old)
+         (apply min recent))
+      ::increasing
+      (< (apply max recent)
+         (apply min old))
+      ::decreasing
+      :else
+      ::mixed)))
 
 (defn standings-view
   [bots]
@@ -90,11 +110,22 @@
                              (state/nav! :card.type/bot (:bot/id bot)))}
              [ui/bot-chip bot]]]
            [:td {:tw "p-1"} (:bot/rating bot)]
+           [:td (case (momentum-direction (:bot/ratings-recent bot))
+                  ::increasing
+                  [fa/fa-angle-up-solid {:tw "w-4 h-4"
+                                         :color colors/blue-ultralight}]
+                  ::decreasing
+                  [fa/fa-angle-down-solid {:tw "w-4 h-4"
+                                           :color colors/blue-ultralight}]
+                  ::mixed
+                  nil)]
            [:td {:tw "align-middle"}
             [swarm-plot-view {:values (:bot/ratings-recent bot)
                               :width 200
                               :size 1
                               :x-min 0
+                              :color (fn [i]
+                                       (str "rgba(104, 109, 202," (/ i (count (:bot/ratings-recent bot))) ")"))
                               :x-max max-recent-rating}]]]))]]
     [ui/body-button {:on-click (fn []
                                  (swap! show-inactive? not))}
@@ -117,5 +148,5 @@
          "Standings"]
         [:div {:tw "grow"}]]]
       [card/body {}
-       [:div {:tw "max-w-45vw space-y-4"}
+       [:div {:tw "space-y-4"}
         [standings-view (:game/bots game)] ]]])))

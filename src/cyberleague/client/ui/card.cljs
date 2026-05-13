@@ -36,7 +36,7 @@
 (defn body
   [{:keys [variant]} & content]
    [:div
-    {:tw ["grow overflow-y-auto overflow-x-hidden flex"
+    {:tw ["grow overflow-y-auto flex"
           (if (= variant :code)
             ""
             "p-4 flex-col")]
