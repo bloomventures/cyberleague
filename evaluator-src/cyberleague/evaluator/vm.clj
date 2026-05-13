@@ -9,8 +9,7 @@
    [taoensso.telemere :as tel])
   (:import
    [java.nio.file Files]
-   [java.nio.file.attribute FileAttribute]
-   [java.util.concurrent Executors]))
+   [java.nio.file.attribute FileAttribute]))
 
 ;; ssh -nNT -L /tmp/firecracker.socket:/run/firecracker.socket root@192.168.64.2
 ;; ssh -nNT -L /tmp/v.sock:/home/rafal/v.sock root@192.168.64.2
@@ -264,10 +263,15 @@
             [vm (init-from-snapshot! (-> config/config :evaluator :vm-base-context))]
             (vsock-request! vm eval-request))))
 
-;; Single-threaded executor — serializes all eval requests into a queue.
-;; defonce so it survives REPL reloads without leaking threads.
+;; serialize all eval requests into a queue
 (defonce ^:private eval-executor
-  (Executors/newSingleThreadExecutor))
+  (java.util.concurrent.ThreadPoolExecutor.
+   1 1 0 java.util.concurrent.TimeUnit/MILLISECONDS
+   (java.util.concurrent.LinkedBlockingQueue.)))
+
+(defn status []
+  {:running? (not (.isShutdown eval-executor))
+   :queued   (.. eval-executor getQueue size)})
 
 (defn eval!
   [eval-request]
