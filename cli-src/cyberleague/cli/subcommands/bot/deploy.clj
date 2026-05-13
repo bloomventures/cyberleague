@@ -1,20 +1,23 @@
 (ns cyberleague.cli.subcommands.bot.deploy
   (:require
+   [clojure.string]
    [cyberleague.common.artifact :as artifact]
    [cyberleague.cli.util.bot-config :as bot-config]
    [cyberleague.cli.util.format :as f]
    [cyberleague.cli.util.remote :as r]))
 
 (defn deploy!
-  [bot-config]
+  [bot-config digest]
   (println (f/color :color/yellow "Deploying..."))
-  (let [a (bot-config/->artifact bot-config)]
-    (r/tada! [:api/deploy-bot!
-              {:bot-id (:bot/id bot-config)
-               :digest (artifact/digest a)}])
-    (println "Deploy successful.")))
+  (r/tada! [:api/deploy-bot!
+            {:bot-id (:bot/id bot-config)
+             :digest digest}])
+  (println "Deploy successful."))
 
 (defn exec!
-  [{:keys [dir]}]
+  [{:keys [dir digest]}]
   (when-let [bot-config (bot-config/read! dir)]
-    (deploy! bot-config)))
+    (let [resolved-digest (if (not (clojure.string/blank? digest))
+                            digest
+                            (artifact/digest (bot-config/->artifact bot-config)))]
+      (deploy! bot-config resolved-digest))))

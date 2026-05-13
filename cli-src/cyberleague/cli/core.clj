@@ -57,13 +57,18 @@
                                  :description "Build, test-local, upload, and test-remote a bot artifact."}
                                 {:command "deploy"
                                  :runs sc.bot.deploy/exec!
-                                 :description "Deploy a previously artifact (ie. enter that version of the bot into competition)"}]
+                                 :description "Deploy a previously uploaded artifact (ie. enter that version of the bot into competition)"
+                                 :opts [{:option "digest"
+                                         :as "Digest (or 6-char prefix) of artifact to deploy; defaults to current artifact"
+                                         :type :string
+                                         :default ""}]}]
                                (map (fn [c]
-                                      (assoc c
-                                             :opts [{:option "dir"
-                                                     :as "Alternate directory from which to run this command from"
-                                                     :type :string
-                                                     :default "."}])))))}]})
+                                      (update c :opts
+                                              (fnil conj [])
+                                              {:option "dir"
+                                               :as "Alternate directory from which to run this command from"
+                                               :type :string
+                                               :default "."})))))}]})
 
 (defn -main [& args]
   (cli/run-cmd args cli-configuration))

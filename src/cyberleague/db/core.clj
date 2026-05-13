@@ -92,6 +92,20 @@
        bot-id
        digest))
 
+(defn bot-digest-prefix->digest
+  [{:keys [bot-id digest-prefix]}]
+  {:pre [(<= 6 (count digest-prefix))]}
+  (d/q '[:find ?digest .
+         :in $ ?bot-id ?digest-prefix
+         :where
+         [?b :bot/id ?bot-id]
+         [?a :artifact/bot ?b]
+         [?a :artifact/digest ?digest]
+         [(clojure.string/starts-with? ?digest ?digest-prefix)]]
+       (d/db *conn*)
+       bot-id
+       digest-prefix))
+
 ;; Envs and Languages
 
 (defn env-slug->language-slug

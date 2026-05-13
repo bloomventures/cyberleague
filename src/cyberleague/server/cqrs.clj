@@ -308,18 +308,22 @@
    {:id :api/deploy-bot!
     :params {:user-id :user/id
              :bot-id :bot/id
-             :digest :artifact/digest}
+             :digest [:re #"^[a-f0-9]{6,64}$"]}
     :rest [:post "/api/bots/:bot-id/deploy"]
     :conditions (fn [{:keys [user-id bot-id digest]}]
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   (bot-has-artifact?-condition bot-id digest)])
+                   (let [prefix (db/bot-digest-prefix->digest {:bot-id bot-id
+                                                               :digest-prefix digest})]
+                     (bot-has-artifact?-condition bot-id prefix))])
     :effect (fn [{:keys [_user-id bot-id digest]}]
-              (when (db/artifact-changed? {:bot-id bot-id
-                                           :digest digest})
-                (db/transact!
-                 [(db/deploy-bot-tx bot-id digest)])))}])
+              (let [full-digest (db/bot-digest-prefix->digest {:bot-id bot-id
+                                                               :digest-prefix digest})]
+                (when (db/artifact-changed? {:bot-id bot-id
+                                             :digest full-digest})
+                  (db/transact!
+                   [(db/deploy-bot-tx bot-id full-digest)]))))}])
 
 (tada/register! t events)
 
