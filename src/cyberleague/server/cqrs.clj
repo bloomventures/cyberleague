@@ -314,16 +314,25 @@
                   [(entity-exists?-condition :user/id user-id)
                    (entity-exists?-condition :bot/id bot-id)
                    (user-owns-bot?-condition user-id bot-id)
-                   (let [prefix (db/bot-digest-prefix->digest {:bot-id bot-id
-                                                               :digest-prefix digest})]
-                     (bot-has-artifact?-condition bot-id prefix))])
+                   (bot-has-artifact?-condition bot-id (db/bot-digest-prefix->digest {:bot-id bot-id
+                                                                                      :digest-prefix digest}))])
     :effect (fn [{:keys [_user-id bot-id digest]}]
               (let [full-digest (db/bot-digest-prefix->digest {:bot-id bot-id
                                                                :digest-prefix digest})]
                 (when (db/artifact-changed? {:bot-id bot-id
                                              :digest full-digest})
-                  (db/transact!
-                   [(db/deploy-bot-tx bot-id full-digest)]))))}])
+                  (db/transact! [(db/deploy-bot-tx bot-id full-digest)]))))}
+
+   {:id :api/undeploy-bot!
+    :params {:user-id :user/id
+             :bot-id :bot/id}
+    :rest [:post "/api/bots/:bot-id/undeploy"]
+    :conditions (fn [{:keys [user-id bot-id]}]
+                  [(entity-exists?-condition :user/id user-id)
+                   (entity-exists?-condition :bot/id bot-id)
+                   (user-owns-bot?-condition user-id bot-id)])
+    :effect (fn [{:keys [_user-id bot-id]}]
+              (db/transact! [(db/undeploy-bot-tx bot-id)]))}])
 
 (tada/register! t events)
 

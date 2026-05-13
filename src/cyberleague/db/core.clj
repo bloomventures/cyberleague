@@ -211,6 +211,18 @@
      :bot/active-artifact [:artifact/id artifact-id]
      :bot/rating-dev 350}))
 
+(defn undeploy-bot-tx
+  [bot-id]
+  (let [artifact-id (d/q '[:find ?artifact-id .
+                            :in $ ?bot-id
+                            :where
+                            [?b :bot/id ?bot-id]
+                            [?b :bot/active-artifact ?a]
+                            [?a :artifact/id ?artifact-id]]
+                          (d/db *conn*)
+                          bot-id)]
+    [:db/retract [:bot/id bot-id] :bot/active-artifact [:artifact/id artifact-id]]))
+
 (defn dummy-bot
   [game-slug]
   (first (d/q '[:find ?b ?a

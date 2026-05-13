@@ -11,7 +11,8 @@
    [cyberleague.cli.subcommands.bot.test-remote :as sc.bot.test-remote]
    [cyberleague.cli.subcommands.bot.upload :as sc.bot.upload]
    [cyberleague.cli.subcommands.bot.deploy :as sc.bot.deploy]
-   [cyberleague.cli.subcommands.bot.stage :as sc.bot.stage]))
+   [cyberleague.cli.subcommands.bot.stage :as sc.bot.stage]
+   [cyberleague.cli.subcommands.bot.undeploy :as sc.bot.undeploy]))
 
 (def cli-configuration
   {:command "cyberleague"
@@ -61,7 +62,10 @@
                                  :opts [{:option "digest"
                                          :as "Digest (or 6-char prefix) of artifact to deploy; defaults to current artifact"
                                          :type :string
-                                         :default ""}]}]
+                                         :default ""}]}
+                                {:command "undeploy"
+                                 :runs sc.bot.undeploy/exec!
+                                 :description "Remove the bot from competition (retract its active artifact)"}]
                                (map (fn [c]
                                       (update c :opts
                                               (fnil conj [])
