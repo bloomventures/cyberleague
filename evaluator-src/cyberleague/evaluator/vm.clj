@@ -8,11 +8,7 @@
    [cyberleague.common.config :as config]
    [taoensso.telemere :as tel])
   (:import
-   [java.nio.file Files]
-   [java.nio.file.attribute FileAttribute]))
-
-;; ssh -nNT -L /tmp/firecracker.socket:/run/firecracker.socket root@192.168.64.2
-;; ssh -nNT -L /tmp/v.sock:/home/rafal/v.sock root@192.168.64.2
+   [java.nio.file Files]))
 
 ;; firecracker
 ;;   resources:
@@ -26,40 +22,29 @@
 ;;       https://jacquesverre.com/blog/gentle-introduction-to-firecracker
 ;;       https://jvns.ca/blog/2021/01/23/firecracker--start-a-vm-in-less-than-a-second/
 
-(def BaseContext
-  [:map
-   [:vm/firecracker-executable-path :string]
-   [:vm/firecracker-snapshot-dir-path :string]
-   [:vm/firecracker-sock-dir-path :string]
-   [:vm/firecracker-timeout-seconds :int]
-   [:vm/initramfs-path :string]
-   [:vm/sidecar-path :string]
-   [:vm/kernel-image-path :string]
-   [:vm/vsock-inner-port :int]])
-
 (def VmContext
   [:map
-   ;; path to initramfs cpio.gz (rootfs loaded into RAM at boot)
-   [:vm/initramfs-path               :string]
+   ;; path to initramfs.cpio.gz
+   ;; (rootfs loaded into RAM at boot)
+   [:vm/initramfs-path :string]
    ;; path to img file containing "sidecar" drive
    ;; (containing relay program); becomes /dev/vda (only drive)
-   [:vm/sidecar-path                 :string]
+   [:vm/sidecar-path :string]
    ;; path to uncompressed linux kernel, typically "vmlinux"
-   [:vm/kernel-image-path            :string]
-
-   [:vm/firecracker-executable-path  :string]
-   [:vm/firecracker-snapshot-dir-path :string]
-   [:vm/firecracker-sock-dir-path    :string]
-   [:vm/firecracker-executable-path  :string]
+   [:vm/kernel-image-path :string]
    ;; path to where the firecracker control socket
    ;; should be created
-   [:vm/firecracker-host-socket-path :string]
+   [:vm/firecracker-firecracker-executable-path :string]
+   [:vm/firecracker-jailer-executable-path :string]
+   [:vm/firecracker-jailer-uid :int]
+   [:vm/firecracker-jailer-gid :int]
+   [:vm/firecracker-snapshot-dir-path :string]
+   [:vm/firecracker-timeout-seconds :int]
    ;; path to where the guest-host messaging socket ("vsock")
    ;; should be created
-   [:vm/vsock-host-socket-path       :string]
+   [:vm/vsock-host-socket-path :string]
    ;; port within guest at which vsock will be connected
-   [:vm/vsock-inner-port             :int]
-   ])
+   [:vm/vsock-inner-port :int]])
 
 (defn- wait-for!
   "Calls f repeatedly until it returns without throwing."
@@ -88,14 +73,12 @@
                       :path "/actions"
                       :body {:action_type "SendCtrlAltDel"}}))
 
-(defn configure-and-boot!
-  [{:vm/keys [vsock-host-socket-path kernel-image-path initramfs-path sidecar-path] :as vm} fc]
+(defn configure-and-boot! [fc]
   (tel/event! ::configure-and-boot {:level :info
-                                    :data {:vm vm
-                                           :fc fc}})
+                                    :data {:fc fc}})
   #_(f/api-request! fc {:method :put
                         :path "/logger"
-                        :body {:log_path "firecracker_log.txt"
+                        :body {:log_path "/firecracker_log.txt"
                                :level "Debug"
                                :show_level true
                                :show_log_origin true}})
@@ -103,12 +86,12 @@
   (f/api-request! fc {:method :put
                       :path "/vsock"
                       :body {:guest_cid 3
-                             :uds_path vsock-host-socket-path}})
+                             :uds_path "/v.sock"}})
 
   (f/api-request! fc {:method :put
                       :path "/boot-source"
-                      :body {:kernel_image_path kernel-image-path
-                             :initrd_path       initramfs-path
+                      :body {:kernel_image_path "/vmlinux"
+                             :initrd_path       "/initrd.gz"
                              :boot_args
                              (string/join
                               " "
@@ -150,7 +133,7 @@
   (f/api-request! fc {:method :put
                       :path "/drives/sidecar"
                       :body {:drive_id       "sidecar"
-                             :path_on_host   sidecar-path
+                             :path_on_host   "/sidecar.img"
                              :is_root_device false
                              :is_read_only   true}})
 
@@ -163,98 +146,86 @@
                       :path "/actions"
                       :body {:action_type "InstanceStart"}}))
 
-(defn create-temp-dir!
-  [prefix]
-  (tel/event! ::create-temp-dir {:level :debug
-                                 :prefix prefix})
-  (let [path (Files/createTempDirectory prefix (into-array FileAttribute []))]
-    (o/with-close-fn
-     {:path path}
-     (fn [_]
-       (tel/event! ::close-temp-dir {:level :debug
-                                     :path (str path)})
-       (->> (file-seq (.toFile path))
-            reverse
-            (run! (fn [f] (.delete f))))))))
+(defn link-into-jail!
+  [jail-root host-path jail-filename]
+  (let [dest (io/file jail-root jail-filename)]
+    (.mkdirs (.getParentFile dest))
+    (Files/createLink (.toPath dest) (.toPath (io/file host-path)))))
 
-(defn create-fixed-dir!
-  [path-str]
-  (let [path (-> (io/file path-str) .toPath)]
-    (.mkdirs (.toFile path))
-    (o/with-close-fn
-     {:path path}
-     (fn [_]
-       (tel/event! ::close-fixed-dir {:level :debug
-                                      :path path-str})
-       #_(->> (file-seq path)
-            (filter (fn [f]
-                      (.isFile f)))
-            (map (fn [f]
-                   (tel/event! :delete-file {:level :debug
-                                             :data {:path f}})))
-            (run! (fn [f] (.delete f))))))))
+(defn firecracker-context [vm]
+  {:firecracker/firecracker-executable-path  (:vm/firecracker-firecracker-executable-path vm)
+   :firecracker/jail-base-path               (:vm/firecracker-jail-base-path vm)
+   :firecracker/jailer-executable-path       (:vm/firecracker-jailer-executable-path vm)
+   :firecracker/jailer-uid                   (:vm/firecracker-jailer-uid vm)
+   :firecracker/jailer-gid                   (:vm/firecracker-jailer-gid vm)
+   :firecracker/timeout-seconds              (:vm/firecracker-timeout-seconds vm)
+   :firecracker/log-level                    (:vm/firecracker-log-level vm)})
 
 (defn init-from-scratch!
   [vm]
-  (let [dir #_(create-temp-dir! "cyber-vm-")
-        ;; use fixed dir, because we're going to snapshot
-        ;; and until new firecracker version hits, it expects vsock in the same place
-        (create-fixed-dir! (:vm/firecracker-sock-dir-path vm))
-        vm  (assoc vm
-                   :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
-                   :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
-        fc  (f/init! {:firecracker/socket-path     (:vm/firecracker-host-socket-path vm)
-                      :firecracker/log-level (:vm/firecracker-log-level vm)
-                      :firecracker/timeout-seconds (:vm/firecracker-timeout-seconds vm)
-                      :firecracker/executable-path (:vm/firecracker-executable-path vm)})
-        vm (assoc vm :vm/firecracker-instance fc)]
-    (tel/event! ::vm-start {:level :debug})
-    (Thread/sleep 100)
-    (configure-and-boot! vm fc)
-    (tel/event! ::vm-wait {:level :debug})
-    (Thread/sleep 1500)
-    (o/with-close-fn
-     vm
-     (fn [_]
-       (tel/event! ::vm-close {:level :info})
-       (o/close fc)
-       (.delete (io/file (:vm/vsock-host-socket-path vm)))
-       (o/close dir)))))
+  (let [jail      (f/prepare-jail! (firecracker-context vm))
+        jail-root (:firecracker/jail-root jail)]
+    (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
+    (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
+    (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
+    (let [fc (f/start! jail)
+          vm (assoc vm
+                    :vm/vsock-host-socket-path (str jail-root "/v.sock")
+                    :vm/firecracker-instance fc)]
+      (tel/event! ::vm-start {:level :debug})
+      (Thread/sleep 5000)
+      (configure-and-boot! fc)
+      (tel/event! ::vm-wait {:level :debug})
+      (Thread/sleep 1500)
+      (o/with-close-fn
+       vm
+       (fn [_]
+         (tel/event! ::vm-close {:level :info})
+         (o/close fc)
+         (o/close jail))))))
 
 (defn init-from-snapshot!
   [vm]
-  (let [dir (create-fixed-dir! (:vm/firecracker-sock-dir-path vm))
-        vm  (assoc vm
-                   :vm/firecracker-host-socket-path (str (:path dir) "/firecracker.sock")
-                   :vm/vsock-host-socket-path       (str (:path dir) "/v.sock"))
-        fc  (f/init! {:firecracker/socket-path     (:vm/firecracker-host-socket-path vm)
-                      :firecracker/timeout-seconds (:vm/firecracker-timeout-seconds vm)
-                      :firecracker/executable-path (:vm/firecracker-executable-path vm)})
-        vm (assoc vm :vm/firecracker-instance fc)]
-    (wait-for! (fn [] (check-conn! fc)) 2)
-    (tel/event! ::vm-start-snapshot {:level :debug})
-    (f/api-request! fc {:method :put
-                        :path "/snapshot/load"
-                        :body {:snapshot_path (str (:vm/firecracker-snapshot-dir-path vm) "/firecracker.snap")
-                               :mem_backend
-                               {:backend_path (str (:vm/firecracker-snapshot-dir-path vm) "/firecracker.mem")
-                                :backend_type "File"}
-                               :resume_vm false
-                               ;; useful when next version comes out
-                               #_#_:vsock_override {:uds_path vsock-host-socket-path}}})
-    (f/api-request! fc {:method :patch
-                        :path "/vm"
-                        :body {:state "Resumed"}})
-    (tel/event! ::vm-wait {:level :debug})
-    (o/with-close-fn
-     vm
-     (fn [_]
-       (tel/event! ::vm-close {:level :info})
-       (o/close fc)
-       (.delete (io/file (:vm/vsock-host-socket-path vm)))
-       (o/close dir)))))
+  (let [jail      (f/prepare-jail! (firecracker-context vm))
+        jail-root (:firecracker/jail-root jail)
+        snapshot-dir  (:vm/firecracker-snapshot-dir-path vm)]
+    (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
+    (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
+    (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
+    (link-into-jail! jail-root (str snapshot-dir "/firecracker.snap") "firecracker.snap")
+    (link-into-jail! jail-root (str snapshot-dir "/firecracker.mem") "firecracker.mem")
+    (let [fc (f/start! jail)
+          vm (assoc vm
+                    :vm/vsock-host-socket-path (str jail-root "/v.sock")
+                    :vm/firecracker-instance fc)]
+      (wait-for! (fn [] (check-conn! fc)) 2)
+      (tel/event! ::vm-start-snapshot {:level :debug})
+      (f/api-request! fc {:method :put
+                          :path "/snapshot/load"
+                          :body {:snapshot_path "/firecracker.snap"
+                                 :mem_backend
+                                 {:backend_path "/firecracker.mem"
+                                  :backend_type "File"}
+                                 :resume_vm false
+                                 #_#_:vsock_override {:uds_path "/v.sock"}}})
+      (f/api-request! fc {:method :patch
+                          :path "/vm"
+                          :body {:state "Resumed"}})
+      (tel/event! ::vm-wait {:level :debug})
+      (o/with-close-fn
+       vm
+       (fn [_]
+         (tel/event! ::vm-close {:level :info})
+         (o/close fc)
+         (o/close jail))))))
 
-(defn eval-unsafe!
+(defn eval-from-scratch!
+  [eval-request]
+  @(future (o/with-open+
+            [vm (init-from-scratch! (-> config/config :evaluator :vm-base-context))]
+            (vsock-request! vm eval-request))))
+
+(defn eval-from-snapshot!
   [eval-request]
   ;; vsock's SocketChannel seems to interact with
   ;; http-kits Socket lifecycle management
@@ -276,7 +247,7 @@
 (defn eval!
   [eval-request]
   (-> eval-executor
-      (.submit ^Callable (fn [] (eval-unsafe! eval-request)))
+      (.submit ^Callable (fn [] (eval-from-snapshot! eval-request)))
       .get))
 
 (comment
@@ -296,8 +267,11 @@
                   {:method :put
                    :path "/snapshot/create"
                    :body {:snapshot_type "Full"
-                          :snapshot_path (str (:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.snap")
-                          :mem_file_path (str (:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.mem")}})
+                          :snapshot_path (str #_(:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.snap")
+                          :mem_file_path (str #_(:vm/firecracker-snapshot-dir-path @*vm) "/firecracker.mem")}})
+
+  ;; TODO
+  ;; copy snap and mem out of the dir
 
   (f/api-request! (:vm/firecracker-instance @*vm)
                   {:method :patch
@@ -338,17 +312,17 @@
     :eval.request/argv     ["python" "$ARTIFACT" "Python"]}))
 
 (comment
-  (eval-unsafe!
-   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello_musl_x86")
+  (eval-from-snapshot!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/tmp/hello_musl_x86")
     :eval.request/stdin    (byte-array 0)
     :eval.request/argv     ["$ARTIFACT" "Rust"]})
 
-  (eval-unsafe!
-   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.jar")
+  (eval-from-snapshot!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/tmp/hello.jar")
     :eval.request/stdin    (byte-array 0)
     :eval.request/argv     ["java" "-jar" "$ARTIFACT" "Java"]})
 
-  (eval-unsafe!
-   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/home/rafal/hello.py")
+  (eval-from-snapshot!
+   {:eval.request/artifact (cyberleague.evaluator.artifacts/path->bytes "/tmp/hello.py")
     :eval.request/stdin    (byte-array 0)
     :eval.request/argv     ["python" "$ARTIFACT" "Python"]}))

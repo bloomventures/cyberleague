@@ -2,6 +2,20 @@
   (:require
    [bloom.commons.config :as config]))
 
+(def VmConfigBase
+  [:map
+   [:vm/firecracker-firecracker-executable-path :string]
+   [:vm/firecracker-jailer-executable-path :string]
+   [:vm/firecracker-jail-base-path :string]
+   [:vm/firecracker-jailer-uid :int]
+   [:vm/firecracker-jailer-gid :int]
+   [:vm/firecracker-snapshot-dir-path :string]
+   [:vm/firecracker-timeout-seconds :int]
+   [:vm/initramfs-path :string]
+   [:vm/sidecar-path :string]
+   [:vm/kernel-image-path :string]
+   [:vm/vsock-inner-port :int]])
+
 (def config
   (config/read
    "config.edn"
@@ -15,16 +29,7 @@
      [:map
       [:http-port :int]
       [:signing-secret :string]
-      [:vm-base-context
-       [:map
-        [:vm/firecracker-executable-path :string]
-        [:vm/firecracker-snapshot-dir-path :string]
-        [:vm/firecracker-sock-dir-path :string]
-        [:vm/firecracker-timeout-seconds :int]
-        [:vm/initramfs-path :string]
-        [:vm/sidecar-path :string]
-        [:vm/kernel-image-path :string]
-        [:vm/vsock-inner-port :int]]]]]
+      [:vm-base-context VmConfigBase]]]
     [:server
      [:map
       [:http-port :int]
