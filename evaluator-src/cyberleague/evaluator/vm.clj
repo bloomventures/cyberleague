@@ -161,63 +161,83 @@
    :firecracker/timeout-seconds              (:vm/firecracker-timeout-seconds vm)
    :firecracker/log-level                    (:vm/firecracker-log-level vm)})
 
+(defn acquire!
+  "Like o/with-open+, but the acquired resources ESCAPE the call instead of
+  being closed at the end of a scope.
+
+  Calls (build track!), where track! registers a closeable (optionally with a
+  hint) and returns it. On success, returns build's result carrying a close fn
+  (see o/with-close-fn) that closes everything acquired, in reverse order, via
+  open's close-all. If build throws, the acquired resources are closed
+  immediately and the original exception re-thrown, with any close exceptions
+  added as suppressed.
+
+  Use when a resource handle must outlive the function that opens it — e.g.
+  returned to a caller who later closes it with o/with-open+."
+  [build]
+  (let [;; using volatile, because that's what with-open+ does
+        acquired (volatile! ())
+        track!   (fn
+                   ([closeable] (vswap! acquired conj [closeable nil]) closeable)
+                   ([closeable hint] (vswap! acquired conj [closeable hint]) closeable))]
+    (try
+      (o/with-close-fn
+       (build track!)
+       (fn [_]
+         (when-let [t (#'o/close-all @acquired nil)]
+           (throw t))))
+      (catch Throwable t
+        (throw (#'o/close-all @acquired t))))))
+
 (defn init-from-scratch!
   [vm]
-  (let [jail      (f/prepare-jail! (firecracker-context vm))
-        jail-root (:firecracker/jail-root jail)]
-    (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
-    (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
-    (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
-    (let [fc (f/start! jail)
-          vm (assoc vm
-                    :vm/vsock-host-socket-path (str jail-root "/v.sock")
-                    :vm/firecracker-instance fc)]
-      (tel/event! ::vm-start {:level :debug})
-      (Thread/sleep 5000)
-      (configure-and-boot! fc)
-      (tel/event! ::vm-wait {:level :debug})
-      (Thread/sleep 1500)
-      (o/with-close-fn
-       vm
-       (fn [_]
-         (tel/event! ::vm-close {:level :info})
-         (o/close fc)
-         (o/close jail))))))
+  (acquire!
+   (fn [track!]
+     (let [jail      (track! (f/prepare-jail! (firecracker-context vm)) ::jail)
+           jail-root (:firecracker/jail-root jail)]
+       (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
+       (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
+       (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
+       (let [fc (track! (f/start! jail) ::firecracker)]
+         (tel/event! ::vm-start {:level :debug})
+         (Thread/sleep 5000)
+         (configure-and-boot! fc)
+         (tel/event! ::vm-wait {:level :debug})
+         (Thread/sleep 1500)
+         (assoc vm
+                :vm/vsock-host-socket-path (str jail-root "/v.sock")
+                :vm/firecracker-instance fc))))))
 
 (defn init-from-snapshot!
   [vm]
-  (let [jail      (f/prepare-jail! (firecracker-context vm))
-        jail-root (:firecracker/jail-root jail)
-        snapshot-dir  (:vm/firecracker-snapshot-dir-path vm)]
-    (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
-    (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
-    (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
-    (link-into-jail! jail-root (str snapshot-dir "/firecracker.snap") "firecracker.snap")
-    (link-into-jail! jail-root (str snapshot-dir "/firecracker.mem") "firecracker.mem")
-    (let [fc (f/start! jail)
-          vm (assoc vm
-                    :vm/vsock-host-socket-path (str jail-root "/v.sock")
-                    :vm/firecracker-instance fc)]
-      (wait-for! (fn [] (check-conn! fc)) 2)
-      (tel/event! ::vm-start-snapshot {:level :debug})
-      (f/api-request! fc {:method :put
-                          :path "/snapshot/load"
-                          :body {:snapshot_path "/firecracker.snap"
-                                 :mem_backend
-                                 {:backend_path "/firecracker.mem"
-                                  :backend_type "File"}
-                                 :resume_vm false
-                                 #_#_:vsock_override {:uds_path "/v.sock"}}})
-      (f/api-request! fc {:method :patch
-                          :path "/vm"
-                          :body {:state "Resumed"}})
-      (tel/event! ::vm-wait {:level :debug})
-      (o/with-close-fn
-       vm
-       (fn [_]
-         (tel/event! ::vm-close {:level :info})
-         (o/close fc)
-         (o/close jail))))))
+  (acquire!
+   (fn [track!]
+     (let [jail         (track! (f/prepare-jail! (firecracker-context vm)) ::jail)
+           jail-root    (:firecracker/jail-root jail)
+           snapshot-dir (:vm/firecracker-snapshot-dir-path vm)]
+       (link-into-jail! jail-root (:vm/kernel-image-path vm) "vmlinux")
+       (link-into-jail! jail-root (:vm/initramfs-path vm) "initrd.gz")
+       (link-into-jail! jail-root (:vm/sidecar-path vm) "sidecar.img")
+       (link-into-jail! jail-root (str snapshot-dir "/firecracker.snap") "firecracker.snap")
+       (link-into-jail! jail-root (str snapshot-dir "/firecracker.mem") "firecracker.mem")
+       (let [fc (track! (f/start! jail) ::firecracker)]
+         (wait-for! (fn [] (check-conn! fc)) 2)
+         (tel/event! ::vm-start-snapshot {:level :debug})
+         (f/api-request! fc {:method :put
+                             :path "/snapshot/load"
+                             :body {:snapshot_path "/firecracker.snap"
+                                    :mem_backend
+                                    {:backend_path "/firecracker.mem"
+                                     :backend_type "File"}
+                                    :resume_vm false
+                                    #_#_:vsock_override {:uds_path "/v.sock"}}})
+         (f/api-request! fc {:method :patch
+                             :path "/vm"
+                             :body {:state "Resumed"}})
+         (tel/event! ::vm-wait {:level :debug})
+         (assoc vm
+                :vm/vsock-host-socket-path (str jail-root "/v.sock")
+                :vm/firecracker-instance fc))))))
 
 (defn eval-from-scratch!
   [eval-request]
