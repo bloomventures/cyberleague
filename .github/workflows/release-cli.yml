@@ -1,0 +1,36 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Leiningen
+        uses: DeLaGuardo/setup-clojure@13.1
+        with:
+          lein: latest
+
+      - name: Build CLI uberjar
+        run: |
+          lein with-profile uberjar-cli uberjar
+          mv target/cyberleague-*-standalone.jar target/cyberleague.jar
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/cyberleague.jar
